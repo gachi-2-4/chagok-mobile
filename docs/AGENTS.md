@@ -67,8 +67,28 @@ flutter test test/<파일>    # 특정 테스트
 - 비밀키·API 키 등은 코드나 커밋에 포함하지 않습니다.
 
 ### Git
-- 사용자가 요청할 때만 커밋/푸시합니다.
 - 커밋 메시지는 [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) 규칙을 따릅니다.
+- `main`에 직접 커밋·푸시하지 않습니다. 모든 작업은 브랜치에서 하고 PR로 병합합니다.
+
+### 브랜치 & PR 작업 흐름
+1. 최신 `main`에서 브랜치를 만듭니다.
+   ```bash
+   git checkout main && git pull
+   git checkout -b <type>/<짧은-설명>
+   ```
+2. 브랜치 이름은 `<type>/<kebab-case 설명>` 형식이며, type은 커밋 규칙의 type을 씁니다.
+   - 예: `feat/email-login`, `fix/home-empty-list`, `docs/branch-pr-workflow`
+3. 커밋 규칙에 맞춰 커밋하고, 푸시 전에 `dart format .`, `flutter analyze`, `flutter test`를 통과시킵니다.
+4. 브랜치를 푸시하고 PR을 생성합니다.
+   ```bash
+   git push -u origin <브랜치>
+   gh pr create --base main
+   ```
+5. PR 규칙
+   - **제목**: 커밋 규칙과 같은 형식 (`<type>(<scope>): <subject>`)
+   - **본문**: `## 변경 사항` (무엇을 왜), `## 확인 방법` (테스트·실행 결과) 섹션을 포함합니다.
+   - 하나의 PR에는 하나의 목적만 담습니다.
+6. PR 병합은 사용자가 확인한 뒤 진행합니다. 에이전트가 임의로 병합하지 않습니다.
 
 ## 미정 사항 (정해지면 갱신)
 
