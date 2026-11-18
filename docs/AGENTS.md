@@ -23,7 +23,7 @@ lib/            # 앱 소스 코드 (진입점: lib/main.dart)
 test/           # 단위·위젯 테스트
 android/ ios/ web/ macos/ windows/ linux/   # 플랫폼별 네이티브 프로젝트
 pubspec.yaml    # 의존성 및 에셋 설정
-analysis_options.yaml  # 린트 설정 (flutter_lints)
+analysis_options.yaml  # 린트 설정 (flutter_lints + CODE_STYLE.md 규칙)
 ```
 
 `lib/`은 `app/`, `core/`, `features/<기능>/` 구조로 나눕니다. 자세한 구조와 계층 규칙은 [`ARCHITECTURE.md`](ARCHITECTURE.md)를 따릅니다.
