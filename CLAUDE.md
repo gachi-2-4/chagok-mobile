@@ -4,6 +4,9 @@
 
 @docs/AGENTS.md
 @docs/COMMIT_CONVENTION.md
+@docs/ARCHITECTURE.md
+@docs/CODE_STYLE.md
+@docs/TESTING.md
 
 ## Claude Code 전용 메모
 
