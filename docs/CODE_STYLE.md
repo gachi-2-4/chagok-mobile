@@ -37,12 +37,12 @@
 
 ## import
 
-- 프로젝트 내부 파일은 `package:stack/...` 절대 경로로 import합니다. 상대 경로(`../`)는 쓰지 않습니다.
+- 프로젝트 내부 파일은 `package:chagok_mobile/...` 절대 경로로 import합니다. 상대 경로(`../`)는 쓰지 않습니다.
 - 순서는 아래와 같고, 그룹 사이는 한 줄 띄웁니다.
   1. `dart:` 
   2. `package:flutter/`
   3. 외부 패키지 (`package:...`)
-  4. 프로젝트 내부 (`package:stack/...`)
+  4. 프로젝트 내부 (`package:chagok_mobile/...`)
 
 ```dart
 import 'dart:async';
@@ -52,7 +52,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:stack/features/todo/application/todo_list_notifier.dart';
+import 'package:chagok_mobile/features/todo/application/todo_list_notifier.dart';
 ```
 
 ## 위젯 작성

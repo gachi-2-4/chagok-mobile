@@ -8,7 +8,7 @@
 - **서비스**: 차곡 (Chagok), 문서 자동 정리 서비스
 - **이 저장소**: 차곡의 모바일 앱 (Flutter)
 - **GitHub**: [`gachi-2-4/chagok-mobile`](https://github.com/gachi-2-4/chagok-mobile)
-- **Dart 패키지 이름**: `stack` (import 경로: `package:stack/...`)
+- **Dart 패키지 이름**: `chagok_mobile` (import 경로: `package:chagok_mobile/...`)
 - **종류**: Flutter 애플리케이션 (멀티 플랫폼: Android, iOS, Web, macOS, Windows, Linux)
 - **SDK**: Flutter 3.47.x (stable) / Dart `^3.13.5`
 - **현재 상태**: 개발 규칙 문서 작성 완료, 앱 코드는 `flutter create` 초기 템플릿 상태
