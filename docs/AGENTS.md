@@ -11,7 +11,7 @@
 - **Dart 패키지 이름**: `chagok_mobile` (import 경로: `package:chagok_mobile/...`)
 - **종류**: Flutter 애플리케이션 (멀티 플랫폼: Android, iOS, Web, macOS, Windows, Linux)
 - **SDK**: Flutter 3.47.x (stable) / Dart `^3.13.5`
-- **현재 상태**: 개발 규칙 문서 작성 완료, 앱 코드는 `flutter create` 초기 템플릿 상태
+- **현재 상태**: 기본 구조(`app/`, `features/home/`) 구성 완료, 첫 기능 개발 전
 
 > TODO: 주요 기능과 주력 대상 플랫폼을 정해지는 대로 여기에 적습니다.
 

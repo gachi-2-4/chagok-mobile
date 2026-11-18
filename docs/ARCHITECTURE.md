@@ -11,7 +11,7 @@
 | 라우팅 | [go_router](https://pub.dev/packages/go_router) | 경로 상수는 한 곳에서 관리 |
 | 폴더 구조 | 기능 단위 (feature-first) | 기능마다 `presentation / application / data` |
 
-> 패키지는 첫 기능을 만들 때 `flutter pub add flutter_riverpod go_router`로 추가합니다.
+> 사용 버전: `flutter_riverpod ^3.5.0`, `go_router ^18.1.4`
 > 코드 생성(`riverpod_generator`, `freezed`, `build_runner`)은 처음엔 쓰지 않고, 보일러플레이트가 부담될 때 도입을 검토합니다.
 
 ## 폴더 구조
