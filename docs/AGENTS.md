@@ -5,12 +5,15 @@
 
 ## 프로젝트 개요
 
-- **이름**: `stack`
+- **서비스**: 차곡 (Chagok), 문서 자동 정리 서비스
+- **이 저장소**: 차곡의 모바일 앱 (Flutter)
+- **GitHub**: [`gachi-2-4/chagok-mobile`](https://github.com/gachi-2-4/chagok-mobile)
+- **Dart 패키지 이름**: `stack` (import 경로: `package:stack/...`)
 - **종류**: Flutter 애플리케이션 (멀티 플랫폼: Android, iOS, Web, macOS, Windows, Linux)
 - **SDK**: Flutter 3.47.x (stable) / Dart `^3.13.5`
-- **현재 상태**: `flutter create` 직후의 초기 템플릿 상태
+- **현재 상태**: 개발 규칙 문서 작성 완료, 앱 코드는 `flutter create` 초기 템플릿 상태
 
-> TODO: 앱의 목적, 주요 기능, 대상 플랫폼을 정해지는 대로 여기에 적습니다.
+> TODO: 주요 기능과 주력 대상 플랫폼을 정해지는 대로 여기에 적습니다.
 
 ## 디렉터리 구조
 
