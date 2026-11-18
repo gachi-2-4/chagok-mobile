@@ -1,6 +1,6 @@
 {
-    "name": "stack",
-    "short_name": "stack",
+    "name": "차곡",
+    "short_name": "차곡",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
