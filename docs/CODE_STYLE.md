@@ -6,9 +6,10 @@
 ## 기본
 
 - 커밋 전 `dart format .`과 `flutter analyze`를 통과시킵니다. 경고(warning)·정보(info)도 남기지 않습니다.
+- 이 문서의 규칙 중 자동으로 검사할 수 있는 것은 `analysis_options.yaml` 린트로 켜 두었습니다. 규칙을 바꿀 때는 두 파일을 함께 고칩니다.
 - 린트를 끄는 `// ignore:`는 꼭 필요할 때만 쓰고, 이유를 같은 줄이나 위 줄에 적습니다.
 - 문자열은 작은따옴표(`'`)를 씁니다.
-- 줄 끝 쉼표(trailing comma)를 넣어 포맷터가 위젯 트리를 세로로 정리하게 합니다.
+- 줄 끝 쉼표(trailing comma)는 `dart format`이 자동으로 넣고 빼므로 직접 맞추지 않습니다.
 
 ## 이름 규칙
 
@@ -38,21 +39,18 @@
 ## import
 
 - 프로젝트 내부 파일은 `package:chagok_mobile/...` 절대 경로로 import합니다. 상대 경로(`../`)는 쓰지 않습니다.
-- 순서는 아래와 같고, 그룹 사이는 한 줄 띄웁니다.
+- 순서는 `directives_ordering` 린트를 따릅니다.
   1. `dart:` 
-  2. `package:flutter/`
-  3. 외부 패키지 (`package:...`)
-  4. 프로젝트 내부 (`package:chagok_mobile/...`)
+  2. `package:` (Flutter, 외부 패키지, 프로젝트 내부 구분 없이 **알파벳순**)
+- 두 그룹 사이는 한 줄 띄웁니다. IDE의 "Organize Imports"를 쓰면 자동으로 정렬됩니다.
 
 ```dart
 import 'dart:async';
 
+import 'package:chagok_mobile/features/todo/application/todo_list_notifier.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:chagok_mobile/features/todo/application/todo_list_notifier.dart';
 ```
 
 ## 위젯 작성

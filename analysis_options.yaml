@@ -1,12 +1,12 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
+# 정적 분석 설정
 #
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# 기본 규칙은 flutter_lints(package:flutter_lints/flutter.yaml)를 따르고,
+# docs/CODE_STYLE.md 의 규칙을 자동으로 검사하기 위한 규칙을 추가로 켭니다.
+# 실행: flutter analyze
+#
+# 규칙을 끄거나 바꿀 때는 docs/CODE_STYLE.md 도 함께 고칩니다.
+# 전체 규칙 목록: https://dart.dev/lints
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -19,20 +19,48 @@ analyzer:
     - macos/**
     - linux/**
 
-linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
-  rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+  # 암묵적인 dynamic을 막아 타입 오류를 컴파일 단계에서 잡습니다.
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    # ── 문자열·import (CODE_STYLE.md > 기본, import) ──
+    - prefer_single_quotes
+    - always_use_package_imports
+    - directives_ordering
+
+    # ── const·final (CODE_STYLE.md > 위젯 작성, Dart 문법) ──
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_locals
+    - prefer_final_in_for_each
+
+    # ── 타입 명시 (CODE_STYLE.md > Dart 문법) ──
+    - always_declare_return_types
+    - type_annotate_public_apis
+    - avoid_dynamic_calls
+
+    # ── 비동기 (CODE_STYLE.md > Dart 문법) ──
+    - unawaited_futures
+    - avoid_void_async
+    - cancel_subscriptions
+    - close_sinks
+
+    # ── 위젯 ──
+    - use_colored_box
+    - use_decorated_box
+    - sized_box_shrink_expand
+
+    # ── 불필요한 코드 정리 ──
+    - avoid_redundant_argument_values
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_statements
+
+    # ── 예외 처리 (ARCHITECTURE.md > 에러 처리) ──
+    - only_throw_errors
+    - throw_in_finally
