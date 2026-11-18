@@ -23,15 +23,18 @@ pubspec.yaml    # 의존성 및 에셋 설정
 analysis_options.yaml  # 린트 설정 (flutter_lints)
 ```
 
-기능이 늘어나면 `lib/` 아래를 다음처럼 계층별로 나눕니다.
+`lib/`은 `app/`, `core/`, `features/<기능>/` 구조로 나눕니다. 자세한 구조와 계층 규칙은 [`ARCHITECTURE.md`](ARCHITECTURE.md)를 따릅니다.
 
-```
-lib/
-  main.dart
-  app/            # MaterialApp, 라우팅, 테마
-  features/<기능>/  # 기능 단위 (ui / logic / data)
-  core/           # 공통 유틸, 상수, 확장
-```
+## 규칙 문서
+
+작업 전에 관련 문서를 읽고 따릅니다.
+
+| 문서 | 내용 |
+|------|------|
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | 폴더 구조, 계층 규칙, Riverpod·go_router 사용법 |
+| [`CODE_STYLE.md`](CODE_STYLE.md) | 이름 규칙, import, 위젯 작성, 주석 |
+| [`TESTING.md`](TESTING.md) | 테스트 대상, 위치, 작성 방법 |
+| [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) | 커밋 메시지 규칙 |
 
 ## 자주 쓰는 명령어
 
@@ -47,14 +50,11 @@ flutter test test/<파일>    # 특정 테스트
 ## 작업 규칙
 
 ### 코드 스타일
-- `analysis_options.yaml`의 린트(`flutter_lints`)를 따르고, 경고를 남기지 않습니다.
+- [`CODE_STYLE.md`](CODE_STYLE.md)를 따릅니다.
 - 변경 후 반드시 `dart format .` 과 `flutter analyze` 를 실행해 통과시킵니다.
-- 가능한 곳에는 `const` 생성자를 사용합니다.
-- 위젯이 커지면 private 메서드보다 별도 위젯 클래스로 분리합니다.
-- 파일명은 `snake_case.dart`, 클래스는 `UpperCamelCase`, 변수·함수는 `lowerCamelCase`.
 
 ### 테스트
-- 새 로직에는 단위 테스트, 새 화면/컴포넌트에는 위젯 테스트를 추가합니다.
+- [`TESTING.md`](TESTING.md)를 따릅니다. Notifier·Repository·유틸은 단위 테스트가 필수입니다.
 - 작업을 마치기 전에 `flutter test` 가 통과해야 합니다.
 
 ### 의존성
@@ -97,7 +97,5 @@ flutter test test/<파일>    # 특정 테스트
 
 ## 미정 사항 (정해지면 갱신)
 
-- 상태 관리 방식: TODO (예: Provider / Riverpod / Bloc)
-- 라우팅: TODO (예: go_router)
 - 백엔드/데이터 소스: TODO
 - 디자인 시스템·테마: TODO
