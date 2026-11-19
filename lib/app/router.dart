@@ -1,3 +1,5 @@
+import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
+import 'package:chagok_mobile/features/document/presentation/payment_reminder_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_confirm_screen.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_retake_screen.dart';
@@ -12,6 +14,12 @@ import 'package:go_router/go_router.dart';
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
   static const home = '/';
+
+  // 서류 상세 (D01~D02)
+  static const documentEditPattern = '/documents/:id/edit';
+  static const paymentReminderPattern = '/documents/:id/reminder';
+  static String documentEdit(String id) => '/documents/$id/edit';
+  static String paymentReminder(String id) => '/documents/$id/reminder';
 
   // 서류 올리기 (U01~U04)
   static const upload = '/upload';
@@ -31,6 +39,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.documentEditPattern,
+        builder: (context, state) =>
+            DocumentEditScreen(documentId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.paymentReminderPattern,
+        builder: (context, state) =>
+            PaymentReminderScreen(documentId: state.pathParameters['id'] ?? ''),
       ),
       GoRoute(
         path: AppRoute.upload,
