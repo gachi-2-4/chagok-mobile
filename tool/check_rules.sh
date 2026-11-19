@@ -95,12 +95,12 @@ null_assertions() {
 }
 
 # CODE_STYLE은 색상·글자 크기·간격을 토큰으로 쓰게 합니다. 다음을 잡습니다.
-# - 이름 없이 바로 쓴 숫자: `height: 12`, `size: 18`, `EdgeInsets.all(16)` 등
+# - 이름 없이 바로 쓴 숫자: `height: 12`, `size: 18`, `EdgeInsets.all(16)` 등 (0은 제외)
 # - 간격을 뜻하는 이름의 private 상수: `_gap`, `_bodyTop`, `_padding` 등 (AppSpacing으로)
 # - 글자 크기·줄 높이·자간 숫자: `fontSize: 14`, `height: 18 / 15` 등 (AppTypography로)
 # 너비·높이·아이콘 크기처럼 부품 자체의 크기는 이름을 붙인 private 상수로 둘 수 있습니다.
 hardcoded_sizes() {
-  grep_in '(height|width|size|top|bottom|left|right|all|horizontal|vertical|letterSpacing|fontSize|dimension)\s*:\s*[0-9]|SizedBox(\.square)?\((height|width|dimension): [0-9]|static const _[a-zA-Z]*([Gg]ap|[Pp]adding|[Tt]op|[Bb]ottom|[Ll]eft|[Rr]ight|[Mm]argin|[Ss]pacing|[Ii]nset|[Ii]ndent) = [0-9]|EdgeInsets\.[a-zA-Z]+\([0-9]' \
+  grep_in '(height|width|size|top|bottom|left|right|all|horizontal|vertical|letterSpacing|fontSize|dimension)\s*:\s*([1-9]|0\.[0-9])|SizedBox(\.square)?\((height|width|dimension): ([1-9]|0\.[0-9])|static const _[a-zA-Z]*([Gg]ap|[Pp]adding|[Tt]op|[Bb]ottom|[Ll]eft|[Rr]ight|[Mm]argin|[Ss]pacing|[Ii]nset|[Ii]ndent) = [0-9]|EdgeInsets\.[a-zA-Z]+\(([1-9]|0\.[0-9])' \
     ${NON_CONSTANT_FILES[@]+"${NON_CONSTANT_FILES[@]}"}
 }
 
