@@ -1,4 +1,8 @@
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_confirm_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_retake_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_review_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_source_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +12,12 @@ import 'package:go_router/go_router.dart';
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
   static const home = '/';
+
+  // 서류 올리기 (U01~U04)
+  static const upload = '/upload';
+  static const uploadConfirm = '/upload/confirm';
+  static const uploadRetake = '/upload/retake';
+  static const uploadReview = '/upload/review';
 }
 
 /// 앱 전역 [GoRouter].
@@ -21,6 +31,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.upload,
+        builder: (context, state) => const UploadSourceScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadConfirm,
+        builder: (context, state) => const UploadConfirmScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadRetake,
+        builder: (context, state) => const UploadRetakeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadReview,
+        builder: (context, state) => const UploadReviewScreen(),
       ),
     ],
   );
