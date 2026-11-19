@@ -192,23 +192,50 @@ abbreviated_names() {
 
 # ── ARCHITECTURE.md ──
 
-# build 본문에서 바로 실행되는 ref.read만 잡습니다. 중괄호로 감싼 콜백·지역 함수
-# 안이나, `=>` 뒤(같은 줄 또는 바로 윗줄 끝)에 있는 ref.read는 이벤트 때 실행되므로 뺍니다.
+# build 본문에서 바로 실행되는 ref.read만 잡습니다.
+# 중괄호 블록을 쌓아 가며 종류를 기억합니다.
+# - if·else·for·while·switch·try 블록은 build와 함께 바로 실행되므로 그 안의 ref.read도 잡습니다.
+# - 그 밖의 블록(콜백 `() {`, 지역 함수 `foo() async {`)은 나중에 실행되므로 그 안은 뺍니다.
+# - `=>` 뒤(같은 줄 또는 바로 윗줄 끝)의 ref.read도 콜백이라 뺍니다. 단 switch 식의
+#   갈래(`A() => ...`)는 바로 실행되므로 잡습니다.
 read_in_build() {
   local file
   for file in ${PRESENTATION_FILES[@]+"${PRESENTATION_FILES[@]}"}; do
     awk -v file="${file}" '
-      /Widget build\(BuildContext/ { in_build = 1; depth = 0; prev = ""; }
+      function is_immediate(text) {
+        return text ~ /(^|[^A-Za-z_])(if|else|for|while|switch|try|do|finally)([^A-Za-z_]|$)/ \
+          && text !~ /\)[[:space:]]*(async[[:space:]]*)?\{[[:space:]]*$/ \
+          || text ~ /^[[:space:]]*\}?[[:space:]]*(else|try|finally|do)[[:space:]]*\{/ \
+          || text ~ /^[[:space:]]*(\}[[:space:]]*else[[:space:]]+)?(if|for|while|switch)[[:space:]]*\(.*\)[[:space:]]*\{[[:space:]]*$/ \
+          || text ~ /switch[[:space:]]*\(.*\)[[:space:]]*\{/
+      }
+      /Widget build\(BuildContext/ { in_build = 1; top = 0; prev = ""; }
       in_build {
         line = $0
         gsub(/\x27[^\x27]*\x27/, "", line)  # 문자열 안의 괄호는 세지 않습니다.
-        if (depth == 1 && line ~ /ref\.read/ && line !~ /=>.*ref\.read/ && prev !~ /=>[[:space:]]*$/) {
+        deferred = 0
+        for (k = 2; k <= top; k++) if (kind[k] == "deferred") deferred = 1
+        # ref.read 앞에 있는 `=>` 개수. switch 갈래 안이면 첫 `=>`는 갈래 표시라 빼고 셉니다.
+        before = line
+        sub(/ref\.read.*/, "", before)
+        arrows = gsub(/=>/, "=>", before)
+        if (top >= 1 && kind[top] == "switch" && arrows > 0) arrows--
+        else if (prev ~ /=>[[:space:]]*$/) arrows++
+        if (top >= 1 && !deferred && line ~ /ref\.read/ && arrows == 0) {
           print file ":" NR ": " $0
         }
-        opened = gsub(/\{/, "{", line)
-        closed = gsub(/\}/, "}", line)
-        depth += opened - closed
-        if (depth <= 0 && opened + closed > 0) in_build = 0
+        # 줄 맨 앞의 닫는 중괄호를 먼저 처리합니다. 예: "} else {"
+        rest = line
+        while (rest ~ /^[[:space:]]*\}/) { sub(/^[[:space:]]*\}/, "", rest); top-- }
+        opened = gsub(/\{/, "{", rest)
+        closed = gsub(/\}/, "}", rest)
+        for (k = 0; k < opened; k++) {
+          top++
+          kind[top] = (line ~ /switch[[:space:]]*\(/) ? "switch" : (top == 1 || is_immediate(line)) ? "immediate" : "deferred"
+        }
+        top -= closed
+        if (top <= 0 && (opened + closed) > 0) in_build = 0
+        if (top <= 0 && line ~ /^[[:space:]]*\}/) in_build = 0
         if (line !~ /^[[:space:]]*$/) prev = line
       }' "${file}"
   done
