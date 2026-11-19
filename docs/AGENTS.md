@@ -22,7 +22,7 @@ docs/           # 프로젝트 문서 (AGENTS.md, COMMIT_CONVENTION.md 등)
 lib/            # 앱 소스 코드 (진입점: lib/main.dart)
 test/           # 단위·위젯 테스트
 assets/         # 아이콘(icons/)·폰트(fonts/) 에셋
-tool/           # 개발용 스크립트 (예: subset_fonts.sh)
+tool/           # 개발용 스크립트 (예: subset_fonts.sh, check_rules.sh)
 android/ ios/ web/ macos/ windows/ linux/   # 플랫폼별 네이티브 프로젝트
 pubspec.yaml    # 의존성 및 에셋 설정
 analysis_options.yaml  # 린트 설정 (flutter_lints + CODE_STYLE.md 규칙)
@@ -50,6 +50,7 @@ flutter analyze            # 정적 분석
 dart format .              # 코드 포맷
 flutter test               # 전체 테스트
 flutter test test/<파일>    # 특정 테스트
+tool/check_rules.sh        # 바꾼 파일의 규칙 위반 점검 (기준 브랜치: main)
 ```
 
 ## 작업 규칙
@@ -65,8 +66,10 @@ flutter test test/<파일>    # 특정 테스트
 ### 규칙 점검 루프
 작업을 마쳤다고 보고하기 전에, 바꾼 코드가 규칙 문서에 맞는지 점검하고 고치는 일을 **위반이 하나도 남지 않을 때까지 반복**합니다.
 
-1. 바꾼 파일을 확인합니다. (`git status`, `git diff --name-only main...HEAD`)
-2. 규칙 문서를 한 항목씩 대조해 위반을 찾습니다.
+1. `tool/check_rules.sh`를 실행해 바꾼 파일에서 글자 패턴으로 찾을 수 있는 위반을 먼저 찾습니다.
+   - `[위반]`이 하나라도 있으면 종료 코드 1을 돌려줍니다. `[확인]`은 규칙 대상인지 직접 판단합니다.
+   - 스크립트는 놓치거나 잘못 잡는 경우가 있으므로, 통과해도 2번을 건너뛰지 않습니다.
+2. 바꾼 파일(`git status`, `git diff --name-only main...HEAD`)을 읽으며 규칙 문서를 한 항목씩 대조합니다.
    - [`CODE_STYLE.md`](CODE_STYLE.md): 이름, import, 위젯 분리(긴 `build`, 위젯을 만드는 private 메서드), 색상·글자 크기·간격 하드코딩, 화면 문자열 관리, `!` 사용, 문서 주석, 파일당 public 클래스 하나
    - [`ARCHITECTURE.md`](ARCHITECTURE.md): 계층 의존 방향, `ref.watch`·`ref.read` 위치, `AsyncValue.when`으로 로딩·에러·데이터 처리, 예외를 application 계층에서 상태로 바꾸기, 경로 상수
    - [`TESTING.md`](TESTING.md): 필수 단위 테스트, 핵심 화면 위젯 테스트, 파일 위치, 테스트 이름 "~하면 ~한다"
