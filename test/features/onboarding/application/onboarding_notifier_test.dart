@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/onboarding/application/onboarding_notifier.dart';
 import 'package:chagok_mobile/features/onboarding/application/onboarding_state.dart';
 import 'package:chagok_mobile/features/onboarding/application/onboarding_step.dart';
@@ -117,6 +119,32 @@ void main() {
 
       expect(isCompleted, isTrue);
       expect(state().hasSubmitFailed, isFalse);
+    });
+
+    test('답을 저장하는 중에 답을 바꾸면 무시해 저장한 답과 화면의 답이 같다', () async {
+      await answerAll();
+      repository.saveGate = Completer<void>();
+      final saving = notifier().next();
+
+      notifier().selectWelfareStatus(WelfareStatus.basicLivelihood);
+      repository.saveGate?.complete();
+      await saving;
+
+      expect(state().answers.welfareStatus, WelfareStatus.none);
+      expect(repository.saved?.welfareStatus, WelfareStatus.none);
+    });
+
+    test('답을 저장하는 중에 뒤로 가면 단계를 바꾸지 않고 true를 돌려준다', () async {
+      await answerAll();
+      repository.saveGate = Completer<void>();
+      final saving = notifier().next();
+
+      final isHandled = notifier().back();
+      repository.saveGate?.complete();
+      await saving;
+
+      expect(isHandled, isTrue);
+      expect(state().step, OnboardingStep.welfare);
     });
   });
 }

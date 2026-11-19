@@ -17,4 +17,16 @@ abstract final class AppRadius {
 
   /// 다이얼로그 안 버튼.
   static const small = 12.0;
+
+  /// 서류 미리 보기처럼 종이 모양 상자.
+  static const paper = 16.0;
+
+  /// 인증번호 칸.
+  static const codeCell = 14.0;
+
+  /// 기기 알림 배너처럼 색이 꽉 찬 배너.
+  static const solidBanner = 6.0;
+
+  /// 양 끝을 완전히 둥글게 만드는 알약 모양. 예: 진행 막대, D-n 표
+  static const pill = 999.0;
 }

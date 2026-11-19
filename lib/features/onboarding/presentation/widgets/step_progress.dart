@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +39,7 @@ class StepProgress extends StatelessWidget {
               height: _segmentHeight,
               decoration: BoxDecoration(
                 color: index < current ? AppColors.primary : AppColors.divider,
-                borderRadius: BorderRadius.circular(_segmentHeight),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
             ),
           ],
