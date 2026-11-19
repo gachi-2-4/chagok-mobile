@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/app/app.dart';
+import 'package:chagok_mobile/app/app_strings.dart';
+import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
@@ -50,7 +52,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('AppShell', () {
+  group('MainShell', () {
     testWidgets('앱을 실행하면 홈 탭이 선택된 바텀바가 보인다', (tester) async {
       await pumpChagokApp(tester);
 
@@ -61,7 +63,7 @@ void main() {
     testWidgets('채팅 탭을 누르면 대화 목록과 바텀바가 보인다', (tester) async {
       await pumpChagokApp(tester);
 
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
 
       expect(find.byType(ChatListScreen), findsOneWidget);
       expect(currentTab(tester), 1);
@@ -69,7 +71,7 @@ void main() {
 
     testWidgets('대화방에 들어가면 바텀바가 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
 
       await openThread(tester);
 
@@ -78,9 +80,9 @@ void main() {
       expect(currentTab(tester), 1);
     });
 
-    testWidgets('서류 추가 화면에서도 바텀바가 남아 있다', (tester) async {
+    testWidgets('서류 추가 화면으로 가면 바텀바가 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
       await openThread(tester);
 
       await tester.tap(find.textContaining('변경'));
@@ -92,34 +94,43 @@ void main() {
 
     testWidgets('다른 탭에 다녀오면 보던 대화방이 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
       await openThread(tester);
 
-      await tapTab(tester, '홈');
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.homeTab);
+      await tapTab(tester, AppStrings.chatTab);
 
       expect(find.byType(ChatRoomScreen), findsOneWidget);
     });
 
     testWidgets('지금 탭을 다시 누르면 그 탭의 첫 화면으로 돌아간다', (tester) async {
       await pumpChagokApp(tester);
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
       await openThread(tester);
 
-      await tapTab(tester, '채팅');
+      await tapTab(tester, AppStrings.chatTab);
 
       expect(find.byType(ChatRoomScreen), findsNothing);
       expect(find.byType(ChatListScreen), findsOneWidget);
     });
 
-    testWidgets('아직 없는 탭을 누르면 준비 중 안내를 띄우고 탭은 그대로 둔다', (tester) async {
-      await pumpChagokApp(tester);
+    for (final (index, label) in [
+      (0, AppStrings.archiveTab),
+      (3, AppStrings.calendarTab),
+      (4, AppStrings.settingsTab),
+    ]) {
+      testWidgets('$label 탭을 누르면 준비 중 화면으로 바뀐다', (tester) async {
+        await pumpChagokApp(tester);
 
-      await tapTab(tester, '보관함');
+        await tapTab(tester, label);
 
-      expect(find.text('곧 지원할 예정이에요.'), findsOneWidget);
-      expect(find.byType(HomeScreen), findsOneWidget);
-      expect(currentTab(tester), 2);
-    });
+        expect(
+          find.widgetWithText(TabPlaceholderScreen, label),
+          findsOneWidget,
+        );
+        expect(find.text(AppStrings.comingSoon), findsOneWidget);
+        expect(currentTab(tester), index);
+      });
+    }
   });
 }
