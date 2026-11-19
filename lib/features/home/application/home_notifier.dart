@@ -16,6 +16,7 @@ class HomeNotifier extends AsyncNotifier<HomeSummary> {
     return ref.watch(homeRepositoryProvider).fetchSummary(now);
   }
 
+  /// 지금 시각 기준으로 홈 내용을 다시 불러옵니다.
   Future<void> refresh() async {
     final now = ref.read(homeClockProvider)();
     state = await AsyncValue.guard(

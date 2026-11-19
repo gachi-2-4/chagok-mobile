@@ -39,14 +39,14 @@ void main() {
   });
 
   group('HomeStrings.boxDetail', () {
-    test('오늘 연 보관함은 "오늘 열람"이다', () {
+    test('오늘 연 보관함이면 "오늘 열람"으로 보여 준다', () {
       expect(
         HomeStrings.boxDetail(3, DateTime(2026, 11, 18, 8), now),
         '서류 3건 · 오늘 열람',
       );
     });
 
-    test('어제 연 보관함은 "어제 열람"이다', () {
+    test('어제 연 보관함이면 "어제 열람"으로 보여 준다', () {
       expect(
         HomeStrings.boxDetail(1, DateTime(2026, 11, 17), now),
         '서류 1건 · 어제 열람',

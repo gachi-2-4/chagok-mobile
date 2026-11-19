@@ -2,31 +2,11 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/widgets/app_top_bar_action.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// 상단 바 오른쪽에 두는 아이콘 버튼.
-///
-/// 예: 알림 화면의 설정(톱니바퀴) 버튼.
-class AppTopBarAction {
-  const AppTopBarAction({
-    required this.icon,
-    required this.semanticLabel,
-    required this.onTap,
-    this.hasBadge = false,
-  });
-
-  /// [AppIcons]의 24x24 SVG 경로.
-  final String icon;
-
-  /// 화면 읽기 프로그램이 읽어 줄 버튼 이름. 예: "알림 설정"
-  final String semanticLabel;
-
-  final VoidCallback onTap;
-
-  /// 아이콘 오른쪽 위에 작은 점을 찍을지 여부. 예: 읽지 않은 알림이 있을 때
-  final bool hasBadge;
-}
+export 'package:chagok_mobile/core/widgets/app_top_bar_action.dart';
 
 /// 뒤로 가기 · 가운데 제목 · 오른쪽 버튼으로 이루어진 화면 상단 바.
 ///
@@ -113,8 +93,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         semanticLabel: action.semanticLabel,
         onTap: action.onTap,
         child: action.hasBadge
-            ? _Badged(child: _Icon(action.icon))
-            : _Icon(action.icon),
+            ? _Badged(child: _Icon(asset: action.icon))
+            : _Icon(asset: action.icon),
       ),
       (null, final VoidCallback onMore) => _TapTarget(
         height: variant.height,
@@ -143,7 +123,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                         height: variant.height,
                         semanticLabel: '뒤로 가기',
                         onTap: onBack ?? () => Navigator.maybePop(context),
-                        child: _Icon(variant.backIcon),
+                        child: _Icon(asset: variant.backIcon),
                       )
                     : null,
               ),
@@ -212,7 +192,7 @@ enum _AppTopBarVariant {
 }
 
 class _Icon extends StatelessWidget {
-  const _Icon(this.asset);
+  const _Icon({required this.asset});
 
   final String asset;
 

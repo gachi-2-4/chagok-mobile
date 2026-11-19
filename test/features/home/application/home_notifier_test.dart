@@ -1,25 +1,10 @@
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
 import 'package:chagok_mobile/features/home/application/home_notifier.dart';
 import 'package:chagok_mobile/features/home/data/home_repository.dart';
-import 'package:chagok_mobile/features/home/data/home_summary.dart';
-import 'package:chagok_mobile/features/home/data/schedule_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class FakeHomeRepository implements HomeRepository {
-  final requestedTimes = <DateTime>[];
-  String title = '처음';
-
-  @override
-  Future<HomeSummary> fetchSummary(DateTime now) async {
-    requestedTimes.add(now);
-    return HomeSummary(
-      schedules: [ScheduleItem(date: now, title: title)],
-      recentBoxes: const [],
-      recentAlerts: const [],
-    );
-  }
-}
+import '../../../helpers/fake_home_repository.dart';
 
 void main() {
   final now = DateTime(2026, 11, 18, 10);
@@ -38,7 +23,7 @@ void main() {
   });
 
   group('HomeNotifier', () {
-    test('지금 시각 기준으로 홈 내용을 불러온다', () async {
+    test('처음 읽으면 지금 시각 기준으로 홈 내용을 불러온다', () async {
       final summary = await container.read(homeProvider.future);
 
       expect(repository.requestedTimes, [now]);

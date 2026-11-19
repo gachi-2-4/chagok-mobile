@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_item.dart';
@@ -11,26 +12,31 @@ import 'package:go_router/go_router.dart';
 class MainShell extends StatelessWidget {
   const MainShell({required this.navigationShell, super.key});
 
+  /// `router.dart`의 [StatefulShellRoute]가 넘겨주는 탭 화면 묶음.
   final StatefulNavigationShell navigationShell;
 
+  /// 하단 탭 바의 탭. 순서는 `router.dart`의 branch 순서와 같습니다.
   static const tabs = [
     AppBottomNavItem(
-      label: '보관함',
+      label: AppStrings.archiveTab,
       iconAsset: AppIcons.navBox,
       activeIconAsset: AppIcons.navBoxActive,
     ),
-    AppBottomNavItem(label: '채팅', iconAsset: AppIcons.navChat),
+    AppBottomNavItem(label: AppStrings.chatTab, iconAsset: AppIcons.navChat),
     AppBottomNavItem(
-      label: '홈',
+      label: AppStrings.homeTab,
       iconAsset: AppIcons.navHome,
       activeIconAsset: AppIcons.navHomeActive,
     ),
     AppBottomNavItem(
-      label: '캘린더',
+      label: AppStrings.calendarTab,
       iconAsset: AppIcons.navCalendar,
       activeIconAsset: AppIcons.navCalendarActive,
     ),
-    AppBottomNavItem(label: '설정', iconAsset: AppIcons.navSettings),
+    AppBottomNavItem(
+      label: AppStrings.settingsTab,
+      iconAsset: AppIcons.navSettings,
+    ),
   ];
 
   @override

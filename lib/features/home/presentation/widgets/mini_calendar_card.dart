@@ -18,10 +18,13 @@ class MiniCalendarCard extends StatelessWidget {
     super.key,
   });
 
+  /// 이번 주와 D-n을 셀 기준 날짜.
   final DateTime today;
+
+  /// 표시할 일정. 날짜 순서는 상관없습니다.
   final List<ScheduleItem> schedules;
 
-  static const _padding = 18.0;
+  static const _dividerHeight = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +32,7 @@ class MiniCalendarCard extends StatelessWidget {
     final next = ScheduleCalendar.nextSchedule(schedules, today);
 
     return HomeCard(
-      padding: const EdgeInsets.all(_padding),
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -46,7 +49,7 @@ class MiniCalendarCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           Divider(
-            height: 1,
+            height: _dividerHeight,
             color: AppColors.textPrimary.withValues(alpha: 0.1),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -79,23 +82,10 @@ class _DayCell extends StatelessWidget {
 
   static const _circleSize = 32.0;
   static const _dotSize = 5.0;
-  static const _gap = 6.0;
 
   @override
   Widget build(BuildContext context) {
     final isSunday = day.weekday == DateTime.sunday;
-    const weekdayStyle = TextStyle(
-      fontFamily: AppTypography.fontFamily,
-      fontFamilyFallback: AppTypography.fontFamilyFallback,
-      fontSize: 11,
-      height: 13.2 / 11,
-    );
-    const dayStyle = TextStyle(
-      fontFamily: AppTypography.fontFamily,
-      fontFamilyFallback: AppTypography.fontFamilyFallback,
-      fontSize: 15,
-      height: 18 / 15,
-    );
 
     return SizedBox(
       width: _circleSize,
@@ -103,11 +93,11 @@ class _DayCell extends StatelessWidget {
         children: [
           Text(
             HomeStrings.weekdays[day.weekday % 7],
-            style: weekdayStyle.copyWith(
+            style: AppTypography.small.copyWith(
               color: isSunday ? AppColors.navActive : AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: _gap),
+          const SizedBox(height: AppSpacing.calendarDayGap),
           Container(
             width: _circleSize,
             height: _circleSize,
@@ -120,20 +110,23 @@ class _DayCell extends StatelessWidget {
                 : null,
             child: Text(
               '${day.day}',
-              style: dayStyle.copyWith(
+              style: AppTypography.calendarDay.copyWith(
                 color: isToday ? AppColors.surface : AppColors.textPrimary,
                 fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
               ),
             ),
           ),
-          const SizedBox(height: _gap),
+          const SizedBox(height: AppSpacing.calendarDayGap),
+          // 일정이 없는 날도 같은 자리를 비워 두어 날짜 높이를 맞춥니다.
           Container(
             width: _dotSize,
             height: _dotSize,
-            decoration: BoxDecoration(
-              color: hasSchedule ? AppColors.navActive : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
+            decoration: hasSchedule
+                ? const BoxDecoration(
+                    color: AppColors.navActive,
+                    shape: BoxShape.circle,
+                  )
+                : null,
           ),
         ],
       ),
@@ -161,21 +154,13 @@ class _UpcomingRow extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 9,
+              horizontal: AppSpacing.pillPaddingHorizontal,
               vertical: AppSpacing.xs,
             ),
-            child: Text(
-              HomeStrings.dDay(days),
-              style: AppTypography.label.copyWith(
-                fontSize: 11,
-                height: 13.2 / 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.brand,
-              ),
-            ),
+            child: Text(HomeStrings.dDay(days), style: AppTypography.tag),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: AppSpacing.pillGap),
         Expanded(
           child: Text(
             label,

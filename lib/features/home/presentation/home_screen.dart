@@ -25,7 +25,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summary = ref.watch(homeProvider);
-    final hasUnreadAlert = summary.value?.hasUnreadAlert ?? false;
+    final hasUnreadAlert = summary.when(
+      data: (summary) => summary.hasUnreadAlert,
+      loading: () => false,
+      error: (error, stackTrace) => false,
+    );
 
     void showComingSoon() {
       // TODO: 알림 화면이 생기면 연결합니다.
@@ -44,10 +48,10 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: summary.when(
         data: (summary) => RefreshIndicator(
-          onRefresh: ref.read(homeProvider.notifier).refresh,
+          onRefresh: () => ref.read(homeProvider.notifier).refresh(),
           child: _HomeContent(
             summary: summary,
-            now: ref.read(homeClockProvider)(),
+            now: ref.watch(homeClockProvider)(),
             onAlertTap: showComingSoon,
           ),
         ),
@@ -84,11 +88,6 @@ class _HomeContent extends StatelessWidget {
   final DateTime now;
   final VoidCallback onAlertTap;
 
-  /// Figma `div.main` 여백과 구역 사이 간격.
-  static const _top = 6.0;
-  static const _sectionGap = 18.0;
-  static const _boxGap = 10.0;
-
   @override
   Widget build(BuildContext context) {
     final boxes = summary.recentBoxes.take(2).toList();
@@ -96,7 +95,7 @@ class _HomeContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
-        _top,
+        AppSpacing.pageTopCompact,
         AppSpacing.screenHorizontal,
         AppSpacing.xl,
       ),
@@ -107,7 +106,7 @@ class _HomeContent extends StatelessWidget {
           onLinkTap: () => context.go(AppRoute.calendar),
           child: MiniCalendarCard(today: now, schedules: summary.schedules),
         ),
-        const SizedBox(height: _sectionGap),
+        const SizedBox(height: AppSpacing.block),
         HomeSection(
           title: HomeStrings.recentBoxes,
           linkLabel: HomeStrings.viewAll,
@@ -121,7 +120,7 @@ class _HomeContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (final (index, box) in boxes.indexed) ...[
-                      if (index > 0) const SizedBox(width: _boxGap),
+                      if (index > 0) const SizedBox(width: AppSpacing.cardGap),
                       Expanded(
                         child: RecentBoxCard(
                           box: box,
@@ -131,13 +130,13 @@ class _HomeContent extends StatelessWidget {
                       ),
                     ],
                     if (boxes.length == 1) ...[
-                      const SizedBox(width: _boxGap),
+                      const SizedBox(width: AppSpacing.cardGap),
                       const Spacer(),
                     ],
                   ],
                 ),
         ),
-        const SizedBox(height: _sectionGap),
+        const SizedBox(height: AppSpacing.block),
         HomeSection(
           title: HomeStrings.recentAlerts,
           linkLabel: HomeStrings.viewAll,

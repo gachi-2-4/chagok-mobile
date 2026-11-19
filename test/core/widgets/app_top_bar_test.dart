@@ -30,7 +30,7 @@ void main() {
       expect(find.text('···'), findsOneWidget);
     });
 
-    testWidgets('뒤로 가기의 누르는 영역은 최소 48x48이다', (tester) async {
+    testWidgets('아이콘이 작아도 뒤로 가기를 그리면 누르는 영역은 최소 48x48이다', (tester) async {
       await tester.pumpApp(AppTopBar(title: '회원가입', onBack: () {}));
 
       final size = tester.getSize(find.bySemanticsLabel('뒤로 가기'));

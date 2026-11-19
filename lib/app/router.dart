@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/app/main_shell.dart';
 import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
@@ -33,17 +34,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           _tab(
             AppRoute.archive,
-            (_) => const TabPlaceholderScreen(title: '보관함'),
+            (_) => const TabPlaceholderScreen(title: AppStrings.archiveTab),
           ),
-          _tab(AppRoute.chat, (_) => const TabPlaceholderScreen(title: '채팅')),
+          _tab(
+            AppRoute.chat,
+            (_) => const TabPlaceholderScreen(title: AppStrings.chatTab),
+          ),
           _tab(AppRoute.home, (_) => const HomeScreen()),
           _tab(
             AppRoute.calendar,
-            (_) => const TabPlaceholderScreen(title: '캘린더'),
+            (_) => const TabPlaceholderScreen(title: AppStrings.calendarTab),
           ),
           _tab(
             AppRoute.settings,
-            (_) => const TabPlaceholderScreen(title: '설정'),
+            (_) => const TabPlaceholderScreen(title: AppStrings.settingsTab),
           ),
         ],
       ),

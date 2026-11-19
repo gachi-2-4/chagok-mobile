@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -12,13 +13,17 @@ class HomeSection extends StatelessWidget {
     super.key,
   });
 
+  /// 구역 제목. 예: "미니 캘린더"
   final String title;
+
+  /// 제목 오른쪽 링크 글자. 비우면 링크를 그리지 않습니다.
   final String? linkLabel;
   final VoidCallback? onLinkTap;
+
+  /// 제목 아래 내용.
   final Widget child;
 
-  /// 제목 줄과 내용 사이 간격.
-  static const _gap = 10.0;
+  static const _linkMinHeight = 20.0;
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +42,14 @@ class HomeSection extends StatelessWidget {
                   foregroundColor: AppColors.textSecondary,
                   textStyle: AppTypography.label,
                   padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 20),
+                  minimumSize: const Size(0, _linkMinHeight),
                   tapTargetSize: MaterialTapTargetSize.padded,
                 ),
                 child: Text(linkLabel),
               ),
           ],
         ),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.sectionTitleGap),
         child,
       ],
     );

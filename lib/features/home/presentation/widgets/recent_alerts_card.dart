@@ -15,14 +15,22 @@ class RecentAlertsCard extends StatelessWidget {
     super.key,
   });
 
+  /// 보여 줄 알림. 최근 순서대로 넘깁니다.
   final List<RecentAlert> alerts;
+
+  /// 알림 시각("방금", "어제" 등)을 셀 기준 시각.
   final DateTime now;
+
+  /// 알림 하나를 눌렀을 때 그 알림을 받습니다.
   final ValueChanged<RecentAlert> onTap;
 
   @override
   Widget build(BuildContext context) {
     return HomeCard(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.cardPadding,
+        vertical: AppSpacing.alertCardPaddingVertical,
+      ),
       child: alerts.isEmpty
           ? const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -87,14 +95,10 @@ class _AlertItem extends StatelessWidget {
                           : FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: AppSpacing.alertMetaGap),
                   Text(
                     HomeStrings.alertMeta(alert.boxName, alert.createdAt, now),
-                    style: AppTypography.label.copyWith(
-                      fontSize: 11,
-                      height: 13.2 / 11,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: AppTypography.small,
                   ),
                 ],
               ),
