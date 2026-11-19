@@ -202,4 +202,25 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
+
+  /// 목록 위에 붙는 작은 구역 이름. 예: "오늘", "이전 대화"
+  static const eyebrow = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 12,
+    height: 14.4 / 12,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1,
+    color: AppColors.brand,
+  );
+
+  /// 대화 말풍선 글자.
+  static const chatBubble = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 14,
+    height: 23.8 / 14,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
 }
