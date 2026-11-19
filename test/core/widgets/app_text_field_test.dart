@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/pump_app.dart';
@@ -34,6 +35,21 @@ void main() {
       final textField = tester.widget<TextField>(find.byType(TextField));
 
       expect(textField.obscureText, isTrue);
+    });
+
+    testWidgets('inputFormatters로 입력을 거른다', (tester) async {
+      String? changedText;
+      await tester.pumpApp(
+        AppTextField(
+          label: '금액',
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (text) => changedText = text,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '5a0b0');
+
+      expect(changedText, '500');
     });
   });
 }

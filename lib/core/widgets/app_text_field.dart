@@ -3,6 +3,7 @@ import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// 라벨이 위에 붙은 둥근 입력창.
 ///
@@ -15,6 +16,7 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.keyboardType,
     this.textInputAction,
+    this.inputFormatters,
     this.obscureText = false,
     this.readOnly = false,
     this.onTap,
@@ -28,6 +30,9 @@ class AppTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
+
+  /// 입력할 때 글자를 거르거나 바꾸는 규칙. 예: 숫자만 받기, 쉼표 넣기
+  final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
 
   /// 날짜·종류 선택처럼 직접 입력하지 않고 눌러서 고르는 경우 true.
@@ -54,6 +59,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
+          inputFormatters: inputFormatters,
           obscureText: obscureText,
           readOnly: readOnly,
           onTap: onTap,
