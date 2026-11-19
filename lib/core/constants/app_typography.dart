@@ -55,6 +55,16 @@ abstract final class AppTypography {
     color: AppColors.brand,
   );
 
+  /// 브랜드 색 없이 진한 글자로 쓰는 상단 바 제목. 예: "알림"
+  static const topBarTitlePlain = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 17,
+    height: 20.4 / 17,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
   /// 카드 제목. 예: "통신요금 비교"
   static const cardTitle = TextStyle(
     fontFamily: fontFamily,
