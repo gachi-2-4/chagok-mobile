@@ -21,6 +21,8 @@
 docs/           # 프로젝트 문서 (AGENTS.md, COMMIT_CONVENTION.md 등)
 lib/            # 앱 소스 코드 (진입점: lib/main.dart)
 test/           # 단위·위젯 테스트
+assets/         # 아이콘(icons/)·폰트(fonts/) 에셋
+tool/           # 개발용 스크립트 (예: subset_fonts.sh)
 android/ ios/ web/ macos/ windows/ linux/   # 플랫폼별 네이티브 프로젝트
 pubspec.yaml    # 의존성 및 에셋 설정
 analysis_options.yaml  # 린트 설정 (flutter_lints + CODE_STYLE.md 규칙)
@@ -102,4 +104,4 @@ flutter test test/<파일>    # 특정 테스트
 
 - 백엔드/데이터 소스: TODO
 - 디자인 시스템·테마: 토큰은 `lib/core/constants/`(`AppColors`, `AppTypography`, `AppSpacing`, `AppRadius`, `AppShadows`, `AppIcons`), 공통 위젯은 `lib/core/widgets/`(`App*`)에 있습니다. 새 화면은 이 위젯과 토큰을 먼저 씁니다.
-  - TODO: 디자인 폰트(Noto Sans KR, Figtree) 번들 여부
+  - 폰트: Figtree(영문·숫자)와 Noto Sans KR(한글)을 `assets/fonts/`에 넣었고, 로고에는 Jua를 씁니다. 용량을 줄이려고 Noto Sans KR은 한자를 뺐고 Jua는 '차곡' 두 글자만 남겼습니다. 폰트 파일은 직접 고치지 말고 `tool/subset_fonts.sh`로 다시 만듭니다.

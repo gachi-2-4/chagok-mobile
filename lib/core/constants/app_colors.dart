@@ -10,6 +10,9 @@ abstract final class AppColors {
   static const primary = Color(0xFFC57638);
   static const onPrimary = Color(0xFFFFF9EF);
   static const brand = Color(0xFF985529);
+
+  /// 로고 '차곡' 글자색.
+  static const logo = Color(0xFF8C491A);
   static const navActive = Color(0xFFB2662C);
 
   // 배경·표면
