@@ -2,15 +2,21 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
-import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
 import 'package:flutter/material.dart';
 
-/// 서류 올리기 화면들의 공통 뼈대.
+/// 서류를 올리고 고치는 화면들의 공통 뼈대.
 ///
 /// 브랜드 상단 바, 스크롤되는 본문, 아래 버튼 영역과 맨 아래 한 줄
-/// 문구("차곡차곡, 쉬워지는 서류 생활")로 이루어집니다.
-class UploadLayout extends StatelessWidget {
-  const UploadLayout({required this.body, required this.actions, super.key});
+/// 문구([tagline])로 이루어집니다. 예: 서류 올리기(U01~U04), 서류 상세(D01~D02)
+class AppDocumentLayout extends StatelessWidget {
+  const AppDocumentLayout({
+    required this.body,
+    required this.actions,
+    super.key,
+  });
+
+  /// 맨 아래 한 줄 문구.
+  static const tagline = '차곡차곡, 쉬워지는 서류 생활';
 
   final List<Widget> body;
   final List<Widget> actions;
@@ -23,7 +29,7 @@ class UploadLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppTopBar(title: UploadStrings.brand),
+      appBar: const AppTopBar(title: AppTopBar.logoText),
       body: SafeArea(
         top: false,
         child: Column(
@@ -55,7 +61,7 @@ class UploadLayout extends StatelessWidget {
                   ],
                   const SizedBox(height: AppSpacing.lg),
                   Text(
-                    UploadStrings.tagline,
+                    tagline,
                     textAlign: TextAlign.center,
                     style: AppTypography.label.copyWith(
                       color: AppColors.textFooter,
