@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/app/app_shell.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
@@ -14,8 +15,6 @@ abstract final class AppRoute {
 
   // 채팅 (H01~H03)
   static const chat = '/chat';
-  static const chatRoomPattern = '/chat/:id';
-  static const chatAttachPattern = '/chat/:id/documents';
   static String chatRoom(String id) => '/chat/$id';
   static String chatAttach(String id) => '/chat/$id/documents';
 }
@@ -28,23 +27,45 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: AppRoute.home,
     routes: [
-      GoRoute(
-        path: AppRoute.home,
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: AppRoute.chat,
-        builder: (context, state) => const ChatListScreen(),
-      ),
-      GoRoute(
-        path: AppRoute.chatRoomPattern,
-        builder: (context, state) =>
-            ChatRoomScreen(threadId: state.pathParameters['id'] ?? ''),
-      ),
-      GoRoute(
-        path: AppRoute.chatAttachPattern,
-        builder: (context, state) =>
-            ChatAttachScreen(threadId: state.pathParameters['id'] ?? ''),
+      // 하단 탭. 탭마다 화면 기록을 따로 두어, 탭을 오가도 보던 화면이 남습니다.
+      // 탭 아래로 쌓이는 화면(대화방 등)도 바텀바가 보이도록 그 탭 안에 둡니다.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoute.home,
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoute.chat,
+                builder: (context, state) => const ChatListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => ChatRoomScreen(
+                      threadId: state.pathParameters['id'] ?? '',
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'documents',
+                        builder: (context, state) => ChatAttachScreen(
+                          threadId: state.pathParameters['id'] ?? '',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

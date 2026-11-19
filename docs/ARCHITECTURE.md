@@ -22,6 +22,7 @@ lib/
   app/
     app.dart                 # MaterialApp.router, 테마 연결
     router.dart              # GoRouter 설정, 경로 정의
+    app_shell.dart           # 하단 탭 바를 두르는 기본 틀
     theme.dart               # ThemeData, 색상·텍스트 스타일
   core/
     constants/               # 앱 전역 상수
@@ -111,6 +112,9 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
 - 경로 문자열은 직접 쓰지 않고 상수나 라우트 이름으로 참조합니다.
 - 화면 이동은 `context.go()`(교체) / `context.push()`(쌓기)를 의도에 맞게 구분해 씁니다.
 - 화면에 넘기는 값은 경로 파라미터(id 등 단순 값) 위주로 하고, 큰 객체는 Provider로 공유합니다.
+- 하단 탭은 `StatefulShellRoute.indexedStack`으로 만들고, 탭마다 `StatefulShellBranch`를 하나씩 둡니다.
+  - 탭 아래로 쌓이는 화면(예: 대화방)은 바텀바가 계속 보이도록 그 탭의 하위 경로로 둡니다.
+  - 바텀바의 탭 순서와 branch 연결은 `app/app_shell.dart`에서 관리합니다.
 
 ## 에러 처리
 
