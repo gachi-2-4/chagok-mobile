@@ -147,10 +147,12 @@ missing_doc_comments() {
     awk -v file="${file}" '
       /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
         in_class = 1
+        # private 클래스의 멤버는 밖에서 쓰지 않으므로 문서 주석을 요구하지 않습니다.
+        in_private = ($0 ~ /(class|enum|mixin|extension) _/)
         if ($0 !~ / _[A-Za-z]/ && prev !~ /^\/\/\//) print file ":" NR ": " $0
       }
       /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
-      in_class && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
+      in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
         && prev !~ /\/\/\// && prev !~ /@override/ { print file ":" NR ": " $0 }
       /^}/ { in_class = 0 }
