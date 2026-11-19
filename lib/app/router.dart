@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,9 @@ import 'package:go_router/go_router.dart';
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
   static const home = '/';
+
+  /// 첫 설문 (O01~O04)
+  static const onboarding = '/onboarding';
 }
 
 /// 앱 전역 [GoRouter].
@@ -21,6 +25,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
       ),
     ],
   );
