@@ -7,7 +7,7 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   group('AppTextField', () {
-    testWidgets('라벨과 힌트를 보여 준다', (tester) async {
+    testWidgets('라벨과 힌트를 주면 둘 다 보여 준다', (tester) async {
       await tester.pumpApp(
         const AppTextField(label: '이메일', hintText: 'hello@example.com'),
       );

@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 
 /// 대화 하나.
 class ChatThread {
@@ -25,6 +26,7 @@ class ChatThread {
     return null;
   }
 
+  /// 넘긴 값만 바꾼 새 대화를 돌려줍니다. [id]는 바꿀 수 없습니다.
   ChatThread copyWith({
     ChatDocument? document,
     List<ChatMessage>? messages,

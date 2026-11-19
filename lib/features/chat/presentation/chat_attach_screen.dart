@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -8,7 +10,9 @@ import 'package:chagok_mobile/core/widgets/app_select_row.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/chat/application/chat_attach_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_attach_state.dart';
+import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
+import 'package:chagok_mobile/features/chat/presentation/widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,140 +20,224 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ChatAttachScreen extends ConsumerWidget {
   const ChatAttachScreen({required this.threadId, super.key});
 
+  /// 서류를 연결할 대화 id.
   final String threadId;
-
-  static const _top = 11.0;
-  static const _gap = 18.0;
-  static const _actionsTop = 18.0;
-  static const _actionsBottom = 24.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = chatAttachProvider(threadId);
-    final state = ref.watch(provider).value;
-    final notifier = ref.read(provider.notifier);
-    final selected = state?.selected;
-
-    Future<void> pickDocument(ChatAttachState state) async {
-      final documentId = await showModalBottomSheet<String>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: AppSpacing.md),
-              for (final document in state.documents)
-                AppSelectRow(
-                  label: document.fileName,
-                  isSelected: document.id == state.selectedId,
-                  onTap: () => Navigator.pop(context, document.id),
-                ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-          ),
-        ),
-      );
-      if (documentId != null) notifier.select(documentId);
-    }
-
-    Future<void> attach() async {
-      final isAttached = await notifier.attach();
-      if (isAttached && context.mounted) Navigator.maybePop(context);
-    }
+    final value = ref.watch(provider);
 
     return Scaffold(
       appBar: const AppTopBar(title: AppTopBar.logoText),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal,
-                  _top,
-                  AppSpacing.screenHorizontal,
-                  AppSpacing.xl,
-                ),
-                children: [
-                  const Text(
-                    ChatStrings.attachTitle,
-                    style: AppTypography.pageTitle,
-                  ),
-                  const SizedBox(height: _gap),
-                  const Text(
-                    ChatStrings.attachDescription,
-                    style: AppTypography.pageDescription,
-                  ),
-                  const SizedBox(height: _gap),
-                  AppCard.green(
-                    onTap: state == null ? null : () => pickDocument(state),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: AppSpacing.xs),
-                          child: Text(
-                            ChatStrings.pickFromBox,
-                            style: AppTypography.cardTitle,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          ChatStrings.pickFromBoxDescription,
-                          style: AppTypography.pageDescription,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (selected != null) ...[
-                    const SizedBox(height: _gap),
-                    AppBanner(
-                      child: Text(ChatStrings.selected(selected.fileName)),
-                    ),
-                  ],
-                  const SizedBox(height: _gap),
-                  const Text(
-                    ChatStrings.externalFileHelp,
-                    style: AppTypography.pageDescription,
-                  ),
-                ],
-              ),
+      body: value.when(
+        data: (state) => _ChatAttachBody(
+          state: state,
+          onSelect: (documentId) =>
+              ref.read(provider.notifier).select(documentId),
+          onAttach: () => ref.read(provider.notifier).attach(),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+            child: ChatLoadError(
+              message: ChatStrings.documentsLoadFailed,
+              onRetry: () => ref.invalidate(provider),
             ),
-            Padding(
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 서류 고르기 안내와 아래 버튼 묶음.
+class _ChatAttachBody extends StatelessWidget {
+  const _ChatAttachBody({
+    required this.state,
+    required this.onSelect,
+    required this.onAttach,
+  });
+
+  final ChatAttachState state;
+  final ValueChanged<String> onSelect;
+
+  /// 연결했으면 true를 돌려줍니다.
+  final Future<bool> Function() onAttach;
+
+  Future<void> _pickDocument(BuildContext context) async {
+    final documentId = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => _DocumentPickerSheet(
+        documents: state.documents,
+        selectedId: state.selectedId,
+      ),
+    );
+    if (documentId != null) onSelect(documentId);
+  }
+
+  Future<void> _attach(BuildContext context) async {
+    final isAttached = await onAttach();
+    if (isAttached && context.mounted) await Navigator.maybePop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = state.selected;
+
+    return SafeArea(
+      top: false,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenHorizontal,
-                _actionsTop,
+                AppSpacing.pageTop,
                 AppSpacing.screenHorizontal,
-                _actionsBottom,
+                AppSpacing.xl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (state?.hasAttachFailed ?? false) ...[
-                    Text(
-                      ChatStrings.attachFailed,
-                      textAlign: TextAlign.center,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.danger,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.buttonGap),
-                  ],
-                  AppButton.primary(
-                    label: ChatStrings.attach,
-                    onPressed: (state?.canAttach ?? false) ? attach : null,
-                  ),
-                  const SizedBox(height: AppSpacing.buttonGap),
-                  AppButton.secondary(
-                    label: ChatStrings.cancel,
-                    onPressed: () => Navigator.maybePop(context),
+              children: [
+                const Text(
+                  ChatStrings.attachTitle,
+                  style: AppTypography.pageTitle,
+                ),
+                const SizedBox(height: AppSpacing.block),
+                const Text(
+                  ChatStrings.attachDescription,
+                  style: AppTypography.pageDescription,
+                ),
+                const SizedBox(height: AppSpacing.block),
+                _PickFromBoxCard(
+                  onTap: () => unawaited(_pickDocument(context)),
+                ),
+                if (selected != null) ...[
+                  const SizedBox(height: AppSpacing.block),
+                  AppBanner(
+                    child: Text(ChatStrings.selected(selected.fileName)),
                   ),
                 ],
-              ),
+                const SizedBox(height: AppSpacing.block),
+                const Text(
+                  ChatStrings.externalFileHelp,
+                  style: AppTypography.pageDescription,
+                ),
+              ],
             ),
+          ),
+          _AttachActions(
+            hasFailed: state.hasAttachFailed,
+            onAttach: state.canAttach
+                ? () => unawaited(_attach(context))
+                : null,
+            onCancel: () => unawaited(Navigator.maybePop(context)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "내 보관함에서 선택 ›" 카드.
+class _PickFromBoxCard extends StatelessWidget {
+  const _PickFromBoxCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard.green(
+      onTap: onTap,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(
+              ChatStrings.pickFromBox,
+              style: AppTypography.cardTitle,
+            ),
+          ),
+          SizedBox(height: AppSpacing.cardTitleGap),
+          Text(
+            ChatStrings.pickFromBoxDescription,
+            style: AppTypography.pageDescription,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 보관함 서류를 고르는 아래 시트. 고른 서류 id를 돌려주며 닫힙니다.
+class _DocumentPickerSheet extends StatelessWidget {
+  const _DocumentPickerSheet({
+    required this.documents,
+    required this.selectedId,
+  });
+
+  final List<ChatDocument> documents;
+  final String? selectedId;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: AppSpacing.md),
+          for (final document in documents)
+            AppSelectRow(
+              label: document.fileName,
+              isSelected: document.id == selectedId,
+              onTap: () => Navigator.pop(context, document.id),
+            ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ),
+    );
+  }
+}
+
+/// 실패 안내와 "이 서류로 대화하기" · "취소" 버튼.
+class _AttachActions extends StatelessWidget {
+  const _AttachActions({
+    required this.hasFailed,
+    required this.onAttach,
+    required this.onCancel,
+  });
+
+  final bool hasFailed;
+
+  /// null이면 추가 버튼을 누를 수 없습니다.
+  final VoidCallback? onAttach;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.block,
+        AppSpacing.screenHorizontal,
+        AppSpacing.actionsBottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasFailed) ...[
+            Text(
+              ChatStrings.attachFailed,
+              textAlign: TextAlign.center,
+              style: AppTypography.caption.copyWith(color: AppColors.danger),
+            ),
+            const SizedBox(height: AppSpacing.buttonGap),
           ],
-        ),
+          AppButton.primary(label: ChatStrings.attach, onPressed: onAttach),
+          const SizedBox(height: AppSpacing.buttonGap),
+          AppButton.secondary(label: ChatStrings.cancel, onPressed: onCancel),
+        ],
       ),
     );
   }

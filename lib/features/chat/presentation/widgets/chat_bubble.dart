@@ -4,6 +4,7 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/chat/application/emphasis.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
 
@@ -14,21 +15,9 @@ class ChatBubble extends StatelessWidget {
   const ChatBubble({required this.message, this.onViewOriginal, super.key});
 
   final ChatMessage message;
+
+  /// "원본 확인 ›"을 눌렀을 때 동작.
   final VoidCallback? onViewOriginal;
-
-  static const _padding = 16.0;
-
-  /// 내 질문 말풍선 왼쪽을 비워 두는 너비.
-  static const _userIndent = 45.0;
-
-  /// Figma 말풍선 글자: 14 / 줄 높이 23.8
-  static const _textStyle = TextStyle(
-    fontFamily: AppTypography.fontFamily,
-    fontFamilyFallback: AppTypography.fontFamilyFallback,
-    fontSize: 14,
-    height: 23.8 / 14,
-    color: AppColors.textPrimary,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +30,7 @@ class ChatBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(_padding),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -58,7 +47,7 @@ class ChatBubble extends StatelessWidget {
                     ),
                 ],
               ),
-              style: _textStyle,
+              style: AppTypography.chatBubble,
             ),
             if (source != null) ...[
               const SizedBox(height: AppSpacing.lg),
@@ -80,7 +69,7 @@ class ChatBubble extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.only(left: isUser ? _userIndent : 0),
+      padding: EdgeInsets.only(left: isUser ? AppSpacing.chatBubbleIndent : 0),
       child: Align(
         alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
         child: isUser

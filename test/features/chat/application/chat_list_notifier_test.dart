@@ -71,7 +71,7 @@ void main() {
       expect(threads, [leaseThread, maintenanceThread]);
     });
 
-    test('검색어에 맞는 대화만 남긴다', () async {
+    test('검색어를 넣으면 맞는 대화만 남긴다', () async {
       final container = createContainer();
 
       final threads = await readFiltered(container, '관리비');
@@ -79,7 +79,7 @@ void main() {
       expect(threads, [maintenanceThread]);
     });
 
-    test('검색어 앞뒤 공백은 무시한다', () async {
+    test('검색어 앞뒤에 공백이 있으면 지우고 찾는다', () async {
       final container = createContainer();
 
       final threads = await readFiltered(container, '  월세  ');
@@ -113,7 +113,7 @@ void main() {
       expect(matchesQuery(leaseThread, '언제'), isTrue);
     });
 
-    test('영문은 대소문자를 가리지 않는다', () {
+    test('영문 검색어면 대소문자를 가리지 않는다', () {
       final thread = buildThread(id: 't', question: 'PDF 파일이 안 열려요');
 
       expect(matchesQuery(thread, 'pdf'), isTrue);
@@ -123,7 +123,7 @@ void main() {
       expect(matchesQuery(leaseThread, '보험'), isFalse);
     });
 
-    test('서류가 없는 대화도 말풍선 글로 찾는다', () {
+    test('서류가 없는 대화면 말풍선 글로만 찾는다', () {
       final thread = buildThread(id: 't', question: '위약금이 있나요?');
 
       expect(matchesQuery(thread, '위약금'), isTrue);

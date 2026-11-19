@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_notifier.dart';
-import 'package:chagok_mobile/features/chat/data/chat_message.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
+import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,7 +39,7 @@ void main() {
   });
 
   group('ChatRoomNotifier.build', () {
-    test('대화와 서류에 맞는 추천 질문을 불러온다', () async {
+    test('처음 읽으면 대화와 서류에 맞는 추천 질문을 불러온다', () async {
       final container = createContainer();
 
       final state = await container.read(chatRoomProvider(threadId).future);
@@ -79,7 +80,7 @@ void main() {
       expect(messages.last.text, '답: 위약금이 있나요?');
     });
 
-    test('앞뒤 공백을 지우고 보낸다', () async {
+    test('앞뒤에 공백이 있으면 지우고 보낸다', () async {
       final container = createContainer();
       await container.read(chatRoomProvider(threadId).future);
 
@@ -101,7 +102,7 @@ void main() {
       expect(repository.sentMessages, isEmpty);
     });
 
-    test('답을 기다리는 동안 isSending이 true다', () async {
+    test('질문을 보내면 답을 기다리는 동안 isSending이 true다', () async {
       final container = createContainer();
       await container.read(chatRoomProvider(threadId).future);
       repository.sendGate = Completer<void>();
@@ -166,7 +167,7 @@ void main() {
       expect(state.thread.messages.last.text, '답: 위약금이 있나요?');
     });
 
-    test('다시 보내는 동안에는 실패 표시를 숨긴다', () async {
+    test('실패한 뒤 다시 보내면 기다리는 동안 실패 표시를 숨긴다', () async {
       final container = createContainer();
       await container.read(chatRoomProvider(threadId).future);
       final notifier = container.read(chatRoomProvider(threadId).notifier);

@@ -1,7 +1,9 @@
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
+import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 
 /// 답변 API가 정해지기 전까지 화면 흐름을 확인하려고 쓰는 저장소.
 ///
@@ -16,6 +18,7 @@ class SampleChatRepository implements ChatRepository {
   final _threads = <String, ChatThread>{};
   var _nextId = 0;
 
+  /// 새 대화를 열 때 차곡이 먼저 건네는 인사말.
   static const greeting = '안녕하세요! 이 서류에서 궁금한 내용을 쉽게 설명해\n드릴게요.';
 
   static const _documents = [
@@ -34,7 +37,9 @@ class SampleChatRepository implements ChatRepository {
     final today = DateTime(now.year, now.month, now.day);
     void add(String documentId, String question, DateTime at) {
       final id = 'thread-${_nextId++}';
-      final document = _documents.firstWhere((doc) => doc.id == documentId);
+      final document = _documents.firstWhere(
+        (document) => document.id == documentId,
+      );
       _threads[id] = ChatThread(
         id: id,
         document: document,
@@ -115,7 +120,9 @@ class SampleChatRepository implements ChatRepository {
     required String documentId,
   }) async {
     final thread = await fetchThread(threadId);
-    final document = _documents.firstWhere((doc) => doc.id == documentId);
+    final document = _documents.firstWhere(
+      (document) => document.id == documentId,
+    );
     final updated = thread.copyWith(document: document);
     _threads[threadId] = updated;
     return updated;

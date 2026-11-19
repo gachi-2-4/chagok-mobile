@@ -9,7 +9,7 @@ void main() {
       expect(parts, [(text: '안녕하세요', isBold: false)]);
     });
 
-    test('** 사이 글자는 굵게, 나머지는 보통으로 나눈다', () {
+    test('** 사이에 글자가 있으면 그 글자만 굵게 나눈다', () {
       final parts = splitEmphasis('매월 **25일**까지');
 
       expect(parts, [
@@ -29,7 +29,7 @@ void main() {
       ]);
     });
 
-    test('짝이 맞지 않는 **는 글자 그대로 둔다', () {
+    test('**의 짝이 맞지 않으면 글자 그대로 둔다', () {
       final parts = splitEmphasis('별표 **하나만');
 
       expect(parts, [(text: '별표 **하나만', isBold: false)]);

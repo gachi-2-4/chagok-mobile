@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,7 +16,7 @@ void main() {
       ChatMessage(role: role, text: text, sentAt: at);
 
   group('ChatThread.title', () {
-    test('사용자가 처음 물어본 질문을 제목으로 쓴다', () {
+    test('사용자 질문이 여러 개면 처음 물어본 질문을 제목으로 쓴다', () {
       final thread = ChatThread(
         id: 't1',
         updatedAt: at,
@@ -42,7 +43,7 @@ void main() {
   });
 
   group('ChatThread.copyWith', () {
-    test('넘긴 값만 바꾸고 나머지는 그대로 둔다', () {
+    test('copyWith로 일부 값을 넘기면 그 값만 바꾸고 나머지는 그대로 둔다', () {
       final thread = ChatThread(
         id: 't1',
         updatedAt: at,

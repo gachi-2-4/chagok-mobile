@@ -29,7 +29,7 @@ void main() {
   });
 
   group('ChatAttachNotifier.build', () {
-    test('고를 수 있는 서류를 불러오고 아무것도 고르지 않은 상태로 시작한다', () async {
+    test('처음 읽으면 서류 목록을 불러오고 아무것도 고르지 않은 상태로 시작한다', () async {
       final container = createContainer();
 
       final state = await container.read(chatAttachProvider(threadId).future);
@@ -83,7 +83,7 @@ void main() {
       expect(repository.linkedDocuments, isEmpty);
     });
 
-    test('고른 서류를 대화에 연결하고 true를 돌려준다', () async {
+    test('서류를 고르고 연결하면 대화에 연결하고 true를 돌려준다', () async {
       final container = createContainer();
       await container.read(chatAttachProvider(threadId).future);
       final notifier = container.read(chatAttachProvider(threadId).notifier)

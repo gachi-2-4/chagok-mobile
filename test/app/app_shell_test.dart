@@ -67,7 +67,7 @@ void main() {
       expect(currentTab(tester), 1);
     });
 
-    testWidgets('대화방에 들어가도 바텀바가 남아 있다', (tester) async {
+    testWidgets('대화방에 들어가면 바텀바가 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
       await tapTab(tester, '채팅');
 
@@ -90,7 +90,7 @@ void main() {
       expect(find.byType(AppBottomNavBar), findsOneWidget);
     });
 
-    testWidgets('다른 탭에 다녀와도 보던 대화방이 그대로 남아 있다', (tester) async {
+    testWidgets('다른 탭에 다녀오면 보던 대화방이 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
       await tapTab(tester, '채팅');
       await openThread(tester);

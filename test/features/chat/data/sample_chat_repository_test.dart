@@ -1,5 +1,5 @@
-import 'package:chagok_mobile/features/chat/data/chat_message.dart';
-import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
+import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 import 'package:chagok_mobile/features/chat/data/sample_chat_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +12,7 @@ void main() {
   });
 
   group('SampleChatRepository.fetchThreads', () {
-    test('예시 대화를 최근 순서대로 돌려준다', () async {
+    test('대화 목록을 불러오면 예시 대화를 최근 순서대로 돌려준다', () async {
       final threads = await repository.fetchThreads();
 
       expect(threads, hasLength(4));
@@ -22,7 +22,7 @@ void main() {
       }
     });
 
-    test('아직 질문하지 않은 새 대화는 목록에 넣지 않는다', () async {
+    test('아직 질문하지 않은 새 대화면 목록에 넣지 않는다', () async {
       final created = await repository.createThread();
 
       final threads = await repository.fetchThreads();
@@ -41,7 +41,7 @@ void main() {
   });
 
   group('SampleChatRepository.createThread', () {
-    test('인사말 하나가 담긴 새 대화를 지금 시각으로 만든다', () async {
+    test('새 대화를 만들면 인사말 하나만 담고 시각을 지금으로 둔다', () async {
       final thread = await repository.createThread();
 
       expect(thread.updatedAt, now);
@@ -50,7 +50,7 @@ void main() {
       expect(thread.messages.single.text, SampleChatRepository.greeting);
     });
 
-    test('만들 때마다 다른 id를 준다', () async {
+    test('새 대화를 여러 번 만들면 매번 다른 id를 준다', () async {
       final first = await repository.createThread();
       final second = await repository.createThread();
 
@@ -59,7 +59,7 @@ void main() {
   });
 
   group('SampleChatRepository.sendMessage', () {
-    test('질문과 답을 차례로 붙이고 시각을 갱신한다', () async {
+    test('질문을 보내면 질문과 답을 차례로 붙이고 시각을 갱신한다', () async {
       final thread = await repository.createThread();
 
       final updated = await repository.sendMessage(
@@ -74,7 +74,7 @@ void main() {
       expect(updated.updatedAt, now);
     });
 
-    test('질문 낱말에 맞는 답과 근거를 준다', () async {
+    test('질문에 아는 낱말이 있으면 맞는 답과 근거를 준다', () async {
       final thread = await repository.createThread();
 
       final updated = await repository.sendMessage(
@@ -100,7 +100,7 @@ void main() {
       expect(answer.source, isNull);
     });
 
-    test('보낸 대화는 다시 불러와도 바뀐 내용이 남아 있다', () async {
+    test('질문을 보낸 대화를 다시 불러오면 바뀐 내용이 남아 있다', () async {
       final thread = await repository.createThread();
       await repository.sendMessage(threadId: thread.id, text: '위약금이 있나요?');
 
@@ -111,7 +111,7 @@ void main() {
   });
 
   group('SampleChatRepository.linkDocument', () {
-    test('고른 서류를 대화에 연결한다', () async {
+    test('서류를 연결하면 대화에 그 서류가 붙는다', () async {
       final thread = await repository.createThread();
 
       final updated = await repository.linkDocument(

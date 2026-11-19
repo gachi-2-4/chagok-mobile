@@ -7,7 +7,7 @@ void main() {
   group('groupByToday', () {
     final now = DateTime(2026, 11, 19, 15);
 
-    test('오늘 날짜인 대화와 그 전 대화를 나눈다', () {
+    test('오늘 대화와 그 전 대화가 섞여 있으면 둘로 나눈다', () {
       final morning = buildThread(id: 'a', updatedAt: DateTime(2026, 11, 19));
       final yesterday = buildThread(
         id: 'b',
@@ -30,7 +30,7 @@ void main() {
       expect(groups.earlier, [lastMonth, lastYear]);
     });
 
-    test('나눈 뒤에도 원래 순서를 지킨다', () {
+    test('대화를 나누면 묶음 안에서 원래 순서를 지킨다', () {
       final first = buildThread(id: 'a', updatedAt: DateTime(2026, 11, 19, 9));
       final second = buildThread(
         id: 'b',

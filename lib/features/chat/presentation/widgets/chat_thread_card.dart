@@ -16,8 +16,12 @@ class ChatThreadCard extends StatelessWidget {
   });
 
   final ChatThread thread;
+
+  /// 시각 표시 기준. 오늘이면 시각, 아니면 날짜를 보여 줍니다.
   final DateTime now;
   final VoidCallback onTap;
+
+  /// true면 초록 카드로 강조합니다.
   final bool isHighlighted;
 
   @override
@@ -36,7 +40,7 @@ class ChatThreadCard extends StatelessWidget {
             style: AppTypography.cardTitle,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.cardTitleGap),
         Text(
           documentName == null ? updatedAt : '$documentName · $updatedAt',
           maxLines: 1,

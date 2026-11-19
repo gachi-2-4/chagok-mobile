@@ -1,5 +1,4 @@
-/// 대화에서 말한 쪽.
-enum ChatRole { user, assistant }
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 
 /// 대화 말풍선 하나.
 class ChatMessage {

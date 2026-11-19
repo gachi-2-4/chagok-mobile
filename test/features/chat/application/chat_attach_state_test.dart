@@ -7,7 +7,7 @@ void main() {
   const documents = [leaseDocument, maintenanceDocument];
 
   group('ChatAttachState', () {
-    test('고른 id에 맞는 서류를 selected로 돌려준다', () {
+    test('서류 id를 고르면 selected가 그 서류가 된다', () {
       const state = ChatAttachState(
         documents: documents,
         selectedId: 'maintenance',
@@ -39,7 +39,7 @@ void main() {
       expect(state.canAttach, isFalse);
     });
 
-    test('copyWith는 넘긴 값만 바꾸고 서류 목록은 그대로 둔다', () {
+    test('copyWith로 값을 넘기면 그 값만 바꾸고 서류 목록은 그대로 둔다', () {
       const state = ChatAttachState(documents: documents, selectedId: 'lease');
 
       final updated = state.copyWith(isSaving: true);

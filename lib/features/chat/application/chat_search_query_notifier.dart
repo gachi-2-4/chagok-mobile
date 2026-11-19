@@ -11,5 +11,6 @@ class ChatSearchQueryNotifier extends Notifier<String> {
   @override
   String build() => '';
 
+  /// 검색어를 [query]로 바꿉니다.
   void update(String query) => state = query;
 }

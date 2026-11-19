@@ -22,6 +22,7 @@ class ChatAttachNotifier extends AsyncNotifier<ChatAttachState> {
     return ChatAttachState(documents: documents);
   }
 
+  /// [documentId] 서류를 고릅니다. 앞선 연결 실패 표시는 지웁니다.
   void select(String documentId) {
     final current = state.value;
     if (current != null) {

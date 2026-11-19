@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
+import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 import 'package:chagok_mobile/features/chat/data/sample_chat_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ abstract interface class ChatRepository {
   /// 최근에 이야기한 순서대로 정렬한 대화 목록.
   Future<List<ChatThread>> fetchThreads();
 
+  /// [id] 대화를 불러옵니다. 없으면 [ChatThreadNotFoundException]을 던집니다.
   Future<ChatThread> fetchThread(String id);
 
   /// 새 대화를 엽니다. 인사말이 담긴 대화를 돌려줍니다.
@@ -30,16 +32,6 @@ abstract interface class ChatRepository {
 
   /// [document]에 대해 바로 물어볼 만한 질문.
   List<String> suggestedQuestions(ChatDocument? document);
-}
-
-/// 대화를 찾지 못했을 때 던지는 예외.
-class ChatThreadNotFoundException implements Exception {
-  const ChatThreadNotFoundException(this.id);
-
-  final String id;
-
-  @override
-  String toString() => 'ChatThreadNotFoundException: $id';
 }
 
 /// 앱 전역 [ChatRepository].

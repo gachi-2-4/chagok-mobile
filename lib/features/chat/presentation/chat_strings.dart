@@ -4,6 +4,8 @@
 abstract final class ChatStrings {
   static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '대화를 불러오지 못했어요.';
+  static const listLoadFailed = '대화 목록을 불러오지 못했어요.';
+  static const documentsLoadFailed = '보관함 서류를 불러오지 못했어요.';
   static const retry = '다시 시도';
 
   // H01 대화
@@ -11,6 +13,15 @@ abstract final class ChatStrings {
   static String linkedDocument(String name) => '연결된 서류 · $name';
   static const noLinkedDocument = '연결된 서류가 없어요';
   static const change = '변경 ›';
+
+  /// 대화 화면 위 서류 띠. 예: "연결된 서류 · 임대차계약서　변경 ›"
+  static String documentBanner(String? documentName) {
+    final label = documentName == null
+        ? noLinkedDocument
+        : linkedDocument(documentName);
+    return '$label　$change';
+  }
+
   static const addDocument = '서류 추가';
   static const inputHint = '서류에 대해 질문하기';
   static const send = '보내기';
@@ -41,6 +52,8 @@ abstract final class ChatStrings {
   static const noResult = '검색 결과가 없어요.';
   static const newChat = '새 대화 시작';
 
+  /// [time]이 [now]와 같은 날이면 시각, 아니면 날짜.
+  ///
   /// 오늘이면 시각, 아니면 날짜. 예: "오전 9:41", "11월 14일"
   static String updatedAt(DateTime time, DateTime now) {
     final isToday =

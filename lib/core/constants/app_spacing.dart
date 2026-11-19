@@ -77,4 +77,25 @@ abstract final class AppSpacing {
 
   /// 하단 탭 바 아래 여백. 탭을 누르는 영역에 포함됩니다.
   static const navBarPaddingBottom = 16.0;
+
+  /// 상단 바 아래부터 화면의 첫 요소(큰 제목 등)까지 거리.
+  static const pageTop = 11.0;
+
+  /// 화면 안에서 제목·카드·배너·말풍선 같은 덩어리 사이 세로 간격.
+  static const block = 18.0;
+
+  /// 화면 맨 아래 버튼 묶음 아래 여백.
+  static const actionsBottom = 24.0;
+
+  /// 목록 끝에서 그 아래 주요 버튼까지 거리. 예: 채팅 목록의 "새 대화 시작"
+  static const primaryActionTop = 44.0;
+
+  /// 카드 제목과 그 아래 설명 사이 간격.
+  static const cardTitleGap = 10.0;
+
+  /// "오늘", "이전 대화" 같은 구역 이름 위 여백.
+  static const eyebrowTop = 3.0;
+
+  /// 내 질문 말풍선 왼쪽을 비워 두는 너비.
+  static const chatBubbleIndent = 45.0;
 }

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
@@ -10,6 +13,7 @@ import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart'
 import 'package:chagok_mobile/features/chat/application/chat_search_query_notifier.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
+import 'package:chagok_mobile/features/chat/presentation/widgets/chat_load_error.dart';
 import 'package:chagok_mobile/features/chat/presentation/widgets/chat_thread_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,14 +23,10 @@ import 'package:go_router/go_router.dart';
 class ChatListScreen extends ConsumerWidget {
   const ChatListScreen({super.key});
 
-  static const _top = 11.0;
-  static const _gap = 18.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final threads = ref.watch(filteredChatListProvider);
     final hasQuery = ref.watch(chatSearchQueryProvider).trim().isNotEmpty;
-    final now = DateTime.now();
 
     Future<void> startNewChat() async {
       final id = await ref.read(chatListProvider.notifier).startNewThread();
@@ -38,110 +38,117 @@ class ChatListScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.screenHorizontal,
-          _top,
+          AppSpacing.pageTop,
           AppSpacing.screenHorizontal,
           AppSpacing.xl,
         ),
         children: [
           const Text(ChatStrings.listTitle, style: AppTypography.pageTitle),
-          const SizedBox(height: _gap),
+          const SizedBox(height: AppSpacing.block),
           AppTextField(
             hintText: ChatStrings.searchHint,
-            onChanged: ref.read(chatSearchQueryProvider.notifier).update,
+            onChanged: (query) =>
+                ref.read(chatSearchQueryProvider.notifier).update(query),
             textInputAction: TextInputAction.search,
             suffix: const Icon(
               Icons.search_rounded,
-              size: 20,
+              size: AppIcons.mediumSize,
               color: AppColors.textPrimary,
             ),
           ),
-          ...threads.when(
-            data: (threads) => _threadSections(
-              context,
+          threads.when(
+            data: (threads) => _ThreadSections(
               threads: threads,
-              now: now,
+              now: DateTime.now(),
               emptyMessage: hasQuery ? ChatStrings.noResult : ChatStrings.empty,
+              onOpen: (id) => unawaited(context.push(AppRoute.chatRoom(id))),
             ),
-            loading: () => const [
-              Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
-                child: Center(child: CircularProgressIndicator()),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(AppSpacing.xl),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stackTrace) => Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.block),
+              child: ChatLoadError(
+                message: ChatStrings.listLoadFailed,
+                onRetry: () => ref.invalidate(chatListProvider),
               ),
-            ],
-            error: (error, stackTrace) => [
-              const SizedBox(height: _gap),
-              AppButton.secondary(
-                label: ChatStrings.retry,
-                onPressed: () => ref.invalidate(chatListProvider),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 44),
+          const SizedBox(height: AppSpacing.primaryActionTop),
           AppButton.primary(
             label: ChatStrings.newChat,
-            onPressed: startNewChat,
+            onPressed: () => unawaited(startNewChat()),
           ),
         ],
       ),
     );
   }
+}
 
-  List<Widget> _threadSections(
-    BuildContext context, {
-    required List<ChatThread> threads,
-    required DateTime now,
-    required String emptyMessage,
-  }) {
+/// 대화를 "오늘"과 "이전 대화"로 나눈 목록. 대화가 없으면 [emptyMessage]를 보여 줍니다.
+class _ThreadSections extends StatelessWidget {
+  const _ThreadSections({
+    required this.threads,
+    required this.now,
+    required this.emptyMessage,
+    required this.onOpen,
+  });
+
+  final List<ChatThread> threads;
+  final DateTime now;
+  final String emptyMessage;
+
+  /// 대화를 누르면 그 id를 받습니다.
+  final ValueChanged<String> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
     if (threads.isEmpty) {
-      return [
-        const SizedBox(height: _gap),
-        Text(emptyMessage, style: AppTypography.pageDescription),
-      ];
+      return Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.block),
+        child: Text(emptyMessage, style: AppTypography.pageDescription),
+      );
     }
     final groups = groupByToday(threads, now);
     final latestId = threads.first.id;
 
-    List<Widget> section(String label, List<ChatThread> items) => [
-      if (items.isNotEmpty) ...[
-        const SizedBox(height: _gap),
-        _Eyebrow(label),
-        for (final thread in items) ...[
-          const SizedBox(height: _gap),
-          ChatThreadCard(
-            thread: thread,
-            now: now,
-            isHighlighted: thread.id == latestId,
-            onTap: () => context.push(AppRoute.chatRoom(thread.id)),
-          ),
-        ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (label, items) in [
+          (ChatStrings.today, groups.today),
+          (ChatStrings.earlier, groups.earlier),
+        ])
+          if (items.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.block),
+            _Eyebrow(text: label),
+            for (final thread in items) ...[
+              const SizedBox(height: AppSpacing.block),
+              ChatThreadCard(
+                thread: thread,
+                now: now,
+                isHighlighted: thread.id == latestId,
+                onTap: () => onOpen(thread.id),
+              ),
+            ],
+          ],
       ],
-    ];
-
-    return [
-      ...section(ChatStrings.today, groups.today),
-      ...section(ChatStrings.earlier, groups.earlier),
-    ];
+    );
   }
 }
 
 /// "오늘", "이전 대화" 같은 작은 구역 이름.
 class _Eyebrow extends StatelessWidget {
-  const _Eyebrow(this.text);
+  const _Eyebrow({required this.text});
 
   final String text;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 3),
-      child: Text(
-        text,
-        style: AppTypography.label.copyWith(
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1,
-          color: AppColors.brand,
-        ),
-      ),
+      padding: const EdgeInsets.only(top: AppSpacing.eyebrowTop),
+      child: Text(text, style: AppTypography.eyebrow),
     );
   }
 }

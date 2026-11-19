@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
+import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
+import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 
 /// 테스트에서 쓰는 고정 시각.
 final fakeNow = DateTime(2026, 11, 19, 10);
@@ -54,6 +56,12 @@ class FakeChatRepository implements ChatRepository {
   final sentMessages = <({String threadId, String text})>[];
   final linkedDocuments = <({String threadId, String documentId})>[];
 
+  /// 값을 넣으면 대화·서류를 불러오는 함수가 이것이 끝날 때까지 기다립니다.
+  Completer<void>? loadGate;
+
+  /// 값을 넣으면 대화 목록·서류 목록을 불러올 때 이 예외를 던집니다.
+  Exception? loadError;
+
   /// 값을 넣으면 [sendMessage]가 이것이 끝날 때까지 기다립니다.
   Completer<void>? sendGate;
 
@@ -71,11 +79,14 @@ class FakeChatRepository implements ChatRepository {
   @override
   Future<List<ChatThread>> fetchThreads() async {
     fetchThreadsCount++;
+    await loadGate?.future;
+    if (loadError case final error?) throw error;
     return threads.values.toList();
   }
 
   @override
   Future<ChatThread> fetchThread(String id) async {
+    await loadGate?.future;
     return threads[id] ?? (throw ChatThreadNotFoundException(id));
   }
 
@@ -111,7 +122,11 @@ class FakeChatRepository implements ChatRepository {
   }
 
   @override
-  Future<List<ChatDocument>> fetchDocuments() async => documents;
+  Future<List<ChatDocument>> fetchDocuments() async {
+    await loadGate?.future;
+    if (loadError case final error?) throw error;
+    return documents;
+  }
 
   @override
   Future<ChatThread> linkDocument({
@@ -122,7 +137,9 @@ class FakeChatRepository implements ChatRepository {
     await linkGate?.future;
     if (linkError case final error?) throw error;
     final thread = await fetchThread(threadId);
-    final document = documents.firstWhere((doc) => doc.id == documentId);
+    final document = documents.firstWhere(
+      (document) => document.id == documentId,
+    );
     final updated = thread.copyWith(document: document);
     threads[threadId] = updated;
     return updated;

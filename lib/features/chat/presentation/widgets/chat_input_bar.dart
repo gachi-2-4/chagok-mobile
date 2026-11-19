@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -14,7 +15,10 @@ class ChatInputBar extends StatefulWidget {
     super.key,
   });
 
+  /// 앞뒤 공백을 지운 질문을 받습니다. 빈 글은 보내지 않습니다.
   final ValueChanged<String> onSend;
+
+  /// "서류 추가"를 눌렀을 때 동작.
   final VoidCallback onAddDocument;
 
   /// false면 답을 기다리는 동안 보내기를 막습니다.
@@ -83,7 +87,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
           IconButton(
             onPressed: widget.isEnabled ? _send : null,
             tooltip: ChatStrings.send,
-            icon: const Icon(Icons.arrow_upward_rounded, size: 18),
+            icon: const Icon(
+              Icons.arrow_upward_rounded,
+              size: AppIcons.smallSize,
+            ),
             color: AppColors.textPrimary,
           ),
         ],

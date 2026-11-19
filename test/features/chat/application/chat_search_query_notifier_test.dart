@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ChatSearchQueryNotifier', () {
-    test('처음에는 검색어가 비어 있다', () {
+    test('처음 읽으면 검색어가 비어 있다', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
