@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/app/theme.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
 import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,7 +26,7 @@ void main() {
   }
 
   group('SettingsScreen', () {
-    testWidgets('프로필과 현재 글자 크기를 보여 준다', (tester) async {
+    testWidgets('설정을 불러오면 프로필과 현재 글자 크기를 보여 준다', (tester) async {
       await pumpSettingsScreen(tester);
 
       expect(find.text('김차곡'), findsOneWidget);
@@ -44,6 +45,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.deleteCount, 0);
+    });
+
+    testWidgets('로그아웃하지 못하면 실패 안내를 보여 준다', (tester) async {
+      await pumpSettingsScreen(tester);
+      repository.error = Exception('network');
+
+      await tester.tap(find.text(SettingsStrings.logOut));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('예'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(SettingsStrings.logOutFailed), findsOneWidget);
     });
   });
 }

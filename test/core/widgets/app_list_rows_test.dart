@@ -31,7 +31,7 @@ void main() {
       expect(title.style?.color, AppColors.danger);
     });
 
-    testWidgets('값은 화살표 바로 왼쪽, 행의 오른쪽 끝에 붙는다', (tester) async {
+    testWidgets('값이 짧으면 화살표 바로 왼쪽, 행의 오른쪽 끝에 붙는다', (tester) async {
       await tester.pumpApp(
         AppListRow(title: '글자 크기', value: '보통', onTap: () {}),
       );

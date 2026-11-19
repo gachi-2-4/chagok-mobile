@@ -1,4 +1,4 @@
-import 'package:chagok_mobile/features/settings/data/app_settings.dart';
+import 'package:chagok_mobile/features/settings/data/text_size.dart';
 
 /// 설정 화면에 보이는 문구.
 ///
@@ -8,6 +8,8 @@ abstract final class SettingsStrings {
   static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '설정을 불러오지 못했어요.';
   static const retry = '다시 시도';
+  static const valueUnavailable = '불러오지 못함';
+  static const profileLoadFailed = '내 정보를 불러오지 못했어요';
 
   // S01 설정
   static const title = '설정';
@@ -32,6 +34,8 @@ abstract final class SettingsStrings {
   static const deleteAccountConfirm = '정말 탈퇴하시겠어요?';
   static const deleteAccountDescription = '탈퇴하면 보관한 서류와 기록이 모두 삭제되고 복구할 수 없어요.';
   static const deleteAccountAction = '탈퇴';
+  static const logOutFailed = '로그아웃하지 못했어요. 다시 시도해 주세요.';
+  static const deleteAccountFailed = '탈퇴하지 못했어요. 다시 시도해 주세요.';
 
   static String textSizeLabel(TextSize value) => switch (value) {
     TextSize.normal => '보통',
@@ -47,6 +51,7 @@ abstract final class SettingsStrings {
   static const textSizeNote = '저장하면 차곡 앱 전체에 선택한 글자 크기가 적용돼요.';
   static const saveTextSize = '이 크기로 저장';
   static const textSizeSaved = '글자 크기를 바꿨어요.';
+  static const textSizeSaveFailed = '글자 크기를 저장하지 못했어요. 다시 시도해 주세요.';
 
   // S03 알림 설정
   static const notificationTitle = '놓치지 않도록 알려 드려요';

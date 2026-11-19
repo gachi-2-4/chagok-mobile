@@ -1,5 +1,5 @@
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
-import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
+import 'package:chagok_mobile/features/settings/data/text_size.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -27,29 +27,6 @@ void main() {
       const settings = AppSettings(isPaymentReminderOn: false);
 
       expect(settings.hasAnyNotificationOn, isFalse);
-    });
-  });
-
-  group('InMemorySettingsRepository', () {
-    test('저장한 설정을 다시 불러온다', () async {
-      final repository = InMemorySettingsRepository();
-
-      await repository.saveSettings(
-        const AppSettings(textSize: TextSize.large),
-      );
-
-      expect((await repository.fetchSettings()).textSize, TextSize.large);
-    });
-
-    test('탈퇴하면 설정을 처음으로 돌린다', () async {
-      final repository = InMemorySettingsRepository();
-      await repository.saveSettings(
-        const AppSettings(textSize: TextSize.large),
-      );
-
-      await repository.deleteAccount();
-
-      expect((await repository.fetchSettings()).textSize, TextSize.normal);
     });
   });
 }

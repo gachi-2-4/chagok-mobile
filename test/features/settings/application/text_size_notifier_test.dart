@@ -2,6 +2,7 @@ import 'package:chagok_mobile/features/settings/application/settings_notifier.da
 import 'package:chagok_mobile/features/settings/application/text_size_notifier.dart';
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
+import 'package:chagok_mobile/features/settings/data/text_size.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,7 +24,7 @@ void main() {
   });
 
   group('TextSizeDraftNotifier', () {
-    test('저장된 글자 크기에서 시작한다', () {
+    test('처음 읽으면 저장된 글자 크기에서 시작한다', () {
       expect(container.read(textSizeDraftProvider), TextSize.large);
     });
 
@@ -45,6 +46,19 @@ void main() {
       await container.read(textSizeDraftProvider.notifier).save();
 
       expect(repository.stored.textSize, TextSize.extraLarge);
+    });
+
+    test('저장하지 못하면 false를 돌려준다', () async {
+      repository.error = Exception('network');
+      container
+          .read(textSizeDraftProvider.notifier)
+          .select(TextSize.extraLarge);
+
+      final isSaved = await container
+          .read(textSizeDraftProvider.notifier)
+          .save();
+
+      expect(isSaved, isFalse);
     });
   });
 }

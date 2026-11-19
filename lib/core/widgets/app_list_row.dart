@@ -24,6 +24,7 @@ class AppListRow extends StatelessWidget {
   /// 제목과 값이 나눠 가질 너비 비율. 값보다 제목에 더 많이 줍니다.
   static const _titleFlex = 3;
   static const _valueFlex = 2;
+  static const _chevronSize = 20.0;
 
   final String title;
 
@@ -81,7 +82,11 @@ class AppListRow extends StatelessWidget {
               ],
               if (showChevron) ...[
                 const SizedBox(width: AppSpacing.sm),
-                SvgPicture.asset(AppIcons.chevronRight, width: 20, height: 20),
+                SvgPicture.asset(
+                  AppIcons.chevronRight,
+                  width: _chevronSize,
+                  height: _chevronSize,
+                ),
               ],
             ],
           ),

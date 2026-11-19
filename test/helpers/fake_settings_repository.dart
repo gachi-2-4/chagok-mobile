@@ -9,12 +9,16 @@ class FakeSettingsRepository implements SettingsRepository {
   int logOutCount = 0;
   int deleteCount = 0;
 
+  /// 값을 넣으면 [saveSettings]·[logOut]·[deleteAccount]가 이 예외를 던집니다.
+  Exception? error;
+
   @override
   Future<AppSettings> fetchSettings() async => stored;
 
   @override
   Future<void> saveSettings(AppSettings settings) async {
     saveCount++;
+    if (error case final error?) throw error;
     stored = settings;
   }
 
@@ -23,11 +27,15 @@ class FakeSettingsRepository implements SettingsRepository {
       const UserProfile(name: '김차곡', phoneNumber: '01011112222');
 
   @override
-  Future<void> logOut() async => logOutCount++;
+  Future<void> logOut() async {
+    logOutCount++;
+    if (error case final error?) throw error;
+  }
 
   @override
   Future<void> deleteAccount() async {
     deleteCount++;
+    if (error case final error?) throw error;
     stored = const AppSettings();
   }
 }

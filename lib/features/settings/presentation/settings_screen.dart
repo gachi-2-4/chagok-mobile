@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -18,20 +20,126 @@ import 'package:go_router/go_router.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  /// Figma `title` 여백.
-  static const _titleTop = 8.0;
-  static const _titleBottom = 12.0;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileHeader = ref
+        .watch(userProfileProvider)
+        .when(
+          data: (profile) => ProfileHeader(profile: profile),
+          loading: () => const ProfileHeader(profile: null),
+          error: (error, stackTrace) => const ProfileHeader(
+            profile: null,
+            errorMessage: SettingsStrings.profileLoadFailed,
+          ),
+        );
+
+    return SettingsScaffold(
+      appBar: const AppTopBar(
+        title: SettingsStrings.brand,
+        showBackButton: false,
+      ),
+      body: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.screenHorizontal,
+            AppSpacing.sm,
+            AppSpacing.screenHorizontal,
+            AppSpacing.md,
+          ),
+          child: Text(
+            SettingsStrings.title,
+            style: AppTypography.boldPageTitle,
+          ),
+        ),
+        profileHeader,
+        const AppSectionBand(),
+        const _AppSettingsSection(),
+        const AppSectionBand(),
+        const _InfoSection(),
+        const AppSectionBand(),
+        const _AccountSection(),
+      ],
+    );
+  }
+}
+
+/// "앱 설정" 구역. 글자 크기와 알림 설정의 현재 값을 보여 줍니다.
+class _AppSettingsSection extends ConsumerWidget {
+  const _AppSettingsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider).value;
-    final profile = ref.watch(userProfileProvider).value;
+    final (textSize, notifications) = ref
+        .watch(settingsProvider)
+        .when(
+          data: (settings) => (
+            SettingsStrings.textSizeLabel(settings.textSize),
+            settings.hasAnyNotificationOn
+                ? SettingsStrings.notificationsOn
+                : SettingsStrings.notificationsOff,
+          ),
+          loading: () => (null, null),
+          error: (error, stackTrace) => (
+            SettingsStrings.valueUnavailable,
+            SettingsStrings.valueUnavailable,
+          ),
+        );
 
+    return Column(
+      children: [
+        const AppListSectionHeader(title: SettingsStrings.appSection),
+        AppListRow(
+          title: SettingsStrings.textSize,
+          value: textSize,
+          onTap: () => unawaited(context.push(AppRoute.textSizeSettings)),
+        ),
+        AppListRow(
+          title: SettingsStrings.notifications,
+          value: notifications,
+          onTap: () => unawaited(context.push(AppRoute.notificationSettings)),
+        ),
+      ],
+    );
+  }
+}
+
+/// "정보" 구역. 앱 버전, 약관, 개인정보 처리방침.
+class _InfoSection extends StatelessWidget {
+  const _InfoSection();
+
+  @override
+  Widget build(BuildContext context) {
     void showComingSoon() {
       // TODO: 약관·방침 문서가 정해지면 화면으로 연결합니다.
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text(SettingsStrings.comingSoon)));
+    }
+
+    return Column(
+      children: [
+        const AppListSectionHeader(title: SettingsStrings.infoSection),
+        const AppListRow(
+          title: SettingsStrings.appVersion,
+          value: SettingsStrings.appVersionValue,
+          showChevron: false,
+        ),
+        AppListRow(title: SettingsStrings.terms, onTap: showComingSoon),
+        AppListRow(title: SettingsStrings.privacyPolicy, onTap: showComingSoon),
+      ],
+    );
+  }
+}
+
+/// "계정" 구역. 로그아웃과 회원 탈퇴. 둘 다 확인 창을 거칩니다.
+class _AccountSection extends ConsumerWidget {
+  const _AccountSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    void showMessage(String message) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
 
     Future<void> confirmLogOut() async {
@@ -40,8 +148,13 @@ class SettingsScreen extends ConsumerWidget {
         title: SettingsStrings.logOutConfirm,
       );
       if (!isConfirmed) return;
-      await ref.read(settingsProvider.notifier).logOut();
-      if (context.mounted) context.go(AppRoute.home);
+      final isDone = await ref.read(settingsProvider.notifier).logOut();
+      if (!context.mounted) return;
+      if (isDone) {
+        context.go(AppRoute.home);
+      } else {
+        showMessage(SettingsStrings.logOutFailed);
+      }
     }
 
     Future<void> confirmDeleteAccount() async {
@@ -53,68 +166,26 @@ class SettingsScreen extends ConsumerWidget {
         isDestructive: true,
       );
       if (!isConfirmed) return;
-      await ref.read(settingsProvider.notifier).deleteAccount();
-      if (context.mounted) context.go(AppRoute.home);
+      final isDone = await ref.read(settingsProvider.notifier).deleteAccount();
+      if (!context.mounted) return;
+      if (isDone) {
+        context.go(AppRoute.home);
+      } else {
+        showMessage(SettingsStrings.deleteAccountFailed);
+      }
     }
 
-    return SettingsScaffold(
-      appBar: const AppTopBar(
-        title: SettingsStrings.brand,
-        showBackButton: false,
-      ),
-      body: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenHorizontal,
-            _titleTop,
-            AppSpacing.screenHorizontal,
-            _titleBottom,
-          ),
-          child: Text(
-            SettingsStrings.title,
-            style: AppTypography.pageTitle.copyWith(
-              fontSize: 26,
-              height: 36.4 / 26,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0,
-            ),
-          ),
-        ),
-        ProfileHeader(profile: profile),
-        const AppSectionBand(),
-        const AppListSectionHeader(title: SettingsStrings.appSection),
-        AppListRow(
-          title: SettingsStrings.textSize,
-          value: settings == null
-              ? null
-              : SettingsStrings.textSizeLabel(settings.textSize),
-          onTap: () => context.push(AppRoute.textSizeSettings),
-        ),
-        AppListRow(
-          title: SettingsStrings.notifications,
-          value: switch (settings?.hasAnyNotificationOn) {
-            true => SettingsStrings.notificationsOn,
-            false => SettingsStrings.notificationsOff,
-            null => null,
-          },
-          onTap: () => context.push(AppRoute.notificationSettings),
-        ),
-        const AppSectionBand(),
-        const AppListSectionHeader(title: SettingsStrings.infoSection),
-        const AppListRow(
-          title: SettingsStrings.appVersion,
-          value: SettingsStrings.appVersionValue,
-          showChevron: false,
-        ),
-        AppListRow(title: SettingsStrings.terms, onTap: showComingSoon),
-        AppListRow(title: SettingsStrings.privacyPolicy, onTap: showComingSoon),
-        const AppSectionBand(),
+    return Column(
+      children: [
         const AppListSectionHeader(title: SettingsStrings.accountSection),
-        AppListRow(title: SettingsStrings.logOut, onTap: confirmLogOut),
+        AppListRow(
+          title: SettingsStrings.logOut,
+          onTap: () => unawaited(confirmLogOut()),
+        ),
         AppListRow(
           title: SettingsStrings.deleteAccount,
           isDestructive: true,
-          onTap: confirmDeleteAccount,
+          onTap: () => unawaited(confirmDeleteAccount()),
         ),
       ],
     );

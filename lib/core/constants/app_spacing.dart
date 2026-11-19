@@ -77,4 +77,16 @@ abstract final class AppSpacing {
 
   /// 하단 탭 바 아래 여백. 탭을 누르는 영역에 포함됩니다.
   static const navBarPaddingBottom = 16.0;
+
+  /// 화면 안에서 제목·카드·배너·말풍선 같은 덩어리 사이 세로 간격.
+  static const block = 18.0;
+
+  /// 화면 맨 아래 버튼 묶음 아래 여백.
+  static const actionsBottom = 24.0;
+
+  /// 설정 화면 프로필 사진과 이름 사이 간격.
+  static const avatarGap = 14.0;
+
+  /// 그림이 왼쪽에 붙는 배너에서 배너 끝부터 그림까지 거리.
+  static const bannerIllustrationInset = 14.0;
 }

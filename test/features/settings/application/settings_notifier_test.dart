@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/features/settings/application/settings_notifier.dart';
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
+import 'package:chagok_mobile/features/settings/data/text_size.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,7 +23,7 @@ void main() {
   Future<AppSettings> settings() => container.read(settingsProvider.future);
 
   group('SettingsNotifier', () {
-    test('저장소에 있는 설정을 불러온다', () async {
+    test('처음 읽으면 저장소에 있는 설정을 불러온다', () async {
       repository.stored = const AppSettings(textSize: TextSize.large);
 
       expect((await settings()).textSize, TextSize.large);
@@ -61,7 +62,7 @@ void main() {
       expect(repository.stored.reminderMinuteOfDay, 14 * 60 + 30);
     });
 
-    test('범위를 벗어난 알림 시각은 받지 않는다', () async {
+    test('범위를 벗어난 알림 시각을 넣으면 RangeError를 던진다', () async {
       await settings();
 
       expect(
@@ -70,7 +71,7 @@ void main() {
       );
     });
 
-    test('불러오기 전에는 설정을 바꿔도 저장하지 않는다', () async {
+    test('불러오기 전에 설정을 바꾸면 저장하지 않는다', () async {
       await notifier().setTextSize(TextSize.large);
 
       expect(repository.saveCount, 0);
@@ -86,10 +87,30 @@ void main() {
       expect((await settings()).textSize, TextSize.normal);
     });
 
-    test('로그아웃하면 저장소에 요청한다', () async {
-      await notifier().logOut();
+    test('로그아웃하면 저장소에 요청하고 true를 돌려준다', () async {
+      final isDone = await notifier().logOut();
 
+      expect(isDone, isTrue);
       expect(repository.logOutCount, 1);
+    });
+
+    test('로그아웃하지 못하면 예외 대신 false를 돌려준다', () async {
+      repository.error = Exception('network');
+
+      final isDone = await notifier().logOut();
+
+      expect(isDone, isFalse);
+    });
+
+    test('탈퇴하지 못하면 예외 대신 false를 돌려주고 설정은 그대로 둔다', () async {
+      await settings();
+      await notifier().setTextSize(TextSize.large);
+      repository.error = Exception('network');
+
+      final isDone = await notifier().deleteAccount();
+
+      expect(isDone, isFalse);
+      expect((await settings()).textSize, TextSize.large);
     });
   });
 }

@@ -6,12 +6,11 @@ import 'package:flutter/material.dart';
 class SettingsHeader extends StatelessWidget {
   const SettingsHeader({required this.title, this.description, super.key});
 
+  /// 큰 제목.
   final String title;
-  final String? description;
 
-  /// Figma `h2.title:wrap`, `p.desc:wrap` 여백.
-  static const _top = 8.0;
-  static const _bottom = 16.0;
+  /// 제목 아래 설명. 비우면 그리지 않습니다.
+  final String? description;
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +19,9 @@ class SettingsHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
-        _top,
+        AppSpacing.sm,
         AppSpacing.screenHorizontal,
-        _bottom,
+        AppSpacing.lg,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

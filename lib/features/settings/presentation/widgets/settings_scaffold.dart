@@ -12,15 +12,14 @@ class SettingsScaffold extends StatelessWidget {
     super.key,
   });
 
+  /// 화면 위 상단 바.
   final PreferredSizeWidget appBar;
+
+  /// 위에서부터 쌓을 목록 내용.
   final List<Widget> body;
 
   /// 화면 아래 버튼 영역. 비우면 영역을 만들지 않습니다.
   final List<Widget> actions;
-
-  /// Figma `div.actions` 위·아래 여백.
-  static const _actionsTop = 18.0;
-  static const _actionsBottom = 24.0;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +39,9 @@ class SettingsScaffold extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  _actionsTop,
+                  AppSpacing.block,
                   AppSpacing.screenHorizontal,
-                  _actionsBottom,
+                  AppSpacing.actionsBottom,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

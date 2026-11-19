@@ -6,16 +6,15 @@ import 'package:flutter/material.dart';
 
 /// 설정 화면 위의 프로필 한 줄. 동그란 사진 자리, 이름, 전화번호.
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({required this.profile, super.key});
+  const ProfileHeader({required this.profile, this.errorMessage, super.key});
 
+  /// 보여 줄 내 정보. 불러오는 중이면 null.
   final UserProfile? profile;
 
-  static const _avatarSize = 48.0;
-  static const _avatarGap = 14.0;
+  /// 내 정보를 불러오지 못했을 때 이름 자리에 보여 줄 안내.
+  final String? errorMessage;
 
-  /// Figma `profile` 위·아래·오른쪽 여백.
-  static const _top = 12.0;
-  static const _bottom = 18.0;
+  static const _avatarSize = 48.0;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +23,9 @@ class ProfileHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
-        _top,
+        AppSpacing.md,
         AppSpacing.xl,
-        _bottom,
+        AppSpacing.block,
       ),
       child: Row(
         children: [
@@ -39,19 +38,19 @@ class ProfileHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: _avatarGap),
+          const SizedBox(width: AppSpacing.avatarGap),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  profile?.name ?? '',
-                  style: AppTypography.cardTitle.copyWith(height: 23.8 / 17),
+                  errorMessage ?? profile?.name ?? '',
+                  style: AppTypography.profileName,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   _formatPhoneNumber(profile?.phoneNumber ?? ''),
-                  style: AppTypography.listSubtitle.copyWith(height: 18.2 / 13),
+                  style: AppTypography.profileDetail,
                 ),
               ],
             ),

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 class DeviceNotificationBanner extends StatelessWidget {
   const DeviceNotificationBanner({required this.onTap, super.key});
 
+  /// 배너를 눌렀을 때 동작. 기기 알림 설정을 엽니다.
   final VoidCallback onTap;
 
   static const _height = 92.0;
@@ -30,7 +31,10 @@ class DeviceNotificationBanner extends StatelessWidget {
         child: SizedBox(
           height: _height,
           child: Padding(
-            padding: const EdgeInsets.only(left: 14, right: AppSpacing.xl),
+            padding: const EdgeInsets.only(
+              left: AppSpacing.bannerIllustrationInset,
+              right: AppSpacing.xl,
+            ),
             child: Row(
               children: [
                 Container(
