@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/app/router.dart';
+import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_banner.dart';
@@ -140,6 +141,8 @@ class _ChatRoomBody extends StatelessWidget {
                       ChatStrings.typing,
                       style: AppTypography.caption,
                     ),
+                  if (state.failedQuestion case final question?)
+                    _SendFailedNotice(onResend: () => onSend(question)),
                 ].reversed) ...[widget, const SizedBox(height: _gap)],
               ],
             ),
@@ -159,6 +162,28 @@ class _ChatRoomBody extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 답을 받지 못했을 때 보이는 안내와 다시 보내기 버튼.
+class _SendFailedNotice extends StatelessWidget {
+  const _SendFailedNotice({required this.onResend});
+
+  final VoidCallback onResend;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          ChatStrings.sendFailed,
+          style: AppTypography.caption.copyWith(color: AppColors.danger),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppChip(label: ChatStrings.resend, onTap: onResend),
+      ],
     );
   }
 }

@@ -136,6 +136,71 @@ void main() {
       expect(repository.sentMessages.map((sent) => sent.text), ['첫 질문']);
     });
 
+    test('답을 받지 못하면 보내는 중 상태를 풀고 실패한 질문을 남긴다', () async {
+      final container = createContainer();
+      final before = await container.read(chatRoomProvider(threadId).future);
+      repository.sendError = Exception('network');
+
+      await container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      final state = container.read(chatRoomProvider(threadId)).requireValue;
+      expect(state.isSending, isFalse);
+      expect(state.failedQuestion, '위약금이 있나요?');
+      expect(state.thread.messages, before.thread.messages);
+    });
+
+    test('실패한 뒤 다시 보내 답을 받으면 실패 표시가 사라진다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      final notifier = container.read(chatRoomProvider(threadId).notifier);
+      repository.sendError = Exception('network');
+      await notifier.send('위약금이 있나요?');
+
+      repository.sendError = null;
+      await notifier.send('위약금이 있나요?');
+
+      final state = container.read(chatRoomProvider(threadId)).requireValue;
+      expect(state.failedQuestion, isNull);
+      expect(state.thread.messages.last.text, '답: 위약금이 있나요?');
+    });
+
+    test('다시 보내는 동안에는 실패 표시를 숨긴다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      final notifier = container.read(chatRoomProvider(threadId).notifier);
+      repository.sendError = Exception('network');
+      await notifier.send('위약금이 있나요?');
+      repository
+        ..sendError = null
+        ..sendGate = Completer<void>();
+
+      final sending = notifier.send('위약금이 있나요?');
+
+      expect(
+        container.read(chatRoomProvider(threadId)).requireValue.failedQuestion,
+        isNull,
+      );
+      repository.sendGate?.complete();
+      await sending;
+    });
+
+    test('답을 받지 못하면 대화 목록을 다시 불러오지 않는다', () async {
+      final container = createContainer();
+      container.listen(chatListProvider, (_, _) {});
+      await container.read(chatListProvider.future);
+      await container.read(chatRoomProvider(threadId).future);
+      repository.sendError = Exception('network');
+
+      await container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+      await container.read(chatListProvider.future);
+
+      expect(repository.fetchThreadsCount, 1);
+    });
+
     test('보내고 나면 대화 목록을 다시 불러온다', () async {
       final container = createContainer();
       container.listen(chatListProvider, (_, _) {});

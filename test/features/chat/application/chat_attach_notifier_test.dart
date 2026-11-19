@@ -135,6 +135,62 @@ void main() {
       expect(repository.linkedDocuments, hasLength(1));
     });
 
+    test('연결하지 못하면 false를 돌려주고 저장 중 상태를 푼다', () async {
+      final container = createContainer();
+      await container.read(chatAttachProvider(threadId).future);
+      repository.linkError = Exception('network');
+      final notifier = container.read(chatAttachProvider(threadId).notifier)
+        ..select('lease');
+
+      final isAttached = await notifier.attach();
+
+      final state = container.read(chatAttachProvider(threadId)).requireValue;
+      expect(isAttached, isFalse);
+      expect(state.isSaving, isFalse);
+      expect(state.hasAttachFailed, isTrue);
+      expect(state.selected, leaseDocument);
+    });
+
+    test('연결에 실패한 뒤 다시 성공하면 실패 표시가 사라진다', () async {
+      final container = createContainer();
+      await container.read(chatAttachProvider(threadId).future);
+      repository.linkError = Exception('network');
+      final notifier = container.read(chatAttachProvider(threadId).notifier)
+        ..select('lease');
+      await notifier.attach();
+
+      repository.linkError = null;
+      final isAttached = await notifier.attach();
+
+      expect(isAttached, isTrue);
+      expect(
+        container
+            .read(chatAttachProvider(threadId))
+            .requireValue
+            .hasAttachFailed,
+        isFalse,
+      );
+    });
+
+    test('연결에 실패한 뒤 다른 서류를 고르면 실패 표시가 사라진다', () async {
+      final container = createContainer();
+      await container.read(chatAttachProvider(threadId).future);
+      repository.linkError = Exception('network');
+      final notifier = container.read(chatAttachProvider(threadId).notifier)
+        ..select('lease');
+      await notifier.attach();
+
+      notifier.select('maintenance');
+
+      expect(
+        container
+            .read(chatAttachProvider(threadId))
+            .requireValue
+            .hasAttachFailed,
+        isFalse,
+      );
+    });
+
     test('연결하고 나면 대화 화면이 연결된 서류를 다시 불러온다', () async {
       final container = createContainer();
       container.listen(chatRoomProvider(threadId), (_, _) {});

@@ -6,6 +6,7 @@ class ChatRoomState {
     required this.thread,
     required this.suggestions,
     this.isSending = false,
+    this.failedQuestion,
   });
 
   final ChatThread thread;
@@ -16,11 +17,22 @@ class ChatRoomState {
   /// 답을 기다리는 중이면 true.
   final bool isSending;
 
-  ChatRoomState copyWith({ChatThread? thread, bool? isSending}) {
+  /// 답을 받지 못한 마지막 질문. 다시 보낼 수 있게 남겨 둡니다.
+  final String? failedQuestion;
+
+  /// [failedQuestion]은 null로도 바꿀 수 있도록 값을 돌려주는 함수로 받습니다.
+  ChatRoomState copyWith({
+    ChatThread? thread,
+    bool? isSending,
+    String? Function()? failedQuestion,
+  }) {
     return ChatRoomState(
       thread: thread ?? this.thread,
       suggestions: suggestions,
       isSending: isSending ?? this.isSending,
+      failedQuestion: failedQuestion != null
+          ? failedQuestion()
+          : this.failedQuestion,
     );
   }
 }

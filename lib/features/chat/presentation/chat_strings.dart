@@ -17,6 +17,8 @@ abstract final class ChatStrings {
   static String source(String value) => '근거: $value';
   static const viewOriginal = '원본 확인　›';
   static const typing = '답을 찾고 있어요…';
+  static const sendFailed = '답을 받지 못했어요. 잠시 후 다시 보내 주세요.';
+  static const resend = '다시 보내기';
 
   // H02 서류 추가
   static const attachTitle = '대화에 서류 추가';
@@ -27,6 +29,7 @@ abstract final class ChatStrings {
   static const externalFileHelp =
       '외부 파일을 올리고 싶다면?\n보관함 → 박스에 파일을 업로드해 사용할 수 있어요.';
   static const attach = '이 서류로 대화하기';
+  static const attachFailed = '서류를 연결하지 못했어요. 다시 시도해 주세요.';
   static const cancel = '취소';
 
   // H03 대화 목록

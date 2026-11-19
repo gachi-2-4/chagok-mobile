@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_state.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 대화 하나의 상태.
@@ -24,16 +25,35 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
   }
 
   /// [text]를 보내고 답을 받습니다. 빈 글이거나 답을 기다리는 중이면 무시합니다.
+  ///
+  /// 답을 받지 못하면 대화는 그대로 두고 [ChatRoomState.failedQuestion]에
+  /// 질문을 남깁니다. 화면 전체를 에러로 바꾸지 않아 이전 대화를 계속 볼 수 있습니다.
   Future<void> send(String text) async {
     final current = state.value;
     final question = text.trim();
     if (current == null || current.isSending || question.isEmpty) return;
-    state = AsyncData(current.copyWith(isSending: true));
-    final thread = await ref
-        .read(chatRepositoryProvider)
-        .sendMessage(threadId: threadId, text: question);
-    if (!ref.mounted) return;
-    state = AsyncData(current.copyWith(thread: thread, isSending: false));
-    ref.invalidate(chatListProvider);
+    state = AsyncData(
+      current.copyWith(isSending: true, failedQuestion: () => null),
+    );
+    try {
+      final thread = await ref
+          .read(chatRepositoryProvider)
+          .sendMessage(threadId: threadId, text: question);
+      if (!ref.mounted) return;
+      state = AsyncData(
+        current.copyWith(
+          thread: thread,
+          isSending: false,
+          failedQuestion: () => null,
+        ),
+      );
+      ref.invalidate(chatListProvider);
+    } catch (error, stackTrace) {
+      debugPrint('질문을 보내지 못했습니다: $error\n$stackTrace');
+      if (!ref.mounted) return;
+      state = AsyncData(
+        current.copyWith(isSending: false, failedQuestion: () => question),
+      );
+    }
   }
 }

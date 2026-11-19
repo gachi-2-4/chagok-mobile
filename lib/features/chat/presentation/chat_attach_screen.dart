@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_banner.dart';
@@ -125,6 +126,16 @@ class ChatAttachScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (state?.hasAttachFailed ?? false) ...[
+                    Text(
+                      ChatStrings.attachFailed,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.danger,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.buttonGap),
+                  ],
                   AppButton.primary(
                     label: ChatStrings.attach,
                     onPressed: (state?.canAttach ?? false) ? attach : null,

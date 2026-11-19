@@ -60,6 +60,12 @@ class FakeChatRepository implements ChatRepository {
   /// 값을 넣으면 [linkDocument]가 이것이 끝날 때까지 기다립니다.
   Completer<void>? linkGate;
 
+  /// 값을 넣으면 [sendMessage]가 이 예외를 던집니다.
+  Exception? sendError;
+
+  /// 값을 넣으면 [linkDocument]가 이 예외를 던집니다.
+  Exception? linkError;
+
   var _nextId = 0;
 
   @override
@@ -87,6 +93,7 @@ class FakeChatRepository implements ChatRepository {
   }) async {
     sentMessages.add((threadId: threadId, text: text));
     await sendGate?.future;
+    if (sendError case final error?) throw error;
     final thread = await fetchThread(threadId);
     final updated = thread.copyWith(
       messages: [
@@ -113,6 +120,7 @@ class FakeChatRepository implements ChatRepository {
   }) async {
     linkedDocuments.add((threadId: threadId, documentId: documentId));
     await linkGate?.future;
+    if (linkError case final error?) throw error;
     final thread = await fetchThread(threadId);
     final document = documents.firstWhere((doc) => doc.id == documentId);
     final updated = thread.copyWith(document: document);
