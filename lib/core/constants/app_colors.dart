@@ -51,7 +51,6 @@ abstract final class AppColors {
   static const greenBorder = Color(0xFFB4C394);
   static const peach = Color(0xFFFFDAB9);
   static const peachBorder = Color(0xFFE5B48D);
-  static const peachText = Color(0xFFA85E2A);
   static const neutralBanner = Color(0xFFD9CDBB);
 
   // 토글
