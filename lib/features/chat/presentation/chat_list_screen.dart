@@ -11,6 +11,7 @@ import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/chat/application/chat_grouping.dart';
 import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_search_query_notifier.dart';
+import 'package:chagok_mobile/features/chat/application/chat_start_notifier.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:chagok_mobile/features/chat/presentation/widgets/chat_load_error.dart';
@@ -27,11 +28,6 @@ class ChatListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final threads = ref.watch(filteredChatListProvider);
     final hasQuery = ref.watch(chatSearchQueryProvider).trim().isNotEmpty;
-
-    Future<void> startNewChat() async {
-      final id = await ref.read(chatListProvider.notifier).startNewThread();
-      if (context.mounted) await context.push(AppRoute.chatRoom(id));
-    }
 
     return Scaffold(
       appBar: const AppTopBar(title: AppTopBar.logoText, showBackButton: false),
@@ -76,12 +72,50 @@ class ChatListScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.primaryActionTop),
-          AppButton.primary(
-            label: ChatStrings.newChat,
-            onPressed: () => unawaited(startNewChat()),
-          ),
+          const _NewChatAction(),
         ],
       ),
+    );
+  }
+}
+
+/// "새 대화 시작" 버튼과 실패 안내. 시작하는 동안에는 버튼을 막습니다.
+class _NewChatAction extends ConsumerWidget {
+  const _NewChatAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final (isStarting, hasFailed) = ref
+        .watch(chatStartProvider)
+        .when(
+          data: (_) => (false, false),
+          loading: () => (true, false),
+          error: (error, stackTrace) => (false, true),
+        );
+
+    Future<void> startNewChat() async {
+      final id = await ref.read(chatStartProvider.notifier).start();
+      if (id != null && context.mounted) {
+        await context.push(AppRoute.chatRoom(id));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hasFailed) ...[
+          Text(
+            ChatStrings.newChatFailed,
+            textAlign: TextAlign.center,
+            style: AppTypography.caption.copyWith(color: AppColors.danger),
+          ),
+          const SizedBox(height: AppSpacing.buttonGap),
+        ],
+        AppButton.primary(
+          label: ChatStrings.newChat,
+          onPressed: isStarting ? null : () => unawaited(startNewChat()),
+        ),
+      ],
     );
   }
 }

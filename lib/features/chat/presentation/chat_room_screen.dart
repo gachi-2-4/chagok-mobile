@@ -77,7 +77,9 @@ class _ChatRoomBody extends StatelessWidget {
             child: _MessageList(
               state: state,
               onSend: onSend,
-              onAddDocument: onAddDocument,
+              // 답을 기다리는 중에 서류를 바꾸면 대화를 다시 불러오면서
+              // 도착할 답이 화면에서 빠질 수 있어 막습니다.
+              onAddDocument: state.isSending ? null : onAddDocument,
             ),
           ),
           Padding(
@@ -109,7 +111,9 @@ class _MessageList extends StatelessWidget {
 
   final ChatRoomState state;
   final ValueChanged<String> onSend;
-  final VoidCallback onAddDocument;
+
+  /// null이면 서류 띠를 누를 수 없습니다.
+  final VoidCallback? onAddDocument;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +167,9 @@ class _DocumentBanner extends StatelessWidget {
   const _DocumentBanner({required this.document, required this.onTap});
 
   final ChatDocument? document;
-  final VoidCallback onTap;
+
+  /// null이면 누를 수 없습니다.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

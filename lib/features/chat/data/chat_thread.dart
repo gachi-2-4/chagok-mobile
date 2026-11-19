@@ -4,17 +4,21 @@ import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 
 /// 대화 하나.
 class ChatThread {
-  const ChatThread({
+  /// [messages]는 복사해서 바꿀 수 없는 목록으로 보관합니다.
+  /// 넘긴 목록을 나중에 고쳐도 이 대화는 바뀌지 않습니다.
+  ChatThread({
     required this.id,
-    required this.messages,
+    required List<ChatMessage> messages,
     required this.updatedAt,
     this.document,
-  });
+  }) : messages = List.unmodifiable(messages);
 
   final String id;
 
   /// 대화에 연결된 서류. 없으면 null.
   final ChatDocument? document;
+
+  /// 말풍선 목록. 바꿀 수 없습니다. 바꾸려면 [copyWith]로 새 대화를 만듭니다.
   final List<ChatMessage> messages;
   final DateTime updatedAt;
 

@@ -110,7 +110,9 @@ class _ChatAttachBody extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.block),
                 _PickFromBoxCard(
-                  onTap: () => unawaited(_pickDocument(context)),
+                  onTap: state.isSaving
+                      ? null
+                      : () => unawaited(_pickDocument(context)),
                 ),
                 if (selected != null) ...[
                   const SizedBox(height: AppSpacing.block),
@@ -143,7 +145,8 @@ class _ChatAttachBody extends StatelessWidget {
 class _PickFromBoxCard extends StatelessWidget {
   const _PickFromBoxCard({required this.onTap});
 
-  final VoidCallback onTap;
+  /// null이면 누를 수 없습니다.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

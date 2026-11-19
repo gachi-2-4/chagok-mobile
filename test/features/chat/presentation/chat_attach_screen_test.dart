@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/core/widgets/app_card.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +109,52 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(ChatStrings.attachFailed), findsOneWidget);
+    });
+
+    testWidgets('연결에 실패한 뒤에도 고른 서류가 남아 있고 다시 누르면 연결한다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatAttachScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      await pickDocument(tester, leaseDocument.fileName);
+      repository.linkError = Exception('network');
+      await tester.tap(find.text(ChatStrings.attach));
+      await tester.pumpAndSettle();
+
+      repository.linkError = null;
+      await tester.tap(find.text(ChatStrings.attach));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(ChatStrings.selected(leaseDocument.fileName)),
+        findsOneWidget,
+      );
+      expect(find.text(ChatStrings.attachFailed), findsNothing);
+      expect(repository.linkedDocuments, hasLength(2));
+    });
+
+    testWidgets('추가 버튼을 누르면 연결이 끝날 때까지 보관함 카드를 누를 수 없다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatAttachScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      await pickDocument(tester, leaseDocument.fileName);
+      repository.linkGate = Completer<void>();
+
+      await tester.tap(find.text(ChatStrings.attach));
+      await tester.pump();
+
+      final card = tester.widget<AppCard>(
+        find.ancestor(
+          of: find.text(ChatStrings.pickFromBox),
+          matching: find.byType(AppCard),
+        ),
+      );
+      expect(card.onTap, isNull);
+      repository.linkGate?.complete();
+      await tester.pumpAndSettle();
     });
   });
 }

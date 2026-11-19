@@ -29,15 +29,9 @@ bool matchesQuery(ChatThread thread, String query) {
       thread.messages.any((message) => contains(message.text));
 }
 
-/// 대화 목록을 불러오고 새 대화를 엽니다.
+/// 대화 목록을 불러옵니다. 새 대화 시작은 `ChatStartNotifier`가 맡습니다.
 class ChatListNotifier extends AsyncNotifier<List<ChatThread>> {
   @override
   Future<List<ChatThread>> build() =>
       ref.watch(chatRepositoryProvider).fetchThreads();
-
-  /// 새 대화를 열고 그 id를 돌려줍니다.
-  Future<String> startNewThread() async {
-    final thread = await ref.read(chatRepositoryProvider).createThread();
-    return thread.id;
-  }
 }

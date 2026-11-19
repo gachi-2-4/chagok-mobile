@@ -22,6 +22,10 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == ChatRole.user;
+    // `**굵게**`는 차곡의 답에만 쓰는 표시입니다. 내 질문은 입력한 글자 그대로 보여 줍니다.
+    final parts = isUser
+        ? [(text: message.text, isBold: false)]
+        : splitEmphasis(message.text);
     final source = message.source;
 
     final bubble = DecoratedBox(
@@ -38,7 +42,7 @@ class ChatBubble extends StatelessWidget {
             Text.rich(
               TextSpan(
                 children: [
-                  for (final part in splitEmphasis(message.text))
+                  for (final part in parts)
                     TextSpan(
                       text: part.text,
                       style: part.isBold
@@ -51,17 +55,7 @@ class ChatBubble extends StatelessWidget {
             ),
             if (source != null) ...[
               const SizedBox(height: AppSpacing.lg),
-              Text(ChatStrings.source(source), style: AppTypography.caption),
-              GestureDetector(
-                onTap: onViewOriginal,
-                child: const Padding(
-                  padding: EdgeInsets.only(top: AppSpacing.xs),
-                  child: Text(
-                    ChatStrings.viewOriginal,
-                    style: AppTypography.caption,
-                  ),
-                ),
-              ),
+              _SourceFooter(source: source, onViewOriginal: onViewOriginal),
             ],
           ],
         ),
@@ -76,6 +70,32 @@ class ChatBubble extends StatelessWidget {
             ? bubble
             : SizedBox(width: double.infinity, child: bubble),
       ),
+    );
+  }
+}
+
+/// 답의 근거와 "원본 확인 ›".
+class _SourceFooter extends StatelessWidget {
+  const _SourceFooter({required this.source, required this.onViewOriginal});
+
+  /// 예: "계약서 1페이지, 납부 조건"
+  final String source;
+  final VoidCallback? onViewOriginal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(ChatStrings.source(source), style: AppTypography.caption),
+        GestureDetector(
+          onTap: onViewOriginal,
+          child: const Padding(
+            padding: EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(ChatStrings.viewOriginal, style: AppTypography.caption),
+          ),
+        ),
+      ],
     );
   }
 }

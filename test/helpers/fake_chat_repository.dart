@@ -62,6 +62,12 @@ class FakeChatRepository implements ChatRepository {
   /// 값을 넣으면 대화 목록·서류 목록을 불러올 때 이 예외를 던집니다.
   Exception? loadError;
 
+  /// 값을 넣으면 [createThread]가 이것이 끝날 때까지 기다립니다.
+  Completer<void>? createGate;
+
+  /// 값을 넣으면 [createThread]가 이 예외를 던집니다.
+  Exception? createError;
+
   /// 값을 넣으면 [sendMessage]가 이것이 끝날 때까지 기다립니다.
   Completer<void>? sendGate;
 
@@ -92,6 +98,8 @@ class FakeChatRepository implements ChatRepository {
 
   @override
   Future<ChatThread> createThread() async {
+    await createGate?.future;
+    if (createError case final error?) throw error;
     final thread = buildThread(id: 'new-${_nextId++}');
     threads[thread.id] = thread;
     return thread;

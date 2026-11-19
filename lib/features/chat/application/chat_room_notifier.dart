@@ -32,6 +32,9 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
     final current = state.value;
     final question = text.trim();
     if (current == null || current.isSending || question.isEmpty) return;
+    // 답을 기다리는 중에 대화방을 나가도 결과를 반영하고 대화 목록을
+    // 갱신할 수 있도록, 끝날 때까지 provider를 살려 둡니다.
+    final keepAlive = ref.keepAlive();
     state = AsyncData(
       current.copyWith(isSending: true, failedQuestion: () => null),
     );
@@ -54,6 +57,8 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
       state = AsyncData(
         current.copyWith(isSending: false, failedQuestion: () => question),
       );
+    } finally {
+      keepAlive.close();
     }
   }
 }

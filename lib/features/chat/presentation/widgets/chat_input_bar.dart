@@ -21,7 +21,7 @@ class ChatInputBar extends StatefulWidget {
   /// "서류 추가"를 눌렀을 때 동작.
   final VoidCallback onAddDocument;
 
-  /// false면 답을 기다리는 동안 보내기를 막습니다.
+  /// false면 답을 기다리는 동안 보내기와 서류 추가를 막습니다.
   final bool isEnabled;
 
   @override
@@ -55,7 +55,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       child: Row(
         children: [
           TextButton(
-            onPressed: widget.onAddDocument,
+            onPressed: widget.isEnabled ? widget.onAddDocument : null,
             style: TextButton.styleFrom(
               foregroundColor: AppColors.textPrimary,
               textStyle: AppTypography.fieldInput,

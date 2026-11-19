@@ -124,5 +124,34 @@ void main() {
       expect(find.text('답: $question'), findsOneWidget);
       expect(find.text(ChatStrings.sendFailed), findsNothing);
     });
+
+    testWidgets('질문을 보내면 답을 받을 때까지 서류 추가 버튼과 서류 띠를 누를 수 없다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatRoomScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      repository.sendGate = Completer<void>();
+
+      await tester.enterText(find.byType(TextField), question);
+      await tester.tap(find.byTooltip(ChatStrings.send));
+      await tester.pump();
+
+      final addButton = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, ChatStrings.addDocument),
+      );
+      final banner = tester.widget<GestureDetector>(
+        find
+            .ancestor(
+              of: find.text(ChatStrings.documentBanner(leaseDocument.name)),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+      );
+      expect(addButton.onPressed, isNull);
+      expect(banner.onTap, isNull);
+      repository.sendGate?.complete();
+      await tester.pumpAndSettle();
+    });
   });
 }

@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/features/chat/application/chat_attach_state.dart';
+import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_notifier.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:flutter/foundation.dart';
@@ -23,13 +24,14 @@ class ChatAttachNotifier extends AsyncNotifier<ChatAttachState> {
   }
 
   /// [documentId] 서류를 고릅니다. 앞선 연결 실패 표시는 지웁니다.
+  ///
+  /// 연결하는 중에는 무시합니다. 연결 결과가 어느 서류의 것인지 헷갈리지 않게 합니다.
   void select(String documentId) {
     final current = state.value;
-    if (current != null) {
-      state = AsyncData(
-        current.copyWith(selectedId: documentId, hasAttachFailed: false),
-      );
-    }
+    if (current == null || current.isSaving) return;
+    state = AsyncData(
+      current.copyWith(selectedId: documentId, hasAttachFailed: false),
+    );
   }
 
   /// 고른 서류를 대화에 연결합니다. 연결했으면 true.
@@ -40,11 +42,24 @@ class ChatAttachNotifier extends AsyncNotifier<ChatAttachState> {
     final current = state.value;
     final selected = current?.selected;
     if (current == null || selected == null || current.isSaving) return false;
+    // 연결하는 중에 화면을 닫아도 대화·목록을 갱신할 수 있도록,
+    // 끝날 때까지 provider를 살려 둡니다.
+    final keepAlive = ref.keepAlive();
     state = AsyncData(current.copyWith(isSaving: true, hasAttachFailed: false));
     try {
       await ref
           .read(chatRepositoryProvider)
           .linkDocument(threadId: threadId, documentId: selected.id);
+      if (ref.mounted) {
+        // 대화 화면의 서류 띠와 목록 검색이 새 서류 이름을 쓰도록 다시 불러옵니다.
+        ref
+          ..invalidate(chatRoomProvider(threadId))
+          ..invalidate(chatListProvider);
+        state = AsyncData(
+          current.copyWith(isSaving: false, hasAttachFailed: false),
+        );
+      }
+      return true;
     } catch (error, stackTrace) {
       debugPrint('서류를 연결하지 못했습니다: $error\n$stackTrace');
       if (ref.mounted) {
@@ -53,13 +68,8 @@ class ChatAttachNotifier extends AsyncNotifier<ChatAttachState> {
         );
       }
       return false;
+    } finally {
+      keepAlive.close();
     }
-    ref.invalidate(chatRoomProvider(threadId));
-    if (ref.mounted) {
-      state = AsyncData(
-        current.copyWith(isSaving: false, hasAttachFailed: false),
-      );
-    }
-    return true;
   }
 }

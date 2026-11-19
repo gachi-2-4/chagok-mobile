@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
@@ -100,6 +101,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('월세는 언제 내나요?'), findsOneWidget);
+    });
+
+    testWidgets('새 대화를 시작하지 못하면 실패 안내를 보여 준다', (tester) async {
+      await tester.pumpChatScreen(const ChatListScreen(), repository);
+      await tester.pumpAndSettle();
+      repository.createError = Exception('network');
+
+      await tester.tap(find.text(ChatStrings.newChat));
+      await tester.pumpAndSettle();
+
+      expect(find.text(ChatStrings.newChatFailed), findsOneWidget);
+    });
+
+    testWidgets('새 대화 시작을 누르면 시작이 끝날 때까지 버튼을 누를 수 없다', (tester) async {
+      await tester.pumpChatScreen(const ChatListScreen(), repository);
+      await tester.pumpAndSettle();
+      repository.createGate = Completer<void>();
+
+      await tester.tap(find.text(ChatStrings.newChat));
+      await tester.pump();
+
+      final button = tester.widget<AppButton>(
+        find.widgetWithText(AppButton, ChatStrings.newChat),
+      );
+      expect(button.onPressed, isNull);
+      // 시작이 끝나면 대화방으로 이동하는데, 이 테스트에는 라우터가 없어 실패로 끝냅니다.
+      repository.createError = Exception('stop');
+      repository.createGate?.complete();
+      await tester.pumpAndSettle();
     });
   });
 }

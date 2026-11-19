@@ -202,6 +202,29 @@ void main() {
       expect(repository.fetchThreadsCount, 1);
     });
 
+    test('답을 기다리는 중에 대화방을 나가도 답을 받으면 대화 목록을 다시 불러온다', () async {
+      final container = ProviderContainer(
+        overrides: [chatRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      container.listen(chatListProvider, (_, _) {});
+      await container.read(chatListProvider.future);
+      final room = container.listen(chatRoomProvider(threadId), (_, _) {});
+      await container.read(chatRoomProvider(threadId).future);
+      repository.sendGate = Completer<void>();
+      final sending = container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      room.close();
+      await container.pump();
+      repository.sendGate?.complete();
+      await sending;
+      await container.read(chatListProvider.future);
+
+      expect(repository.fetchThreadsCount, 2);
+    });
+
     test('보내고 나면 대화 목록을 다시 불러온다', () async {
       final container = createContainer();
       container.listen(chatListProvider, (_, _) {});

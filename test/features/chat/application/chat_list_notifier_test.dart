@@ -41,16 +41,6 @@ void main() {
 
       expect(threads, [leaseThread, maintenanceThread]);
     });
-
-    test('startNewThread를 부르면 새 대화를 만들고 그 id를 돌려준다', () async {
-      final container = createContainer();
-
-      final id = await container
-          .read(chatListProvider.notifier)
-          .startNewThread();
-
-      expect(repository.threads.keys, contains(id));
-    });
   });
 
   group('filteredChatListProvider', () {

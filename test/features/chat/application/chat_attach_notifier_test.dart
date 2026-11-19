@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/features/chat/application/chat_attach_notifier.dart';
+import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_notifier.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -189,6 +190,61 @@ void main() {
             .hasAttachFailed,
         isFalse,
       );
+    });
+
+    test('연결하는 중에 다른 서류를 고르면 무시하고 실패해도 처음 고른 서류를 둔다', () async {
+      final container = createContainer();
+      await container.read(chatAttachProvider(threadId).future);
+      repository
+        ..linkGate = Completer<void>()
+        ..linkError = Exception('network');
+      final notifier = container.read(chatAttachProvider(threadId).notifier)
+        ..select('lease');
+      final attaching = notifier.attach();
+
+      notifier.select('maintenance');
+      repository.linkGate?.complete();
+      await attaching;
+
+      final state = container.read(chatAttachProvider(threadId)).requireValue;
+      expect(state.selected, leaseDocument);
+      expect(state.hasAttachFailed, isTrue);
+    });
+
+    test('연결하는 중에 화면을 닫아도 예외 없이 연결을 마치고 true를 돌려준다', () async {
+      final container = ProviderContainer(
+        overrides: [chatRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      final attachScreen = container.listen(
+        chatAttachProvider(threadId),
+        (_, _) {},
+      );
+      await container.read(chatAttachProvider(threadId).future);
+      repository.linkGate = Completer<void>();
+      final attaching = (container.read(
+        chatAttachProvider(threadId).notifier,
+      )..select('lease')).attach();
+
+      attachScreen.close();
+      await container.pump();
+      repository.linkGate?.complete();
+
+      await expectLater(attaching, completion(isTrue));
+    });
+
+    test('연결하고 나면 대화 목록을 다시 불러온다', () async {
+      final container = createContainer();
+      container.listen(chatListProvider, (_, _) {});
+      await container.read(chatListProvider.future);
+      await container.read(chatAttachProvider(threadId).future);
+      final notifier = container.read(chatAttachProvider(threadId).notifier)
+        ..select('maintenance');
+
+      await notifier.attach();
+      await container.read(chatListProvider.future);
+
+      expect(repository.fetchThreadsCount, 2);
     });
 
     test('연결하고 나면 대화 화면이 연결된 서류를 다시 불러온다', () async {

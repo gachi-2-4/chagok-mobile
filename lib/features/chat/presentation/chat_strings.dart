@@ -51,6 +51,7 @@ abstract final class ChatStrings {
   static const empty = '아직 나눈 대화가 없어요.';
   static const noResult = '검색 결과가 없어요.';
   static const newChat = '새 대화 시작';
+  static const newChatFailed = '새 대화를 시작하지 못했어요. 다시 시도해 주세요.';
 
   /// [time]이 [now]와 같은 날이면 시각, 아니면 날짜.
   ///
