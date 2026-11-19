@@ -95,9 +95,16 @@ class _NewChatAction extends ConsumerWidget {
 
     Future<void> startNewChat() async {
       final id = await ref.read(chatStartProvider.notifier).start();
-      if (id != null && context.mounted) {
-        await context.push(AppRoute.chatRoom(id));
-      }
+      if (id == null || !context.mounted) return;
+      // 채팅 탭은 indexedStack에 남아 있어 다른 탭으로 가도 mounted가 true입니다.
+      // 아직 대화 목록을 보고 있을 때만 대화방으로 이동해, 다른 화면 위에 열지 않습니다.
+      final location = GoRouter.of(context)
+          .routerDelegate
+          .currentConfiguration
+          .uri
+          .path;
+      if (location != AppRoute.chat) return;
+      await context.push(AppRoute.chatRoom(id));
     }
 
     return Column(

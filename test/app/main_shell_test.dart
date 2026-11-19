@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
@@ -6,6 +8,7 @@ import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,7 +18,7 @@ import '../helpers/fake_chat_repository.dart';
 void main() {
   const question = '월세는 언제 내나요?';
 
-  Future<void> pumpChagokApp(WidgetTester tester) async {
+  Future<FakeChatRepository> pumpChagokApp(WidgetTester tester) async {
     final repository = FakeChatRepository(
       threads: [
         buildThread(
@@ -32,6 +35,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return repository;
   }
 
   int currentTab(WidgetTester tester) =>
@@ -132,5 +136,24 @@ void main() {
         expect(currentTab(tester), index);
       });
     }
+
+    testWidgets('새 대화를 만드는 중에 다른 탭으로 가면 다 만들어져도 대화방으로 이동하지 않는다', (
+      tester,
+    ) async {
+      final repository = await pumpChagokApp(tester);
+      await tapTab(tester, AppStrings.chatTab);
+      repository.createGate = Completer<void>();
+      await tester.tap(find.text(ChatStrings.newChat));
+      await tester.pump();
+
+      await tapTab(tester, AppStrings.homeTab);
+      repository.createGate?.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await tapTab(tester, AppStrings.chatTab);
+      expect(find.byType(ChatRoomScreen), findsNothing);
+      expect(find.byType(ChatListScreen), findsOneWidget);
+    });
   });
 }
