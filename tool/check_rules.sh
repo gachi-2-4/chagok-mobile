@@ -59,8 +59,11 @@ PRESENTATION_FILES=()
 for file in ${LIB_FILES[@]+"${LIB_FILES[@]}"}; do
   if [[ "${file}" != lib/core/constants/* ]]; then
     NON_CONSTANT_FILES+=("${file}")
-    # 화면 문구를 모아 두는 *_strings.dart는 문자열 점검에서 뺍니다.
-    if [[ "${file}" != *_strings.dart ]]; then SCREEN_FILES+=("${file}"); fi
+    # 화면 문구를 모아 두는 *_strings.dart와, 서버 데이터를 흉내 내는
+    # 예시·메모리 저장소(sample_*·in_memory_*)는 문자열 점검에서 뺍니다.
+    if [[ "${file}" != *_strings.dart && "${file}" != */sample_* && "${file}" != */in_memory_* ]]; then
+      SCREEN_FILES+=("${file}")
+    fi
   fi
   if [[ "${file}" == */presentation/* ]]; then PRESENTATION_FILES+=("${file}"); fi
 done
@@ -91,7 +94,9 @@ grep_in() {
 # ── CODE_STYLE.md ──
 
 null_assertions() {
-  grep_in '[]a-zA-Z0-9_)]!(\.|\)|;|,| |\[)' ${LIB_FILES[@]+"${LIB_FILES[@]}"} | grep -v '!='
+  # `!=`와 타입 검사 `is!`는 null 강제 해제가 아니므로 뺍니다.
+  grep_in '[]a-zA-Z0-9_)]!(\.|\)|;|,| |\[)' ${LIB_FILES[@]+"${LIB_FILES[@]}"} \
+    | grep -v '!=' | grep -vE '(^|[^A-Za-z0-9_])is! '
 }
 
 # CODE_STYLE은 색상·글자 크기·간격을 토큰으로 쓰게 합니다. 다음을 잡습니다.
