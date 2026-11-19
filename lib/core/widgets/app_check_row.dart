@@ -16,7 +16,8 @@ class AppCheckRow extends StatelessWidget {
     super.key,
   });
 
-  static const height = 52.0;
+  /// 한 줄일 때의 높이. 글자가 길거나 커지면 내용에 맞게 늘어납니다.
+  static const minHeight = 52.0;
 
   final String label;
   final bool isChecked;
@@ -30,11 +31,12 @@ class AppCheckRow extends StatelessWidget {
       checked: isChecked,
       child: InkWell(
         onTap: onChanged == null ? null : () => onChanged(!isChecked),
-        child: SizedBox(
-          height: height,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: minHeight),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.screenHorizontal,
+              vertical: AppSpacing.sm,
             ),
             child: Row(
               children: [

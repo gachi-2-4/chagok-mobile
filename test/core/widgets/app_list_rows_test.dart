@@ -71,4 +71,55 @@ void main() {
       expect(changedValue, isTrue);
     });
   });
+
+  group('목록 행 높이', () {
+    const longText = '보관한 서류와 알림 설정, 대화 기록이 모두 삭제된다는 것을 확인했어요. ';
+
+    Future<double> rowHeight(WidgetTester tester, Widget row) async {
+      await tester.pumpApp(Align(alignment: Alignment.topCenter, child: row));
+      return tester.getSize(find.byWidget(row)).height;
+    }
+
+    testWidgets('글자가 한 줄이면 디자인 높이를 따른다', (tester) async {
+      expect(
+        await rowHeight(tester, const AppListRow(title: '글자 크기')),
+        AppListRow.minHeight,
+      );
+      expect(
+        await rowHeight(
+          tester,
+          AppSelectRow(label: '보통', isSelected: true, onTap: () {}),
+        ),
+        AppSelectRow.minHeight,
+      );
+      expect(
+        await rowHeight(
+          tester,
+          AppCheckRow(label: '동의해요', isChecked: false, onChanged: (_) {}),
+        ),
+        AppCheckRow.minHeight,
+      );
+    });
+
+    testWidgets('글자가 길어 여러 줄이 되면 높이가 늘어난다', (tester) async {
+      expect(
+        await rowHeight(tester, AppListRow(title: longText * 3)),
+        greaterThan(AppListRow.minHeight),
+      );
+      expect(
+        await rowHeight(
+          tester,
+          AppSelectRow(label: longText * 3, isSelected: true, onTap: () {}),
+        ),
+        greaterThan(AppSelectRow.minHeight),
+      );
+      expect(
+        await rowHeight(
+          tester,
+          AppCheckRow(label: longText * 3, isChecked: false, onChanged: (_) {}),
+        ),
+        greaterThan(AppCheckRow.minHeight),
+      );
+    });
+  });
 }

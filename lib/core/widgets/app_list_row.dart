@@ -18,7 +18,8 @@ class AppListRow extends StatelessWidget {
     super.key,
   });
 
-  static const height = 50.0;
+  /// 한 줄일 때의 높이. 글자가 길거나 커지면 내용에 맞게 늘어납니다.
+  static const minHeight = 50.0;
 
   final String title;
 
@@ -36,12 +37,14 @@ class AppListRow extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      child: SizedBox(
-        height: height,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: minHeight),
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.screenHorizontal,
-            right: AppSpacing.xl,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenHorizontal,
+            AppSpacing.sm,
+            AppSpacing.xl,
+            AppSpacing.sm,
           ),
           child: Row(
             children: [
