@@ -15,7 +15,22 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.onMore,
     super.key,
-  });
+  }) : _titleStyle = AppTypography.topBarTitle;
+
+  /// 가운데에 화면 이름 대신 로고 '차곡'을 보여 주는 상단 바.
+  ///
+  /// 홈처럼 첫 화면에서 씁니다. 로고 폰트(Jua)에는 '차곡' 두 글자만 있어
+  /// 제목을 따로 받지 않습니다.
+  const AppTopBar.logo({
+    this.showBackButton = false,
+    this.onBack,
+    this.onMore,
+    super.key,
+  }) : title = logoText,
+       _titleStyle = AppTypography.logo;
+
+  /// 로고 글자.
+  static const logoText = '차곡';
 
   static const height = 54.0;
   static const _iconSize = 24.0;
@@ -40,6 +55,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// 오른쪽 더보기(···)를 눌렀을 때 동작. 비우면 더보기를 숨깁니다.
   final VoidCallback? onMore;
+
+  final TextStyle _titleStyle;
 
   @override
   Size get preferredSize => const Size.fromHeight(height);
@@ -74,7 +91,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.topBarTitle,
+                  style: _titleStyle,
                 ),
               ),
               SizedBox(

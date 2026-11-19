@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +35,20 @@ void main() {
 
       expect(size.width, greaterThanOrEqualTo(kMinInteractiveDimension));
       expect(size.height, greaterThanOrEqualTo(kMinInteractiveDimension));
+    });
+
+    testWidgets('logo로 만들면 로고 글꼴로 차곡을 보여 준다', (tester) async {
+      await tester.pumpApp(const AppTopBar.logo());
+
+      final logo = tester.widget<Text>(find.text('차곡'));
+
+      expect(logo.style, AppTypography.logo);
+    });
+
+    testWidgets('logo로 만들면 뒤로 가기를 숨긴다', (tester) async {
+      await tester.pumpApp(const AppTopBar.logo());
+
+      expect(find.bySemanticsLabel('뒤로 가기'), findsNothing);
     });
   });
 }

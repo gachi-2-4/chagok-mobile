@@ -1,6 +1,6 @@
 import 'package:chagok_mobile/app/app.dart';
+import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,7 +10,7 @@ void main() {
       await tester.pumpWidget(const ProviderScope(child: ChagokApp()));
 
       expect(find.byType(HomeScreen), findsOneWidget);
-      expect(find.widgetWithText(AppBar, '차곡'), findsOneWidget);
+      expect(find.widgetWithText(AppTopBar, '차곡'), findsOneWidget);
     });
   });
 }
