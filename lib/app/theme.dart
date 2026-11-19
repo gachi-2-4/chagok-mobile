@@ -24,6 +24,9 @@ abstract final class AppTheme {
     );
 
     return ThemeData(
+      // 토큰을 쓰지 않는 Material 기본 위젯의 글자도 같은 글꼴로 그립니다.
+      fontFamily: AppTypography.fontFamily,
+      fontFamilyFallback: AppTypography.fontFamilyFallback,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       dividerColor: AppColors.divider,
