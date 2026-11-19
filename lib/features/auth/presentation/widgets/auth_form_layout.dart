@@ -13,6 +13,7 @@ class AuthFormLayout extends StatelessWidget {
     super.key,
   });
 
+  /// 화면 위 상단 바. 비우면 상단 바 없이 위쪽 안전 영역만 띄웁니다.
   final PreferredSizeWidget? appBar;
 
   /// 본문에 위에서부터 쌓을 위젯.
@@ -20,13 +21,6 @@ class AuthFormLayout extends StatelessWidget {
 
   /// 화면 아래 버튼 영역에 쌓을 위젯.
   final List<Widget> actions;
-
-  /// Figma `div.main` 위 여백.
-  static const _bodyTop = 12.0;
-
-  /// Figma `div.actions` 위·아래 여백.
-  static const _actionsTop = 18.0;
-  static const _actionsBottom = 24.0;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +34,7 @@ class AuthFormLayout extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  _bodyTop,
+                  AppSpacing.md,
                   AppSpacing.screenHorizontal,
                   AppSpacing.xl,
                 ),
@@ -50,9 +44,9 @@ class AuthFormLayout extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenHorizontal,
-                _actionsTop,
+                AppSpacing.block,
                 AppSpacing.screenHorizontal,
-                _actionsBottom,
+                AppSpacing.actionsBottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

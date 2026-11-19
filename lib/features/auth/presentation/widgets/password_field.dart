@@ -13,9 +13,14 @@ class PasswordField extends StatefulWidget {
     super.key,
   });
 
+  /// 입력창 위 라벨.
   final String label;
+
+  /// 비어 있을 때 흐리게 보이는 안내.
   final String? hintText;
   final ValueChanged<String> onChanged;
+
+  /// 키보드의 완료·다음 버튼 동작.
   final TextInputAction? textInputAction;
 
   @override
@@ -24,6 +29,8 @@ class PasswordField extends StatefulWidget {
 
 // 보이기/숨기기는 이 입력창 안에서만 쓰는 화면 상태라 Notifier에 두지 않습니다.
 class _PasswordFieldState extends State<PasswordField> {
+  static const _iconSize = 20.0;
+
   var _isObscured = true;
 
   @override
@@ -47,7 +54,7 @@ class _PasswordFieldState extends State<PasswordField> {
             _isObscured
                 ? Icons.visibility_outlined
                 : Icons.visibility_off_outlined,
-            size: 20,
+            size: _iconSize,
             color: AppColors.textSecondary,
           ),
         ),

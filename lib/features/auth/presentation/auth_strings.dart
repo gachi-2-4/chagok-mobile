@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
+import 'package:chagok_mobile/features/auth/data/term.dart';
+
 /// 회원가입·로그인 화면에 보이는 문구.
 ///
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
@@ -12,6 +15,15 @@ abstract final class AuthStrings {
   static const showPassword = '비밀번호 보기';
   static const hidePassword = '비밀번호 숨기기';
   static const comingSoon = '곧 지원할 예정이에요.';
+
+  /// 계정 요청이 실패한 이유에 맞는 안내.
+  static String failure(AuthFailure value) => switch (value) {
+    AuthFailure.alreadyRegistered => '이미 가입한 전화번호예요.',
+    AuthFailure.wrongCredentials => '전화번호 또는 비밀번호가 맞지 않아요.',
+    AuthFailure.notRegistered => '가입하지 않은 전화번호예요.',
+    AuthFailure.codeMismatch => '인증번호가 맞지 않아요.',
+    AuthFailure.unknown => '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
+  };
 
   // A01 회원가입
   static const signUpBarTitle = '회원가입';
@@ -49,7 +61,18 @@ abstract final class AuthStrings {
   static const agreeToAll = '전체 동의';
   static const requiredSuffix = '(필수)';
   static const optionalSuffix = '(선택)';
-  static const viewTerm = '보기';
+  static const viewTerm = '보기 ›';
+
+  /// 약관 이름.
+  static String term(Term value) => switch (value) {
+    Term.service => '서비스 이용약관',
+    Term.privacy => '개인정보 수집·이용',
+    Term.marketing => '마케팅 수신',
+  };
+
+  /// 약관 한 줄의 이름과 필수·선택 표시. 예: "서비스 이용약관 (필수)"
+  static String termLabel(Term value) =>
+      '${term(value)} ${value.isRequired ? requiredSuffix : optionalSuffix}';
   static const agreeAndComplete = '동의하고 가입 완료';
 
   // L01 로그인

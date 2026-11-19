@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/presentation/phone_verification_scre
 import 'package:chagok_mobile/features/auth/presentation/reset_password_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/terms_agreement_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

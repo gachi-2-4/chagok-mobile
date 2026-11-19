@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
@@ -16,17 +18,15 @@ import 'package:go_router/go_router.dart';
 class ForgotPasswordScreen extends ConsumerWidget {
   const ForgotPasswordScreen({super.key});
 
-  /// 제목 묶음과 입력창 사이 간격.
-  static const _headerGap = 24.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(passwordResetProvider);
-    final notifier = ref.read(passwordResetProvider.notifier);
-    final errorMessage = form.errorMessage;
+    final failure = form.failure;
 
     Future<void> sendCode() async {
-      final isSent = await notifier.requestVerificationCode();
+      final isSent = await ref
+          .read(passwordResetProvider.notifier)
+          .requestVerificationCode();
       if (!isSent || !context.mounted) return;
       await context.push(AppRoute.passwordResetVerification);
     }
@@ -38,23 +38,24 @@ class ForgotPasswordScreen extends ConsumerWidget {
           title: AuthStrings.forgotPasswordTitle,
           description: AuthStrings.forgotPasswordDescription,
         ),
-        const SizedBox(height: _headerGap),
+        const SizedBox(height: AppSpacing.pageHeaderBottom),
         AppTextField(
           label: AuthStrings.phoneLabel,
           hintText: AuthStrings.phoneHint,
-          onChanged: notifier.updatePhoneNumber,
+          onChanged: (value) =>
+              ref.read(passwordResetProvider.notifier).updatePhoneNumber(value),
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.done,
         ),
-        if (errorMessage != null) ...[
+        if (failure != null) ...[
           const SizedBox(height: AppSpacing.stack),
-          FormMessage(errorMessage, isError: true),
+          FormMessage(text: AuthStrings.failure(failure), isError: true),
         ],
       ],
       actions: [
         AppButton.primary(
           label: AuthStrings.sendCode,
-          onPressed: form.canRequestCode ? sendCode : null,
+          onPressed: form.canRequestCode ? () => unawaited(sendCode()) : null,
         ),
       ],
     );

@@ -25,7 +25,7 @@ void main() {
       expect(AuthValidators.isValidPhoneNumber('010-1234-5678'), isTrue);
     });
 
-    test('10자리 휴대폰 번호도 통과한다', () {
+    test('10자리 휴대폰 번호를 넣으면 통과한다', () {
       expect(AuthValidators.isValidPhoneNumber('0111234567'), isTrue);
     });
 
@@ -53,17 +53,17 @@ void main() {
   });
 
   group('AuthValidators.maskPhoneNumber', () {
-    test('가운데 자리를 별표로 가린다', () {
+    test('전화번호를 넣으면 가운데 자리를 별표로 가린다', () {
       expect(AuthValidators.maskPhoneNumber('01066453576'), '010-****-3576');
     });
 
-    test('하이픈이 있어도 같은 형식으로 가린다', () {
+    test('하이픈이 있으면 빼고 같은 형식으로 가린다', () {
       expect(AuthValidators.maskPhoneNumber('010-6645-3576'), '010-****-3576');
     });
   });
 
   group('AuthValidators.digitsOnly', () {
-    test('숫자가 아닌 글자를 모두 뺀다', () {
+    test('숫자가 아닌 글자가 섞여 있으면 모두 뺀다', () {
       expect(AuthValidators.digitsOnly('010-1234 5678'), '01012345678');
     });
   });

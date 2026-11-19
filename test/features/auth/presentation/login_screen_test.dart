@@ -1,5 +1,7 @@
 import 'package:chagok_mobile/app/theme.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 import 'package:chagok_mobile/features/auth/presentation/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +36,7 @@ void main() {
   }
 
   group('LoginScreen', () {
-    testWidgets('입력하기 전에는 로그인 버튼이 비활성화된다', (tester) async {
+    testWidgets('아무것도 입력하지 않았으면 로그인 버튼이 비활성화된다', (tester) async {
       await pumpLoginScreen(tester, FakeAuthRepository());
 
       expect(loginButton(tester).onPressed, isNull);
@@ -50,9 +52,9 @@ void main() {
       expect(loginButton(tester).onPressed, isNotNull);
     });
 
-    testWidgets('로그인이 실패하면 오류 문구를 보여 준다', (tester) async {
+    testWidgets('로그인이 실패하면 실패 이유에 맞는 안내를 보여 준다', (tester) async {
       final repository = FakeAuthRepository(
-        error: const AuthException('전화번호 또는 비밀번호가 맞지 않아요.'),
+        error: const AuthException(AuthFailure.wrongCredentials),
       );
       await pumpLoginScreen(tester, repository);
 

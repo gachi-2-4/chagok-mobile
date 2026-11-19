@@ -1,12 +1,15 @@
-/// 가입할 때 동의받는 약관.
+/// 가입할 때 동의받는 약관. 화면에 보이는 이름은 `AuthStrings.term`에 있습니다.
 enum Term {
-  service(title: '서비스 이용약관', isRequired: true),
-  privacy(title: '개인정보 수집·이용', isRequired: true),
-  marketing(title: '마케팅 수신', isRequired: false);
+  /// 서비스 이용약관.
+  service(isRequired: true),
 
-  const Term({required this.title, required this.isRequired});
+  /// 개인정보 수집·이용.
+  privacy(isRequired: true),
 
-  final String title;
+  /// 마케팅 수신.
+  marketing(isRequired: false);
+
+  const Term({required this.isRequired});
 
   /// 동의해야 가입할 수 있는 약관이면 true.
   final bool isRequired;

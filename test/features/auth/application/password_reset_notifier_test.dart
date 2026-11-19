@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,7 +41,7 @@ void main() {
       expect(repository.sentCodes, isEmpty);
     });
 
-    test('규칙에 맞지 않는 새 비밀번호로는 바꿀 수 없다', () {
+    test('새 비밀번호가 규칙에 맞지 않으면 바꿀 수 없다', () {
       notifier()
         ..updateNewPassword('short')
         ..updateNewPasswordConfirm('short');
@@ -72,8 +74,8 @@ void main() {
       });
     });
 
-    test('저장이 실패하면 오류 문구를 상태에 담는다', () async {
-      repository.error = const AuthException('가입하지 않은 전화번호예요.');
+    test('저장이 실패하면 실패 이유를 상태에 담는다', () async {
+      repository.error = const AuthException(AuthFailure.notRegistered);
       notifier()
         ..updatePhoneNumber('01011111111')
         ..updateNewPassword('chagok12!')
@@ -83,8 +85,8 @@ void main() {
 
       expect(isReset, isFalse);
       expect(
-        container.read(passwordResetProvider).errorMessage,
-        '가입하지 않은 전화번호예요.',
+        container.read(passwordResetProvider).failure,
+        AuthFailure.notRegistered,
       );
     });
   });

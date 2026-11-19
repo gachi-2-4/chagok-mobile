@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/in_memory_auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,16 +33,6 @@ abstract interface class AuthRepository {
     required String phoneNumber,
     required String newPassword,
   });
-}
-
-/// 계정 요청이 실패했을 때 던지는 예외. [message]는 사용자에게 그대로 보여 줍니다.
-class AuthException implements Exception {
-  const AuthException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => 'AuthException: $message';
 }
 
 /// 앱 전역 [AuthRepository].

@@ -1,3 +1,5 @@
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 
 /// 백엔드가 정해지기 전까지 화면 흐름을 확인하려고 쓰는 메모리 저장소.
@@ -27,7 +29,7 @@ class InMemoryAuthRepository implements AuthRepository {
     required bool agreedToMarketing,
   }) async {
     if (_passwords.containsKey(phoneNumber)) {
-      throw const AuthException('이미 가입한 전화번호예요.');
+      throw const AuthException(AuthFailure.alreadyRegistered);
     }
     _passwords[phoneNumber] = password;
   }
@@ -39,7 +41,7 @@ class InMemoryAuthRepository implements AuthRepository {
     required bool keepSignedIn,
   }) async {
     if (_passwords[phoneNumber] != password) {
-      throw const AuthException('전화번호 또는 비밀번호가 맞지 않아요.');
+      throw const AuthException(AuthFailure.wrongCredentials);
     }
   }
 
@@ -49,7 +51,7 @@ class InMemoryAuthRepository implements AuthRepository {
     required String newPassword,
   }) async {
     if (!_passwords.containsKey(phoneNumber)) {
-      throw const AuthException('가입하지 않은 전화번호예요.');
+      throw const AuthException(AuthFailure.notRegistered);
     }
     _passwords[phoneNumber] = newPassword;
   }

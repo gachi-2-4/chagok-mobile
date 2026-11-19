@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 import 'package:chagok_mobile/features/auth/data/term.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,7 +74,7 @@ void main() {
       expect(container.read(signUpProvider).agreedTerms, isEmpty);
     });
 
-    test('필수 약관에만 동의해도 가입을 마칠 수 있다', () {
+    test('필수 약관에만 동의하면 가입을 마칠 수 있다', () {
       notifier()
         ..toggleTerm(Term.service)
         ..toggleTerm(Term.privacy);
@@ -104,8 +106,8 @@ void main() {
       });
     });
 
-    test('가입이 실패하면 오류 문구를 상태에 담는다', () async {
-      repository.error = const AuthException('이미 가입한 전화번호예요.');
+    test('가입이 실패하면 실패 이유를 상태에 담는다', () async {
+      repository.error = const AuthException(AuthFailure.alreadyRegistered);
       fillValidForm();
       notifier().toggleAllTerms();
 
@@ -113,7 +115,20 @@ void main() {
 
       final form = container.read(signUpProvider);
       expect(isCompleted, isFalse);
-      expect(form.errorMessage, '이미 가입한 전화번호예요.');
+      expect(form.failure, AuthFailure.alreadyRegistered);
+      expect(form.isSubmitting, isFalse);
+    });
+
+    test('AuthException이 아닌 예외가 나면 unknown으로 남기고 보내는 중 상태를 푼다', () async {
+      repository.error = Exception('network');
+      fillValidForm();
+      notifier().toggleAllTerms();
+
+      final isCompleted = await notifier().complete();
+
+      final form = container.read(signUpProvider);
+      expect(isCompleted, isFalse);
+      expect(form.failure, AuthFailure.unknown);
       expect(form.isSubmitting, isFalse);
     });
   });

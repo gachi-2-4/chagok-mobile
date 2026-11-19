@@ -4,8 +4,11 @@ import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({this.error, this.isCodeCorrect = true});
 
-  /// 값이 있으면 가입·로그인·재설정 요청에서 이 예외를 던집니다.
-  AuthException? error;
+  /// 값이 있으면 가입·로그인·재설정·인증번호 확인 요청에서 이 예외를 던집니다.
+  Exception? error;
+
+  /// 값이 있으면 인증번호를 보낼 때 이 예외를 던집니다.
+  Exception? sendError;
 
   /// [verifyCode]가 돌려줄 값.
   bool isCodeCorrect;
@@ -17,6 +20,7 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendVerificationCode(String phoneNumber) async {
+    if (sendError case final error?) throw error;
     sentCodes.add(phoneNumber);
   }
 
@@ -25,6 +29,7 @@ class FakeAuthRepository implements AuthRepository {
     required String phoneNumber,
     required String code,
   }) async {
+    _throwIfNeeded();
     return isCodeCorrect;
   }
 

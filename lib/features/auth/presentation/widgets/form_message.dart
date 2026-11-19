@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 ///
 /// [isError]가 true면 경고 색으로 보여 줍니다.
 class FormMessage extends StatelessWidget {
-  const FormMessage(this.text, {this.isError = false, super.key});
+  const FormMessage({required this.text, this.isError = false, super.key});
 
+  /// 보여 줄 문구.
   final String text;
+
+  /// true면 경고 색으로 보여 줍니다.
   final bool isError;
 
   @override

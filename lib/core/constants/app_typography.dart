@@ -202,4 +202,14 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
+
+  /// 인증번호 칸 안의 숫자 한 자리.
+  static const verificationDigit = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 23,
+    height: 27.6 / 23,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
 }

@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/features/auth/application/login_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
+import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,11 +23,11 @@ void main() {
   LoginNotifier notifier() => container.read(loginProvider.notifier);
 
   group('LoginNotifier', () {
-    test('처음에는 자동 로그인이 켜져 있다', () {
+    test('처음 읽으면 자동 로그인이 켜져 있다', () {
       expect(container.read(loginProvider).keepSignedIn, isTrue);
     });
 
-    test('전화번호와 비밀번호를 넣어야 로그인할 수 있다', () {
+    test('전화번호와 비밀번호를 모두 넣으면 로그인할 수 있다', () {
       notifier().updatePhoneNumber('010-1111-1111');
       expect(container.read(loginProvider).canSubmit, isFalse);
 
@@ -49,8 +51,8 @@ void main() {
       });
     });
 
-    test('로그인이 실패하면 오류 문구를 상태에 담는다', () async {
-      repository.error = const AuthException('전화번호 또는 비밀번호가 맞지 않아요.');
+    test('로그인이 실패하면 실패 이유를 상태에 담는다', () async {
+      repository.error = const AuthException(AuthFailure.wrongCredentials);
       notifier()
         ..updatePhoneNumber('01011111111')
         ..updatePassword('wrong');
@@ -59,13 +61,13 @@ void main() {
 
       expect(isLoggedIn, isFalse);
       expect(
-        container.read(loginProvider).errorMessage,
-        '전화번호 또는 비밀번호가 맞지 않아요.',
+        container.read(loginProvider).failure,
+        AuthFailure.wrongCredentials,
       );
     });
 
-    test('실패한 뒤 입력을 고치면 오류 문구를 지운다', () async {
-      repository.error = const AuthException('실패');
+    test('실패한 뒤 입력을 고치면 실패 이유를 지운다', () async {
+      repository.error = const AuthException(AuthFailure.wrongCredentials);
       notifier()
         ..updatePhoneNumber('01011111111')
         ..updatePassword('wrong');
@@ -73,7 +75,21 @@ void main() {
 
       notifier().updatePassword('right');
 
-      expect(container.read(loginProvider).errorMessage, isNull);
+      expect(container.read(loginProvider).failure, isNull);
+    });
+
+    test('AuthException이 아닌 예외가 나면 unknown으로 남기고 로그인 중 상태를 푼다', () async {
+      repository.error = Exception('network');
+      notifier()
+        ..updatePhoneNumber('01011111111')
+        ..updatePassword('secret');
+
+      final isLoggedIn = await notifier().logIn();
+
+      final form = container.read(loginProvider);
+      expect(isLoggedIn, isFalse);
+      expect(form.failure, AuthFailure.unknown);
+      expect(form.isSubmitting, isFalse);
     });
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
@@ -16,17 +18,15 @@ import 'package:go_router/go_router.dart';
 class ResetPasswordScreen extends ConsumerWidget {
   const ResetPasswordScreen({super.key});
 
-  /// 제목 묶음과 입력창 사이 간격.
-  static const _headerGap = 24.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(passwordResetProvider);
-    final notifier = ref.read(passwordResetProvider.notifier);
-    final errorMessage = form.errorMessage;
+    final failure = form.failure;
+    PasswordResetNotifier notifier() =>
+        ref.read(passwordResetProvider.notifier);
 
     Future<void> reset() async {
-      final isReset = await notifier.reset();
+      final isReset = await notifier().reset();
       if (!isReset || !context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AuthStrings.passwordChanged)),
@@ -42,38 +42,38 @@ class ResetPasswordScreen extends ConsumerWidget {
           title: AuthStrings.resetPasswordTitle,
           description: AuthStrings.resetPasswordDescription,
         ),
-        const SizedBox(height: _headerGap),
+        const SizedBox(height: AppSpacing.pageHeaderBottom),
         PasswordField(
           label: AuthStrings.newPasswordLabel,
           hintText: AuthStrings.passwordHint,
-          onChanged: notifier.updateNewPassword,
+          onChanged: (value) => notifier().updateNewPassword(value),
           textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: AppSpacing.stack),
         FormMessage(
-          AuthStrings.passwordRule,
+          text: AuthStrings.passwordRule,
           isError: form.newPassword.isNotEmpty && !form.isNewPasswordValid,
         ),
         const SizedBox(height: AppSpacing.stack),
         PasswordField(
           label: AuthStrings.newPasswordConfirmLabel,
           hintText: AuthStrings.passwordConfirmHint,
-          onChanged: notifier.updateNewPasswordConfirm,
+          onChanged: (value) => notifier().updateNewPasswordConfirm(value),
           textInputAction: TextInputAction.done,
         ),
         if (form.hasPasswordMismatch) ...[
           const SizedBox(height: AppSpacing.stack),
-          const FormMessage(AuthStrings.passwordMismatch, isError: true),
+          const FormMessage(text: AuthStrings.passwordMismatch, isError: true),
         ],
-        if (errorMessage != null) ...[
+        if (failure != null) ...[
           const SizedBox(height: AppSpacing.stack),
-          FormMessage(errorMessage, isError: true),
+          FormMessage(text: AuthStrings.failure(failure), isError: true),
         ],
       ],
       actions: [
         AppButton.primary(
           label: AuthStrings.changePassword,
-          onPressed: form.canReset ? reset : null,
+          onPressed: form.canReset ? () => unawaited(reset()) : null,
         ),
       ],
     );

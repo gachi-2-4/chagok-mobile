@@ -21,4 +21,7 @@ abstract final class AppIcons {
   static const navCalendar = '$_base/nav_calendar.svg';
   static const navCalendarActive = '$_base/nav_calendar_active.svg';
   static const navSettings = '$_base/nav_settings.svg';
+
+  static const logoKakao = '$_base/logo_kakao.svg';
+  static const logoGoogle = '$_base/logo_google.svg';
 }

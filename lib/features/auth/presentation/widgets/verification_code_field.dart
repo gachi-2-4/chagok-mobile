@@ -23,6 +23,7 @@ class VerificationCodeField extends StatefulWidget {
   /// 지금까지 입력한 숫자.
   final String code;
 
+  /// 입력값이 바뀔 때 숫자만 남긴 값을 받습니다.
   final ValueChanged<String> onChanged;
 
   /// 화면 읽기 프로그램이 읽어 줄 입력창 이름. 예: "인증번호 6자리"
@@ -107,7 +108,7 @@ class _VerificationCodeFieldState extends State<VerificationCodeField> {
                 ],
                 showCursor: false,
                 enableInteractiveSelection: false,
-                style: const TextStyle(color: Colors.transparent),
+                style: const TextStyle(color: AppColors.transparent),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   counterText: '',
@@ -151,14 +152,7 @@ class _CodeCell extends StatelessWidget {
         ),
         border: Border.all(color: borderColor),
       ),
-      child: Text(
-        digit,
-        style: AppTypography.pageTitle.copyWith(
-          fontSize: 23,
-          height: 27.6 / 23,
-          letterSpacing: 0,
-        ),
-      ),
+      child: Text(digit, style: AppTypography.verificationDigit),
     );
   }
 }

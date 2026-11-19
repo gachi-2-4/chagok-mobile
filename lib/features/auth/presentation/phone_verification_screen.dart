@@ -14,6 +14,7 @@ import 'package:chagok_mobile/features/auth/application/phone_verification_notif
 import 'package:chagok_mobile/features/auth/application/phone_verification_state.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
 import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
+import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/form_message.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/verification_code_field.dart';
@@ -21,23 +22,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// 전화번호 인증을 어떤 흐름에서 하는지.
-enum VerificationPurpose {
-  /// 회원가입(A02). 인증하면 약관 동의로 갑니다.
-  signUp,
-
-  /// 비밀번호 찾기(L04). 인증하면 새 비밀번호 만들기로 갑니다.
-  passwordReset,
-}
-
 /// A02·L04 · 문자로 받은 인증번호를 입력하는 화면.
 class PhoneVerificationScreen extends ConsumerWidget {
   const PhoneVerificationScreen({required this.purpose, super.key});
 
+  /// 회원가입 중인지, 비밀번호 찾기 중인지. 인증한 뒤 갈 화면이 달라집니다.
   final VerificationPurpose purpose;
-
-  /// 제목 묶음, 입력 묶음, 안내 사이 간격.
-  static const _sectionGap = 28.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,26 +41,15 @@ class PhoneVerificationScreen extends ConsumerWidget {
     };
     final provider = phoneVerificationProvider(phoneNumber);
     final verification = ref.watch(provider);
-    final notifier = ref.read(provider.notifier);
-    final errorMessage = verification.isExpired
-        ? AuthStrings.codeExpired
-        : verification.errorMessage;
 
     Future<void> verify() async {
-      final isVerified = await notifier.verify();
+      final isVerified = await ref.read(provider.notifier).verify();
       if (!isVerified || !context.mounted) return;
       final next = switch (purpose) {
         VerificationPurpose.signUp => AppRoute.signUpTerms,
         VerificationPurpose.passwordReset => AppRoute.resetPassword,
       };
       unawaited(context.push(next));
-    }
-
-    Future<void> resend() async {
-      await notifier.resend();
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text(AuthStrings.codeResent)));
     }
 
     return AuthFormLayout(
@@ -82,27 +61,12 @@ class PhoneVerificationScreen extends ConsumerWidget {
             AuthValidators.maskPhoneNumber(phoneNumber),
           ),
         ),
-        const SizedBox(height: _sectionGap),
-        VerificationCodeField(
-          length: PhoneVerificationState.codeLength,
-          code: verification.code,
-          onChanged: notifier.updateCode,
-          hasError: verification.errorMessage != null,
-          semanticLabel: AuthStrings.codeFieldLabel,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _TimerRow(
-          remainingSeconds: verification.remainingSeconds,
-          onResend: resend,
-        ),
-        if (errorMessage != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          FormMessage(errorMessage, isError: true),
-        ],
-        const SizedBox(height: _sectionGap),
+        const SizedBox(height: AppSpacing.sectionGapLarge),
+        _CodeInput(phoneNumber: phoneNumber, verification: verification),
+        const SizedBox(height: AppSpacing.sectionGapLarge),
         switch (purpose) {
           VerificationPurpose.signUp => const FormMessage(
-            AuthStrings.noCodeReceived,
+            text: AuthStrings.noCodeReceived,
           ),
           VerificationPurpose.passwordReset => const AppBanner.neutral(
             child: Text(AuthStrings.passwordResetCodeSent),
@@ -112,8 +76,54 @@ class PhoneVerificationScreen extends ConsumerWidget {
       actions: [
         AppButton.primary(
           label: AuthStrings.verifyAndContinue,
-          onPressed: verification.canVerify ? verify : null,
+          onPressed: verification.canVerify ? () => unawaited(verify()) : null,
         ),
+      ],
+    );
+  }
+}
+
+/// 인증번호 칸, 남은 시간·다시 받기 줄, 만료·실패 안내.
+class _CodeInput extends ConsumerWidget {
+  const _CodeInput({required this.phoneNumber, required this.verification});
+
+  final String phoneNumber;
+  final PhoneVerificationState verification;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = phoneVerificationProvider(phoneNumber);
+    final failure = verification.failure;
+    final message = verification.isExpired
+        ? AuthStrings.codeExpired
+        : (failure == null ? null : AuthStrings.failure(failure));
+
+    Future<void> resend() async {
+      final isSent = await ref.read(provider.notifier).resend();
+      if (!isSent || !context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text(AuthStrings.codeResent)));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        VerificationCodeField(
+          length: PhoneVerificationState.codeLength,
+          code: verification.code,
+          onChanged: (value) => ref.read(provider.notifier).updateCode(value),
+          hasError: failure != null,
+          semanticLabel: AuthStrings.codeFieldLabel,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _TimerRow(
+          remainingSeconds: verification.remainingSeconds,
+          onResend: () => unawaited(resend()),
+        ),
+        if (message != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          FormMessage(text: message, isError: true),
+        ],
       ],
     );
   }

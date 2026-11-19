@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
@@ -20,17 +22,15 @@ import 'package:go_router/go_router.dart';
 class TermsAgreementScreen extends ConsumerWidget {
   const TermsAgreementScreen({super.key});
 
-  /// 제목 묶음과 약관 카드 사이 간격.
-  static const _headerGap = 24.0;
+  static const _dividerHeight = 1.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(signUpProvider);
-    final notifier = ref.read(signUpProvider.notifier);
-    final errorMessage = form.errorMessage;
+    final failure = form.failure;
 
     Future<void> complete() async {
-      final isCompleted = await notifier.complete();
+      final isCompleted = await ref.read(signUpProvider.notifier).complete();
       if (!isCompleted || !context.mounted) return;
       ref.invalidate(signUpProvider);
       context.go(AppRoute.home);
@@ -49,7 +49,7 @@ class TermsAgreementScreen extends ConsumerWidget {
           title: AuthStrings.termsTitle,
           description: AuthStrings.termsDescription,
         ),
-        const SizedBox(height: _headerGap),
+        const SizedBox(height: AppSpacing.pageHeaderBottom),
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,29 +57,30 @@ class TermsAgreementScreen extends ConsumerWidget {
               CheckLabel(
                 label: AuthStrings.agreeToAll,
                 isChecked: form.hasAgreedToAll,
-                onTap: notifier.toggleAllTerms,
+                onTap: () => ref.read(signUpProvider.notifier).toggleAllTerms(),
               ),
               for (final term in Term.values) ...[
-                const Divider(height: 1, color: AppColors.divider),
+                const Divider(height: _dividerHeight, color: AppColors.divider),
                 _TermRow(
                   term: term,
                   isAgreed: form.agreedTerms.contains(term),
-                  onToggle: () => notifier.toggleTerm(term),
+                  onToggle: () =>
+                      ref.read(signUpProvider.notifier).toggleTerm(term),
                   onView: () => showTerm(term),
                 ),
               ],
             ],
           ),
         ),
-        if (errorMessage != null) ...[
+        if (failure != null) ...[
           const SizedBox(height: AppSpacing.stack),
-          FormMessage(errorMessage, isError: true),
+          FormMessage(text: AuthStrings.failure(failure), isError: true),
         ],
       ],
       actions: [
         AppButton.primary(
           label: AuthStrings.agreeAndComplete,
-          onPressed: form.canComplete ? complete : null,
+          onPressed: form.canComplete ? () => unawaited(complete()) : null,
         ),
       ],
     );
@@ -102,15 +103,11 @@ class _TermRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final suffix = term.isRequired
-        ? AuthStrings.requiredSuffix
-        : AuthStrings.optionalSuffix;
-
     return Row(
       children: [
         Expanded(
           child: CheckLabel(
-            label: '${term.title} $suffix',
+            label: AuthStrings.termLabel(term),
             isChecked: isAgreed,
             onTap: onToggle,
           ),
@@ -124,7 +121,7 @@ class _TermRow extends StatelessWidget {
             minimumSize: const Size(0, kMinInteractiveDimension),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Text('${AuthStrings.viewTerm} ›'),
+          child: const Text(AuthStrings.viewTerm),
         ),
       ],
     );

@@ -1,4 +1,4 @@
-import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/in_memory_auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +18,7 @@ void main() {
   }
 
   group('InMemoryAuthRepository', () {
-    test('숫자 6자리 인증번호는 통과시킨다', () async {
+    test('숫자 6자리 인증번호를 넣으면 통과시킨다', () async {
       final isVerified = await repository.verifyCode(
         phoneNumber: '01011111111',
         code: '123456',
@@ -27,7 +27,7 @@ void main() {
       expect(isVerified, isTrue);
     });
 
-    test('6자리가 아닌 인증번호는 통과시키지 않는다', () async {
+    test('6자리가 아닌 인증번호를 넣으면 통과시키지 않는다', () async {
       final isVerified = await repository.verifyCode(
         phoneNumber: '01011111111',
         code: '1234',
@@ -36,7 +36,7 @@ void main() {
       expect(isVerified, isFalse);
     });
 
-    test('가입한 비밀번호로 로그인할 수 있다', () async {
+    test('가입한 비밀번호로 로그인하면 통과한다', () async {
       await signUp();
 
       await expectLater(
