@@ -13,6 +13,7 @@ class AppTopBarAction {
     required this.icon,
     required this.semanticLabel,
     required this.onTap,
+    this.hasBadge = false,
   });
 
   /// [AppIcons]의 24x24 SVG 경로.
@@ -22,6 +23,9 @@ class AppTopBarAction {
   final String semanticLabel;
 
   final VoidCallback onTap;
+
+  /// 아이콘 오른쪽 위에 작은 점을 찍을지 여부. 예: 읽지 않은 알림이 있을 때
+  final bool hasBadge;
 }
 
 /// 뒤로 가기 · 가운데 제목 · 오른쪽 버튼으로 이루어진 화면 상단 바.
@@ -108,7 +112,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         height: variant.height,
         semanticLabel: action.semanticLabel,
         onTap: action.onTap,
-        child: _Icon(action.icon),
+        child: action.hasBadge
+            ? _Badged(child: _Icon(action.icon))
+            : _Icon(action.icon),
       ),
       (null, final VoidCallback onMore) => _TapTarget(
         height: variant.height,
@@ -213,6 +219,38 @@ class _Icon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(asset, width: _iconSize, height: _iconSize);
+  }
+}
+
+/// 아이콘 오른쪽 위에 작은 점을 겹쳐 그립니다.
+class _Badged extends StatelessWidget {
+  const _Badged({required this.child});
+
+  final Widget child;
+
+  static const _size = 7.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        const Positioned(
+          top: 0,
+          right: 0,
+          child: SizedBox.square(
+            dimension: _size,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.navActive,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
