@@ -109,6 +109,12 @@ hardcoded_sizes() {
     ${NON_CONSTANT_FILES[@]+"${NON_CONSTANT_FILES[@]}"}
 }
 
+# 모서리는 AppRadius 토큰을 씁니다. 숫자나 private 상수로 만든 BorderRadius·Radius를 잡습니다.
+hardcoded_radii() {
+  grep_in '(BorderRadius|Radius)\.circular\(([0-9]|_[a-zA-Z])|static const _[a-zA-Z]*[Rr]adius = [0-9]' \
+    ${NON_CONSTANT_FILES[@]+"${NON_CONSTANT_FILES[@]}"}
+}
+
 hardcoded_colors() {
   grep_in 'Color\(0x|(^|[^A-Za-z])Colors\.[a-z]' \
     ${NON_CONSTANT_FILES[@]+"${NON_CONSTANT_FILES[@]}"}
@@ -284,6 +290,7 @@ echo
 check 위반 'CODE_STYLE · ! (null 강제 해제)' null_assertions
 check 위반 'CODE_STYLE · 간격·글자 크기 하드코딩 (AppSpacing·AppTypography 토큰, 부품 크기는 이름 붙인 상수)' hardcoded_sizes
 check 위반 'CODE_STYLE · 색상 하드코딩 (AppColors 사용)' hardcoded_colors
+check 위반 'CODE_STYLE · 모서리 하드코딩 (AppRadius 사용)' hardcoded_radii
 check 위반 'CODE_STYLE · 화면 문자열 직접 작성 (*_strings.dart로 모으기)' string_literals
 check 위반 'CODE_STYLE · 위젯을 만드는 private 메서드 (위젯 클래스로 분리)' private_widget_methods
 check 위반 'CODE_STYLE · 파일당 public 타입 2개 이상' multiple_public_types
