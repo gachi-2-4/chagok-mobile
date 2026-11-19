@@ -124,10 +124,17 @@ private_widget_methods() {
     ${LIB_FILES[@]+"${LIB_FILES[@]}"}
 }
 
+# sealed 클래스의 하위 클래스는 언어 규칙상 같은 파일에 있어야 하므로 한 묶음으로 셉니다.
 multiple_public_types() {
   local file count
   for file in ${LIB_FILES[@]+"${LIB_FILES[@]}"}; do
-    count="$(grep -cE '^(abstract |final |sealed |base |interface )*(class|enum|extension|mixin) [A-Z]' "${file}" || true)"
+    count="$(awk '
+      /^sealed class [A-Z]/ { sealed[$3] = 1 }
+      /^(abstract |final |sealed |base |interface )*(class|enum|extension|mixin) [A-Z]/ {
+        for (name in sealed) if ($0 ~ ("(extends|implements|with) " name "[ {<]")) next
+        count++
+      }
+      END { print count + 0 }' "${file}")"
     if [[ "${count}" -gt 1 ]]; then echo "${file}: public 타입 ${count}개"; fi
   done
 }
