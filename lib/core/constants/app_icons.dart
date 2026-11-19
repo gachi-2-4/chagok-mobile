@@ -5,6 +5,8 @@ abstract final class AppIcons {
   static const _base = 'assets/icons';
 
   static const back = '$_base/back.svg';
+  static const arrowBack = '$_base/arrow_back.svg';
+  static const settings = '$_base/settings.svg';
   static const chevronRight = '$_base/chevron_right.svg';
   static const radioOn = '$_base/radio_on.svg';
   static const radioOff = '$_base/radio_off.svg';

@@ -24,6 +24,9 @@ abstract final class AppSpacing {
   /// 화면 좌우 여백.
   static const screenHorizontal = 26.0;
 
+  /// 알림 화면처럼 진한 제목을 쓰는 상단 바에서 화면 끝부터 아이콘까지 거리.
+  static const plainTopBarIconInset = 24.0;
+
   /// 세로로 쌓이는 요소(입력창, 선택지 등) 사이 간격.
   static const stack = 12.0;
 
