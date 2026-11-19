@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:flutter/material.dart';
 
 /// 설문이 몇 단계 중 어디까지 왔는지 보여 주는 짧은 막대들.
@@ -14,6 +15,8 @@ class StepProgress extends StatelessWidget {
 
   /// 지금 단계(1부터 셉니다).
   final int current;
+
+  /// 전체 단계 수.
   final int total;
 
   /// 화면 읽기 프로그램이 읽어 줄 진행 상황. 예: "4단계 중 2단계"
@@ -21,7 +24,6 @@ class StepProgress extends StatelessWidget {
 
   static const _segmentWidth = 28.0;
   static const _segmentHeight = 5.0;
-  static const _gap = 6.0;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class StepProgress extends StatelessWidget {
       child: Row(
         children: [
           for (var index = 0; index < total; index++) ...[
-            if (index > 0) const SizedBox(width: _gap),
+            if (index > 0) const SizedBox(width: AppSpacing.progressSegmentGap),
             Container(
               width: _segmentWidth,
               height: _segmentHeight,

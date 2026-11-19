@@ -1,19 +1,14 @@
 import 'package:chagok_mobile/features/onboarding/application/onboarding_notifier.dart';
 import 'package:chagok_mobile/features/onboarding/application/onboarding_state.dart';
-import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
+import 'package:chagok_mobile/features/onboarding/application/onboarding_step.dart';
+import 'package:chagok_mobile/features/onboarding/data/housing_type.dart';
+import 'package:chagok_mobile/features/onboarding/data/nationality.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:chagok_mobile/features/onboarding/data/welfare_status.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class FakeOnboardingRepository implements OnboardingRepository {
-  OnboardingAnswers? saved;
-
-  @override
-  Future<OnboardingAnswers?> fetch() async => saved;
-
-  @override
-  Future<void> save(OnboardingAnswers answers) async => saved = answers;
-}
+import '../../../helpers/fake_onboarding_repository.dart';
 
 void main() {
   late FakeOnboardingRepository repository;
@@ -42,7 +37,7 @@ void main() {
   }
 
   group('OnboardingNotifier', () {
-    test('처음에는 국적 단계에서 시작한다', () {
+    test('처음 읽으면 국적 단계에서 시작한다', () {
       expect(state().step, OnboardingStep.nationality);
       expect(state().isFirstStep, isTrue);
     });
@@ -71,7 +66,7 @@ void main() {
       expect(state().canProceed, isFalse);
     });
 
-    test('이전으로 돌아가도 앞에서 고른 답은 남아 있다', () async {
+    test('이전 단계로 돌아가면 앞에서 고른 답은 그대로 남아 있다', () async {
       notifier().selectNationality(Nationality.foreigner);
       await notifier().next();
 
@@ -98,6 +93,30 @@ void main() {
         'housingType': 'monthlyRent',
         'welfareStatus': 'none',
       });
+    });
+
+    test('답을 저장하지 못하면 저장 중 상태를 풀고 실패를 표시한다', () async {
+      await answerAll();
+      repository.saveError = Exception('network');
+
+      final isCompleted = await notifier().next();
+
+      expect(isCompleted, isFalse);
+      expect(state().isSubmitting, isFalse);
+      expect(state().hasSubmitFailed, isTrue);
+      expect(state().step, OnboardingStep.welfare);
+    });
+
+    test('실패한 뒤 다시 저장해 성공하면 실패 표시가 사라진다', () async {
+      await answerAll();
+      repository.saveError = Exception('network');
+      await notifier().next();
+
+      repository.saveError = null;
+      final isCompleted = await notifier().next();
+
+      expect(isCompleted, isTrue);
+      expect(state().hasSubmitFailed, isFalse);
     });
   });
 }

@@ -1,13 +1,24 @@
 import 'package:chagok_mobile/app/theme.dart';
+import 'package:chagok_mobile/features/onboarding/data/onboarding_repository.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:chagok_mobile/features/onboarding/presentation/onboarding_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/fake_onboarding_repository.dart';
+
 void main() {
-  Future<void> pumpOnboardingScreen(WidgetTester tester) {
+  Future<void> pumpOnboardingScreen(
+    WidgetTester tester, {
+    FakeOnboardingRepository? repository,
+  }) {
     return tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          if (repository != null)
+            onboardingRepositoryProvider.overrideWithValue(repository),
+        ],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const OnboardingScreen(),
@@ -39,6 +50,24 @@ void main() {
       await tester.pump();
 
       expect(find.text('내국인이신가요?'), findsOneWidget);
+    });
+
+    testWidgets('마지막 단계에서 답을 저장하지 못하면 실패 안내를 보여 준다', (tester) async {
+      final repository = FakeOnboardingRepository()
+        ..saveError = Exception('network');
+      await pumpOnboardingScreen(tester, repository: repository);
+      for (final label in ['내국인', null, '월세', '해당 없음']) {
+        if (label == null) {
+          await tester.enterText(find.byType(TextField), '서울시 마포구');
+        } else {
+          await tester.tap(find.text(label));
+        }
+        await tester.pump();
+        await tester.tap(find.text(label == '해당 없음' ? '완료' : '다음'));
+        await tester.pump();
+      }
+
+      expect(find.text(OnboardingStrings.submitFailed), findsOneWidget);
     });
   });
 }

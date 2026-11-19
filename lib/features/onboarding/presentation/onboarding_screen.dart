@@ -1,12 +1,19 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
+import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
+import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_page_header.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/onboarding/application/onboarding_notifier.dart';
 import 'package:chagok_mobile/features/onboarding/application/onboarding_state.dart';
-import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
+import 'package:chagok_mobile/features/onboarding/application/onboarding_step.dart';
+import 'package:chagok_mobile/features/onboarding/data/housing_type.dart';
+import 'package:chagok_mobile/features/onboarding/data/nationality.dart';
+import 'package:chagok_mobile/features/onboarding/data/welfare_status.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/onboarding_strings.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/widgets/choice_tile.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/widgets/step_progress.dart';
@@ -21,35 +28,52 @@ import 'package:go_router/go_router.dart';
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
-  /// Figma `div.main` 위 여백.
-  static const _bodyTop = 12.0;
-
-  /// 진행 막대와 제목 사이 간격.
-  static const _progressGap = 18.0;
-
-  /// 제목 묶음과 선택지 사이 간격.
-  static const _headerGap = 24.0;
-
-  /// Figma `div.actions` 위·아래 여백.
-  static const _actionsTop = 18.0;
-  static const _actionsBottom = 24.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingProvider);
-    final notifier = ref.read(onboardingProvider.notifier);
-    final step = state.step;
 
     Future<void> next() async {
-      final isCompleted = await notifier.next();
+      final isCompleted = await ref.read(onboardingProvider.notifier).next();
       if (!isCompleted || !context.mounted) return;
       context.go(AppRoute.home);
     }
 
     void back() {
-      if (!notifier.back()) Navigator.maybePop(context);
+      if (!ref.read(onboardingProvider.notifier).back()) {
+        unawaited(Navigator.maybePop(context));
+      }
     }
 
+    return PopScope(
+      canPop: state.isFirstStep,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) ref.read(onboardingProvider.notifier).back();
+      },
+      child: Scaffold(
+        appBar: AppTopBar(title: OnboardingStrings.barTitle, onBack: back),
+        body: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              Expanded(child: _StepBody(state: state)),
+              _OnboardingActions(state: state, onNext: () => unawaited(next())),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 진행 막대, 단계 제목, 단계별 입력을 위에서부터 쌓은 목록.
+class _StepBody extends ConsumerWidget {
+  const _StepBody({required this.state});
+
+  final OnboardingState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final step = state.step;
     final (title, description) = switch (step) {
       OnboardingStep.nationality => (
         OnboardingStrings.nationalityTitle,
@@ -69,78 +93,86 @@ class OnboardingScreen extends ConsumerWidget {
       ),
     };
 
-    return PopScope(
-      canPop: state.isFirstStep,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) notifier.back();
-      },
-      child: Scaffold(
-        appBar: AppTopBar(title: OnboardingStrings.barTitle, onBack: back),
-        body: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenHorizontal,
-                    _bodyTop,
-                    AppSpacing.screenHorizontal,
-                    AppSpacing.xl,
-                  ),
-                  children: [
-                    StepProgress(
-                      current: step.index + 1,
-                      total: OnboardingStep.values.length,
-                      semanticLabel: OnboardingStrings.progress(
-                        step.index + 1,
-                        OnboardingStep.values.length,
-                      ),
-                    ),
-                    const SizedBox(height: _progressGap),
-                    AppPageHeader(title: title, description: description),
-                    const SizedBox(height: _headerGap),
-                    switch (step) {
-                      OnboardingStep.address => _AddressStep(
-                        initialValue: state.answers.address,
-                        onChanged: notifier.updateAddress,
-                      ),
-                      _ => _ChoiceList(state: state, notifier: notifier),
-                    },
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenHorizontal,
-                  _actionsTop,
-                  AppSpacing.screenHorizontal,
-                  _actionsBottom,
-                ),
-                child: AppButton.primary(
-                  label: state.isLastStep
-                      ? OnboardingStrings.complete
-                      : OnboardingStrings.next,
-                  onPressed: state.canProceed ? next : null,
-                ),
-              ),
-            ],
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.md,
+        AppSpacing.screenHorizontal,
+        AppSpacing.xl,
+      ),
+      children: [
+        StepProgress(
+          current: step.index + 1,
+          total: OnboardingStep.values.length,
+          semanticLabel: OnboardingStrings.progress(
+            step.index + 1,
+            OnboardingStep.values.length,
           ),
         ),
+        const SizedBox(height: AppSpacing.block),
+        AppPageHeader(title: title, description: description),
+        const SizedBox(height: AppSpacing.pageHeaderBottom),
+        switch (step) {
+          OnboardingStep.address => _AddressStep(
+            initialValue: state.answers.address,
+            onChanged: (value) =>
+                ref.read(onboardingProvider.notifier).updateAddress(value),
+          ),
+          _ => _ChoiceList(state: state),
+        },
+      ],
+    );
+  }
+}
+
+/// 저장 실패 안내와 "다음"·"완료" 버튼.
+class _OnboardingActions extends StatelessWidget {
+  const _OnboardingActions({required this.state, required this.onNext});
+
+  final OnboardingState state;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenHorizontal,
+        AppSpacing.block,
+        AppSpacing.screenHorizontal,
+        AppSpacing.actionsBottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (state.hasSubmitFailed) ...[
+            Text(
+              OnboardingStrings.submitFailed,
+              textAlign: TextAlign.center,
+              style: AppTypography.caption.copyWith(color: AppColors.danger),
+            ),
+            const SizedBox(height: AppSpacing.buttonGap),
+          ],
+          AppButton.primary(
+            label: state.isLastStep
+                ? OnboardingStrings.complete
+                : OnboardingStrings.next,
+            onPressed: state.canProceed ? onNext : null,
+          ),
+        ],
       ),
     );
   }
 }
 
 /// 지금 단계의 선택지 목록.
-class _ChoiceList extends StatelessWidget {
-  const _ChoiceList({required this.state, required this.notifier});
+class _ChoiceList extends ConsumerWidget {
+  const _ChoiceList({required this.state});
 
   final OnboardingState state;
-  final OnboardingNotifier notifier;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    OnboardingNotifier notifier() => ref.read(onboardingProvider.notifier);
     final answers = state.answers;
     final tiles = switch (state.step) {
       OnboardingStep.nationality => [
@@ -148,7 +180,7 @@ class _ChoiceList extends StatelessWidget {
           ChoiceTile(
             label: OnboardingStrings.nationality(value),
             isSelected: answers.nationality == value,
-            onTap: () => notifier.selectNationality(value),
+            onTap: () => notifier().selectNationality(value),
           ),
       ],
       OnboardingStep.housingType => [
@@ -156,7 +188,7 @@ class _ChoiceList extends StatelessWidget {
           ChoiceTile(
             label: OnboardingStrings.housingType(value),
             isSelected: answers.housingType == value,
-            onTap: () => notifier.selectHousingType(value),
+            onTap: () => notifier().selectHousingType(value),
           ),
       ],
       OnboardingStep.welfare => [
@@ -164,7 +196,7 @@ class _ChoiceList extends StatelessWidget {
           ChoiceTile(
             label: OnboardingStrings.welfareStatus(value),
             isSelected: answers.welfareStatus == value,
-            onTap: () => notifier.selectWelfareStatus(value),
+            onTap: () => notifier().selectWelfareStatus(value),
           ),
       ],
       OnboardingStep.address => const <Widget>[],

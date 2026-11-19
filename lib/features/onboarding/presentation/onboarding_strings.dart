@@ -1,4 +1,6 @@
-import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
+import 'package:chagok_mobile/features/onboarding/data/housing_type.dart';
+import 'package:chagok_mobile/features/onboarding/data/nationality.dart';
+import 'package:chagok_mobile/features/onboarding/data/welfare_status.dart';
 
 /// 첫 설문 화면에 보이는 문구.
 ///
@@ -7,6 +9,7 @@ abstract final class OnboardingStrings {
   static const barTitle = '첫 설문';
   static const next = '다음';
   static const complete = '완료';
+  static const submitFailed = '답을 저장하지 못했어요. 다시 시도해 주세요.';
 
   // O01 국적
   static const nationalityTitle = '내국인이신가요?';

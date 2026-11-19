@@ -1,5 +1,7 @@
+import 'package:chagok_mobile/features/onboarding/data/housing_type.dart';
+import 'package:chagok_mobile/features/onboarding/data/nationality.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
-import 'package:chagok_mobile/features/onboarding/data/onboarding_repository.dart';
+import 'package:chagok_mobile/features/onboarding/data/welfare_status.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -26,23 +28,18 @@ void main() {
       expect(restored.nationality, isNull);
       expect(restored.address, isEmpty);
     });
-  });
 
-  group('InMemoryOnboardingRepository', () {
-    test('저장하기 전에는 null을 돌려준다', () async {
-      final repository = InMemoryOnboardingRepository();
+    test('copyWith로 일부 값을 넘기면 그 값만 바꾸고 나머지는 그대로 둔다', () {
+      const answers = OnboardingAnswers(
+        nationality: Nationality.korean,
+        address: '서울시',
+      );
 
-      expect(await repository.fetch(), isNull);
-    });
+      final updated = answers.copyWith(housingType: HousingType.owned);
 
-    test('저장한 답을 다시 불러온다', () async {
-      final repository = InMemoryOnboardingRepository();
-      const answers = OnboardingAnswers(nationality: Nationality.korean);
-
-      await repository.save(answers);
-
-      final fetched = await repository.fetch();
-      expect(fetched?.nationality, Nationality.korean);
+      expect(updated.nationality, Nationality.korean);
+      expect(updated.address, '서울시');
+      expect(updated.housingType, HousingType.owned);
     });
   });
 }

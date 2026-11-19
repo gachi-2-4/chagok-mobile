@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/features/onboarding/data/in_memory_onboarding_repository.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,23 +7,8 @@ abstract interface class OnboardingRepository {
   /// 저장한 답. 아직 설문을 마치지 않았으면 null.
   Future<OnboardingAnswers?> fetch();
 
+  /// [answers]를 저장합니다. 앞서 저장한 답은 덮어씁니다.
   Future<void> save(OnboardingAnswers answers);
-}
-
-/// 백엔드가 정해지기 전까지 쓰는 메모리 저장소. 앱을 끄면 사라집니다.
-class InMemoryOnboardingRepository implements OnboardingRepository {
-  Map<String, Object?>? _saved;
-
-  @override
-  Future<OnboardingAnswers?> fetch() async {
-    final saved = _saved;
-    return saved == null ? null : OnboardingAnswers.fromJson(saved);
-  }
-
-  @override
-  Future<void> save(OnboardingAnswers answers) async {
-    _saved = answers.toJson();
-  }
 }
 
 /// 앱 전역 [OnboardingRepository].

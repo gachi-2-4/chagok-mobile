@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -19,8 +20,8 @@ class ChoiceTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  /// 선택지 한 칸의 최소 높이.
   static const height = 57.0;
-  static const _padding = 17.0;
   static const _markSize = 18.0;
 
   @override
@@ -44,15 +45,12 @@ class ChoiceTile extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: height),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: _padding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.choicePaddingHorizontal,
+              ),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: AppTypography.option.copyWith(height: 18 / 15),
-                    ),
-                  ),
+                  Expanded(child: Text(label, style: AppTypography.choice)),
                   SizedBox.square(
                     dimension: _markSize,
                     child: isSelected
