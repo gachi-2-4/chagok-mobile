@@ -60,7 +60,14 @@ class AppListRow extends StatelessWidget {
               ),
               if (value != null) ...[
                 const SizedBox(width: AppSpacing.sm),
-                Text(value, style: AppTypography.listValue),
+                // 값이 길어도 가로로 넘치지 않고 줄을 바꾸도록 너비를 제한합니다.
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.right,
+                    style: AppTypography.listValue,
+                  ),
+                ),
               ],
               if (showChevron) ...[
                 const SizedBox(width: AppSpacing.sm),

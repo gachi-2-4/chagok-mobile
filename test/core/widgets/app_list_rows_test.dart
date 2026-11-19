@@ -107,6 +107,10 @@ void main() {
         greaterThan(AppListRow.minHeight),
       );
       expect(
+        await rowHeight(tester, AppListRow(title: '알림', value: longText * 3)),
+        greaterThan(AppListRow.minHeight),
+      );
+      expect(
         await rowHeight(
           tester,
           AppSelectRow(label: longText * 3, isSelected: true, onTap: () {}),
