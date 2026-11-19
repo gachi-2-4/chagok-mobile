@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit AI 코드 리뷰 설정
+# 문서: https://docs.coderabbit.ai/reference/configuration
+
+language: ko-KR
+tone_instructions: '한국어로 간결하게 리뷰합니다. 문제의 이유와 고치는 방법을 함께 적고, 사소한 취향 차이는 지적하지 않습니다.'
+early_access: false
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: false
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  # 자동 생성 파일·잠금 파일은 리뷰에서 뺍니다.
+  path_filters:
+    - '!pubspec.lock'
+    - '!**/*.g.dart'
+    - '!**/*.freezed.dart'
+    - '!**/GeneratedPluginRegistrant.*'
+    - '!**/generated_plugin_registrant.*'
+    - '!**/generated_plugins.cmake'
+    - '!ios/Flutter/Generated.xcconfig'
+    - '!**/Pods/**'
+  path_instructions:
+    - path: 'lib/**/*.dart'
+      instructions: |
+        docs/ARCHITECTURE.md, docs/CODE_STYLE.md 규칙을 기준으로 리뷰합니다.
+        - 의존 방향은 presentation → application → data 한 방향입니다. 반대 방향 import, 다른 기능의 presentation import를 지적합니다.
+        - presentation에서 Repository·API를 직접 호출하거나 비즈니스 로직을 두면 지적합니다.
+        - application(Notifier)에 BuildContext·Widget 의존이 있으면 지적합니다.
+        - ref.watch는 build 안에서, ref.read는 이벤트 핸들러 안에서만 써야 합니다.
+        - 색상·글자 크기·간격·모서리는 하드코딩하지 않고 core/constants 토큰(AppColors, AppTypography, AppSpacing, AppRadius)이나 Theme을 씁니다.
+        - core/widgets에 같은 역할의 App* 공통 위젯이 있는데 새로 만들었다면 재사용을 제안합니다.
+        - `!` 강제 해제, 다시 대입하지 않는 var, 상대 경로 import를 지적합니다.
+        - public 클래스·함수에 /// 문서 주석이 없으면 알려 줍니다.
+    - path: 'test/**/*.dart'
+      instructions: |
+        docs/TESTING.md 규칙을 기준으로 리뷰합니다.
+        - test 설명은 "~하면 ~한다" 형식이고, 한 테스트는 한 가지 동작만 검증합니다.
+        - 준비 → 실행 → 검증 순서를 빈 줄로 구분합니다.
+        - 실제 네트워크·디스크에 접근하지 않고 Fake와 ProviderScope/ProviderContainer overrides를 씁니다.
+        - ProviderContainer는 addTearDown(container.dispose)로 정리해야 합니다.
+    - path: 'docs/**/*.md'
+      instructions: |
+        규칙 문서끼리, 그리고 analysis_options.yaml과 내용이 어긋나지 않는지 확인합니다.
+    - path: 'pubspec.yaml'
+      instructions: |
+        새 패키지가 추가되면 필요성과 pub.dev 유지보수 상태를 확인하고, PR 본문에 추가 이유가 있는지 봅니다.
+  tools:
+    gitleaks:
+      enabled: true
+
+chat:
+  auto_reply: true
