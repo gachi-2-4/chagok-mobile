@@ -1,0 +1,54 @@
+/// 채팅 화면에 보이는 문구.
+///
+/// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
+abstract final class ChatStrings {
+  static const comingSoon = '곧 지원할 예정이에요.';
+  static const loadFailed = '대화를 불러오지 못했어요.';
+  static const retry = '다시 시도';
+
+  // H01 대화
+  static const roomTitle = '서류에 대해 물어보세요';
+  static String linkedDocument(String name) => '연결된 서류 · $name';
+  static const noLinkedDocument = '연결된 서류가 없어요';
+  static const change = '변경 ›';
+  static const addDocument = '서류 추가';
+  static const inputHint = '서류에 대해 질문하기';
+  static const send = '보내기';
+  static String source(String value) => '근거: $value';
+  static const viewOriginal = '원본 확인　›';
+  static const typing = '답을 찾고 있어요…';
+
+  // H02 서류 추가
+  static const attachTitle = '대화에 서류 추가';
+  static const attachDescription = '궁금한 서류를 함께 올리면\n내용을 바탕으로 답해 드릴게요.';
+  static const pickFromBox = '내 보관함에서 선택　›';
+  static const pickFromBoxDescription = '이미 차곡에 보관한 서류';
+  static String selected(String fileName) => '선택됨 · $fileName\n분석 후 대화에 연결돼요.';
+  static const externalFileHelp =
+      '외부 파일을 올리고 싶다면?\n보관함 → 박스에 파일을 업로드해 사용할 수 있어요.';
+  static const attach = '이 서류로 대화하기';
+  static const cancel = '취소';
+
+  // H03 대화 목록
+  static const listTitle = '채팅 목록';
+  static const searchHint = '대화 내용 검색';
+  static const today = '오늘';
+  static const earlier = '이전 대화';
+  static const empty = '아직 나눈 대화가 없어요.';
+  static const noResult = '검색 결과가 없어요.';
+  static const newChat = '새 대화 시작';
+
+  /// 오늘이면 시각, 아니면 날짜. 예: "오전 9:41", "11월 14일"
+  static String updatedAt(DateTime time, DateTime now) {
+    final isToday =
+        time.year == now.year && time.month == now.month && time.day == now.day;
+    if (!isToday) return '${time.month}월 ${time.day}일';
+    final period = time.hour < 12 ? '오전' : '오후';
+    final hour = switch (time.hour % 12) {
+      0 => 12,
+      final value => value,
+    };
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$period $hour:$minute';
+  }
+}

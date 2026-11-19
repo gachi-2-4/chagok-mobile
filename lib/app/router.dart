@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +11,13 @@ import 'package:go_router/go_router.dart';
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
   static const home = '/';
+
+  // 채팅 (H01~H03)
+  static const chat = '/chat';
+  static const chatRoomPattern = '/chat/:id';
+  static const chatAttachPattern = '/chat/:id/documents';
+  static String chatRoom(String id) => '/chat/$id';
+  static String chatAttach(String id) => '/chat/$id/documents';
 }
 
 /// 앱 전역 [GoRouter].
@@ -21,6 +31,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.chat,
+        builder: (context, state) => const ChatListScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.chatRoomPattern,
+        builder: (context, state) =>
+            ChatRoomScreen(threadId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.chatAttachPattern,
+        builder: (context, state) =>
+            ChatAttachScreen(threadId: state.pathParameters['id'] ?? ''),
       ),
     ],
   );
