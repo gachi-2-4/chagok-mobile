@@ -5,6 +5,7 @@
 # 점검 대상은 기준 브랜치 이후 커밋한 파일과 아직 커밋하지 않은 파일입니다.
 # - [위반] 항목에 결과가 있으면 고쳐야 합니다. 하나라도 있으면 종료 코드 1을 돌려줍니다.
 # - [확인] 항목은 규칙 대상인지 사람이 판단합니다. 종료 코드에 영향을 주지 않습니다.
+# - 기준 브랜치를 찾지 못하거나 바뀐 파일 목록을 모으지 못하면 종료 코드 2로 멈춥니다.
 #
 # 글자 패턴으로 찾기 때문에 놓치거나 잘못 잡는 경우가 있습니다. 스크립트가 통과해도
 # 규칙 문서를 직접 읽고 대조하는 단계는 건너뛰지 않습니다.
@@ -18,13 +19,28 @@ readonly BASE_BRANCH="${1:-main}"
 
 cd "${ROOT_DIR}"
 
-# 기준 브랜치 이후 바뀐 파일과 커밋하지 않은 파일 중 지금 남아 있는 것.
+# 기준 브랜치가 없으면 점검할 파일을 모을 수 없으므로, 통과로 보지 않고 멈춥니다.
+if ! git rev-parse --verify --quiet "${BASE_BRANCH}^{commit}" >/dev/null; then
+  echo "기준 브랜치 '${BASE_BRANCH}'를 찾을 수 없습니다." >&2
+  exit 2
+fi
+
+# 기준 브랜치 이후 커밋한 파일, 스테이징한 파일, 아직 스테이징하지 않은 파일과 새 파일.
+# 하위 셸에서 실패하면 멈출 수 없으므로 여기서 한 번에 모읍니다.
+if ! ALL_CHANGED="$(
+  git diff --name-only "${BASE_BRANCH}...HEAD" &&
+    git diff --cached --name-only &&
+    git ls-files --modified --others --exclude-standard
+)"; then
+  echo '바뀐 파일 목록을 모으지 못했습니다.' >&2
+  exit 2
+fi
+readonly ALL_CHANGED
+
+# [ALL_CHANGED] 중 [pattern]에 맞고 지금 남아 있는(지우지 않은) 파일.
 changed_files() {
   local pattern="$1"
-  {
-    git diff --name-only "${BASE_BRANCH}...HEAD"
-    git ls-files --modified --others --exclude-standard
-  } | sort -u | grep -E "${pattern}" | while read -r file; do
+  echo "${ALL_CHANGED}" | sort -u | grep -E "${pattern}" | while read -r file; do
     if [[ -f "${file}" ]]; then echo "${file}"; fi
   done || true
 }
@@ -157,9 +173,26 @@ abbreviated_names() {
 
 # ── ARCHITECTURE.md ──
 
+# build 본문에서 바로 실행되는 ref.read만 잡습니다. 중괄호로 감싼 콜백·지역 함수
+# 안이나, `=>` 뒤(같은 줄 또는 바로 윗줄 끝)에 있는 ref.read는 이벤트 때 실행되므로 뺍니다.
 read_in_build() {
-  grep_in '(final|var) [a-z][A-Za-z]* = ref\.read|: ref\.read\([^)]*\)\.[a-zA-Z]+,?$' \
-    ${PRESENTATION_FILES[@]+"${PRESENTATION_FILES[@]}"}
+  local file
+  for file in ${PRESENTATION_FILES[@]+"${PRESENTATION_FILES[@]}"}; do
+    awk -v file="${file}" '
+      /Widget build\(BuildContext/ { in_build = 1; depth = 0; prev = ""; }
+      in_build {
+        line = $0
+        gsub(/\x27[^\x27]*\x27/, "", line)  # 문자열 안의 괄호는 세지 않습니다.
+        if (depth == 1 && line ~ /ref\.read/ && line !~ /=>.*ref\.read/ && prev !~ /=>[[:space:]]*$/) {
+          print file ":" NR ": " $0
+        }
+        opened = gsub(/\{/, "{", line)
+        closed = gsub(/\}/, "}", line)
+        depth += opened - closed
+        if (depth <= 0 && opened + closed > 0) in_build = 0
+        if (line !~ /^[[:space:]]*$/) prev = line
+      }' "${file}"
+  done
 }
 
 async_value_without_when() {
