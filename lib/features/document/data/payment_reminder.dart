@@ -11,6 +11,7 @@ class PaymentReminder {
   /// 미리 알림으로 고를 수 있는 날 수. 0은 당일입니다.
   static const advanceDayOptions = [0, 1, 3, 7];
 
+  /// 알림을 건 서류 id.
   final String documentId;
 
   /// 매월 납부일(1~31). 그달에 없는 날이면 그달 마지막 날로 봅니다.
@@ -25,6 +26,7 @@ class PaymentReminder {
   /// 매월 반복할지 여부. 끄면 다음 납부일 한 번만 알립니다.
   final bool isMonthly;
 
+  /// 넘긴 값만 바꾼 새 알림을 돌려줍니다. 서류는 바꿀 수 없습니다.
   PaymentReminder copyWith({
     int? paymentDay,
     int? minuteOfDay,

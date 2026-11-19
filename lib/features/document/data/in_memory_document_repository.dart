@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
+import 'package:chagok_mobile/features/document/data/document_not_found_exception.dart';
 import 'package:chagok_mobile/features/document/data/document_repository.dart';
 import 'package:chagok_mobile/features/document/data/payment_reminder.dart';
 

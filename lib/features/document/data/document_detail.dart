@@ -10,6 +10,7 @@ class DocumentDetail {
     this.earlyTerminationPenalty,
   });
 
+  /// 서류 id.
   final String id;
 
   /// 서류가 담긴 보관함 이름. 예: "집 · 임대"
@@ -24,6 +25,7 @@ class DocumentDetail {
   /// 매월 납부일(1~31).
   final int? paymentDay;
 
+  /// 계약 종료일.
   final DateTime? contractEndDate;
 
   /// 중도 해지 위약금. 원본 문구 그대로 둡니다.

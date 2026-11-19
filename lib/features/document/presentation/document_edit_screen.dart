@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -7,7 +9,6 @@ import 'package:chagok_mobile/core/widgets/app_page_header.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:chagok_mobile/features/document/application/document_edit_form.dart';
 import 'package:chagok_mobile/features/document/application/document_edit_notifier.dart';
-import 'package:chagok_mobile/features/document/data/document_repository.dart';
 import 'package:chagok_mobile/features/document/presentation/document_strings.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/option_sheet.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/picker_field.dart';
@@ -19,93 +20,54 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class DocumentEditScreen extends ConsumerWidget {
   const DocumentEditScreen({required this.documentId, super.key});
 
+  /// 고칠 서류 id.
   final String documentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = documentEditProvider(documentId);
-    final formValue = ref.watch(provider);
 
-    return formValue.when(
-      data: (form) => _DocumentEditBody(
-        form: form,
-        notifier: ref.read(provider.notifier),
-        documentTypes: ref.read(documentRepositoryProvider).documentTypes,
-      ),
-      loading: () => const AppDocumentLayout(
-        body: [Center(child: CircularProgressIndicator())],
-        actions: [],
-      ),
-      error: (error, stackTrace) => AppDocumentLayout(
-        body: const [
-          Text(DocumentStrings.loadFailed, style: AppTypography.body),
-        ],
-        actions: [
-          AppButton.secondary(
-            label: DocumentStrings.retry,
-            onPressed: () => ref.invalidate(provider),
+    return ref
+        .watch(provider)
+        .when(
+          data: (form) => _DocumentEditBody(documentId: documentId, form: form),
+          loading: () => const AppDocumentLayout(
+            body: [Center(child: CircularProgressIndicator())],
+            actions: [],
           ),
-        ],
-      ),
-    );
+          error: (error, stackTrace) => AppDocumentLayout(
+            body: const [
+              Text(DocumentStrings.loadFailed, style: AppTypography.body),
+            ],
+            actions: [
+              AppButton.secondary(
+                label: DocumentStrings.retry,
+                onPressed: () => ref.invalidate(provider),
+              ),
+            ],
+          ),
+        );
   }
 }
 
-class _DocumentEditBody extends StatelessWidget {
-  const _DocumentEditBody({
-    required this.form,
-    required this.notifier,
-    required this.documentTypes,
-  });
+/// 불러온 [form]으로 그린 입력창들과 저장·원본 확인 버튼.
+class _DocumentEditBody extends ConsumerWidget {
+  const _DocumentEditBody({required this.documentId, required this.form});
 
+  final String documentId;
   final DocumentEditForm form;
-  final DocumentEditNotifier notifier;
-  final List<String> documentTypes;
-
-  static const _headerGap = 18.0;
 
   @override
-  Widget build(BuildContext context) {
-    final paymentDay = form.paymentDay;
-    final contractEndDate = form.contractEndDate;
-
-    Future<void> pickDocumentType() async {
-      final type = await showOptionSheet(
-        context,
-        options: documentTypes,
-        labelOf: (type) => type,
-        selected: form.documentType,
-      );
-      if (type != null) notifier.updateDocumentType(type);
-    }
-
-    Future<void> pickPaymentDay() async {
-      final day = await showOptionSheet(
-        context,
-        options: [for (var day = 1; day <= 31; day++) day],
-        labelOf: DocumentStrings.monthlyDay,
-        selected: paymentDay,
-      );
-      if (day != null) notifier.updatePaymentDay(day);
-    }
-
-    Future<void> pickContractEndDate() async {
-      final now = DateTime.now();
-      final date = await showDatePicker(
-        context: context,
-        initialDate: contractEndDate ?? now,
-        firstDate: DateTime(now.year - 10),
-        lastDate: DateTime(now.year + 30),
-      );
-      if (date != null) notifier.updateContractEndDate(date);
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    DocumentEditNotifier notifier() =>
+        ref.read(documentEditProvider(documentId).notifier);
 
     Future<void> save() async {
-      final isSaved = await notifier.save();
+      final isSaved = await notifier().save();
       if (!isSaved || !context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text(DocumentStrings.saved)));
-      Navigator.maybePop(context);
+      await Navigator.maybePop(context);
     }
 
     void viewOriginal() {
@@ -121,54 +83,164 @@ class _DocumentEditBody extends StatelessWidget {
           title: DocumentStrings.editTitle,
           description: DocumentStrings.editDescription,
         ),
-        const SizedBox(height: _headerGap),
-        PickerField(
-          label: DocumentStrings.documentType,
-          value: form.documentType,
-          onTap: pickDocumentType,
-        ),
-        const SizedBox(height: AppSpacing.stack),
-        _MonthlyRentField(
-          initialValue: form.monthlyRentText,
-          hasError: form.hasInvalidMonthlyRent,
-          onChanged: notifier.updateMonthlyRent,
-        ),
-        const SizedBox(height: AppSpacing.stack),
-        PickerField(
-          label: DocumentStrings.paymentDay,
-          value: paymentDay == null
-              ? ''
-              : DocumentStrings.monthlyDay(paymentDay),
-          onTap: pickPaymentDay,
-        ),
-        const SizedBox(height: AppSpacing.stack),
-        PickerField(
-          label: DocumentStrings.contractEndDate,
-          value: contractEndDate == null
-              ? ''
-              : DocumentStrings.date(contractEndDate),
-          hintText: DocumentStrings.contractEndDateHint,
-          icon: Icons.calendar_today_outlined,
-          onTap: pickContractEndDate,
-        ),
+        const SizedBox(height: AppSpacing.block),
+        _PickerFields(documentId: documentId, form: form),
         const SizedBox(height: AppSpacing.stack),
         _PenaltyField(
           initialValue: form.penaltyText,
-          onChanged: notifier.updatePenalty,
+          onChanged: (value) => notifier().updatePenalty(value),
         ),
         const SizedBox(height: AppSpacing.stack),
         const Text(DocumentStrings.editNote, style: AppTypography.caption),
+        if (form.hasSaveFailed) ...[
+          const SizedBox(height: AppSpacing.stack),
+          Text(
+            DocumentStrings.saveFailed,
+            style: AppTypography.caption.copyWith(color: AppColors.danger),
+          ),
+        ],
       ],
       actions: [
         AppButton.primary(
           label: DocumentStrings.saveEdit,
-          onPressed: form.canSave ? save : null,
+          onPressed: form.canSave ? () => unawaited(save()) : null,
         ),
         AppButton.secondary(
           label: DocumentStrings.viewOriginal,
           onPressed: viewOriginal,
         ),
       ],
+    );
+  }
+}
+
+/// 문서 종류·월 임대료·납부일·계약 종료일 입력창.
+class _PickerFields extends ConsumerWidget {
+  const _PickerFields({required this.documentId, required this.form});
+
+  final String documentId;
+  final DocumentEditForm form;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DocumentTypeField(documentId: documentId, selected: form.documentType),
+        const SizedBox(height: AppSpacing.stack),
+        _MonthlyRentField(
+          initialValue: form.monthlyRentText,
+          hasError: form.hasInvalidMonthlyRent,
+          onChanged: (value) => ref
+              .read(documentEditProvider(documentId).notifier)
+              .updateMonthlyRent(value),
+        ),
+        const SizedBox(height: AppSpacing.stack),
+        _PaymentDayField(documentId: documentId, selected: form.paymentDay),
+        const SizedBox(height: AppSpacing.stack),
+        _ContractEndDateField(
+          documentId: documentId,
+          selected: form.contractEndDate,
+        ),
+      ],
+    );
+  }
+}
+
+/// 문서 종류 고르기. 누르면 서류 종류 목록을 띄웁니다.
+class _DocumentTypeField extends ConsumerWidget {
+  const _DocumentTypeField({required this.documentId, required this.selected});
+
+  final String documentId;
+  final String selected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> pick() async {
+      final type = await showOptionSheet(
+        context,
+        options: ref.read(documentTypesProvider),
+        labelOf: (type) => type,
+        selected: selected,
+      );
+      if (type == null) return;
+      ref
+          .read(documentEditProvider(documentId).notifier)
+          .updateDocumentType(type);
+    }
+
+    return PickerField(
+      label: DocumentStrings.documentType,
+      value: selected,
+      onTap: () => unawaited(pick()),
+    );
+  }
+}
+
+/// 매월 납부일 고르기. 누르면 1~31일 목록을 띄웁니다.
+class _PaymentDayField extends ConsumerWidget {
+  const _PaymentDayField({required this.documentId, required this.selected});
+
+  final String documentId;
+  final int? selected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = this.selected;
+
+    Future<void> pick() async {
+      final day = await showOptionSheet(
+        context,
+        options: [for (var day = 1; day <= 31; day++) day],
+        labelOf: DocumentStrings.monthlyDay,
+        selected: selected,
+      );
+      if (day == null) return;
+      ref.read(documentEditProvider(documentId).notifier).updatePaymentDay(day);
+    }
+
+    return PickerField(
+      label: DocumentStrings.paymentDay,
+      value: selected == null ? '' : DocumentStrings.monthlyDay(selected),
+      onTap: () => unawaited(pick()),
+    );
+  }
+}
+
+/// 계약 종료일 고르기. 누르면 달력을 띄웁니다.
+class _ContractEndDateField extends ConsumerWidget {
+  const _ContractEndDateField({
+    required this.documentId,
+    required this.selected,
+  });
+
+  final String documentId;
+  final DateTime? selected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = this.selected;
+
+    Future<void> pick() async {
+      final now = DateTime.now();
+      final date = await showDatePicker(
+        context: context,
+        initialDate: selected ?? now,
+        firstDate: DateTime(now.year - 10),
+        lastDate: DateTime(now.year + 30),
+      );
+      if (date == null) return;
+      ref
+          .read(documentEditProvider(documentId).notifier)
+          .updateContractEndDate(date);
+    }
+
+    return PickerField(
+      label: DocumentStrings.contractEndDate,
+      value: selected == null ? '' : DocumentStrings.date(selected),
+      hintText: DocumentStrings.contractEndDateHint,
+      icon: Icons.calendar_today_outlined,
+      onTap: () => unawaited(pick()),
     );
   }
 }

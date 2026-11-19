@@ -15,9 +15,16 @@ class PickerField extends StatefulWidget {
     super.key,
   });
 
+  /// 입력창 위 라벨.
   final String label;
+
+  /// 지금 고른 값을 글로 나타낸 것. 비었으면 [hintText]가 보입니다.
   final String value;
+
+  /// 아직 고르지 않았을 때 흐리게 보이는 안내.
   final String? hintText;
+
+  /// 눌렀을 때 고르기 창을 띄웁니다.
   final VoidCallback onTap;
 
   /// 오른쪽 아이콘. 기본은 펼침(⌄)입니다.
@@ -28,6 +35,8 @@ class PickerField extends StatefulWidget {
 }
 
 class _PickerFieldState extends State<PickerField> {
+  static const _iconSize = 20.0;
+
   late final _controller = TextEditingController(text: widget.value);
 
   @override
@@ -50,7 +59,7 @@ class _PickerFieldState extends State<PickerField> {
       controller: _controller,
       readOnly: true,
       onTap: widget.onTap,
-      suffix: Icon(widget.icon, size: 20, color: AppColors.textPrimary),
+      suffix: Icon(widget.icon, size: _iconSize, color: AppColors.textPrimary),
     );
   }
 }

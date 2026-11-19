@@ -22,6 +22,7 @@ abstract final class DocumentStrings {
   static const saveEdit = '수정 내용 저장';
   static const viewOriginal = '원본 확인하기';
   static const saved = '수정한 내용을 저장했어요.';
+  static const saveFailed = '저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
 
   // D02 납부일 알림
   static const reminderTitle = '납부일을 알려 드릴게요';
@@ -32,6 +33,7 @@ abstract final class DocumentStrings {
   static const noAdvanceSelected = '미리 알림을 하나 이상 골라 주세요.';
   static const register = '알림 등록하기';
   static const registered = '납부일 알림을 등록했어요.';
+  static const registerFailed = '알림을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.';
 
   /// 예: 500000 → "500,000"
   static String amount(int value) {
@@ -78,4 +80,8 @@ abstract final class DocumentStrings {
   static String nextAlert(DateTime value) =>
       '다음 알림: ${value.month}월 ${value.day}일 '
       '${time(value.hour * 60 + value.minute)}';
+
+  /// 다음 알림 시각과 기기 알림 안내를 두 줄로 묶은 문구.
+  static String nextAlertNotice(DateTime value) =>
+      '${nextAlert(value)}\n$deviceNotice';
 }

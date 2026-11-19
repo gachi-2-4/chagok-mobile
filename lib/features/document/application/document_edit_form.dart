@@ -10,6 +10,7 @@ class DocumentEditForm {
     required this.contractEndDate,
     required this.penaltyText,
     this.isSaving = false,
+    this.hasSaveFailed = false,
   });
 
   /// 저장된 서류 내용으로 입력값을 채웁니다.
@@ -27,14 +28,26 @@ class DocumentEditForm {
   /// 수정하기 전 서류 내용.
   final DocumentDetail original;
 
+  /// 문서 종류. 예: "임대차계약서"
   final String documentType;
 
   /// 월 임대료 입력값. 숫자 사이 쉼표는 무시합니다.
   final String monthlyRentText;
+
+  /// 매월 납부일(1~31). 고르지 않았으면 null.
   final int? paymentDay;
+
+  /// 계약 종료일. 고르지 않았으면 null.
   final DateTime? contractEndDate;
+
+  /// 중도 해지 위약금 입력값.
   final String penaltyText;
+
+  /// 저장하는 중이면 true.
   final bool isSaving;
+
+  /// 마지막으로 저장하려다 실패했으면 true.
+  final bool hasSaveFailed;
 
   /// 월 임대료를 숫자로 바꾼 값. 비었거나 숫자가 아니면 null.
   int? get monthlyRent => int.tryParse(monthlyRentText.replaceAll(',', ''));
@@ -43,6 +56,7 @@ class DocumentEditForm {
   bool get hasInvalidMonthlyRent =>
       monthlyRentText.trim().isNotEmpty && monthlyRent == null;
 
+  /// 월 임대료가 올바르고 저장하는 중이 아니면 true.
   bool get canSave => !hasInvalidMonthlyRent && !isSaving;
 
   /// 입력값으로 만든 새 서류 내용.
@@ -59,6 +73,7 @@ class DocumentEditForm {
     );
   }
 
+  /// 넘긴 값만 바꾼 새 입력값을 돌려줍니다. 수정 전 내용은 그대로 둡니다.
   DocumentEditForm copyWith({
     String? documentType,
     String? monthlyRentText,
@@ -66,6 +81,7 @@ class DocumentEditForm {
     DateTime? contractEndDate,
     String? penaltyText,
     bool? isSaving,
+    bool? hasSaveFailed,
   }) {
     return DocumentEditForm(
       original: original,
@@ -75,6 +91,7 @@ class DocumentEditForm {
       contractEndDate: contractEndDate ?? this.contractEndDate,
       penaltyText: penaltyText ?? this.penaltyText,
       isSaving: isSaving ?? this.isSaving,
+      hasSaveFailed: hasSaveFailed ?? this.hasSaveFailed,
     );
   }
 }

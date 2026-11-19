@@ -7,7 +7,7 @@ import '../../helpers/pump_app.dart';
 
 void main() {
   group('AppTextField', () {
-    testWidgets('라벨과 힌트를 보여 준다', (tester) async {
+    testWidgets('라벨과 힌트를 주면 둘 다 보여 준다', (tester) async {
       await tester.pumpApp(
         const AppTextField(label: '이메일', hintText: 'hello@example.com'),
       );
@@ -37,7 +37,7 @@ void main() {
       expect(textField.obscureText, isTrue);
     });
 
-    testWidgets('inputFormatters로 입력을 거른다', (tester) async {
+    testWidgets('inputFormatters를 주면 그 규칙으로 입력을 거른다', (tester) async {
       String? changedText;
       await tester.pumpApp(
         AppTextField(

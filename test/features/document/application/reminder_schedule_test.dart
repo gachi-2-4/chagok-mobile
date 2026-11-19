@@ -6,7 +6,7 @@ void main() {
   group('ReminderSchedule.nextAlert', () {
     const reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
 
-    test('이번 달 납부일 하루 전 오전 9시가 가장 먼저 울린다', () {
+    test('이번 달 납부일이 아직 오지 않았으면 하루 전 오전 9시가 가장 먼저 울린다', () {
       final next = ReminderSchedule.nextAlert(
         reminder,
         DateTime(2026, 11, 18, 10),
@@ -42,7 +42,7 @@ void main() {
       expect(next, isNull);
     });
 
-    test('7일 전 알림은 달을 거슬러 올라가도 계산한다', () {
+    test('7일 전 알림이 지난달로 넘어가면 지난달 날짜로 계산한다', () {
       const early = PaymentReminder(
         documentId: 'lease',
         paymentDay: 3,
@@ -56,7 +56,7 @@ void main() {
   });
 
   group('ReminderSchedule.paymentDate', () {
-    test('그달에 없는 날은 마지막 날로 맞춘다', () {
+    test('그달에 없는 날이면 그달 마지막 날로 맞춘다', () {
       const reminder = PaymentReminder(documentId: 'lease', paymentDay: 31);
 
       expect(

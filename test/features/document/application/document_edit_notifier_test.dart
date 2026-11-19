@@ -32,7 +32,7 @@ void main() {
   DocumentEditNotifier notifier() => container.read(provider.notifier);
 
   group('DocumentEditNotifier', () {
-    test('저장된 서류 내용으로 입력값을 채운다', () async {
+    test('처음 읽으면 저장된 서류 내용으로 입력값을 채운다', () async {
       final form = await container.read(provider.future);
 
       expect(form.documentType, '임대차계약서');
@@ -40,7 +40,7 @@ void main() {
       expect(form.paymentDay, 25);
     });
 
-    test('쉼표가 들어간 월 임대료도 숫자로 읽는다', () async {
+    test('월 임대료에 쉼표가 들어가 있으면 빼고 숫자로 읽는다', () async {
       await container.read(provider.future);
 
       notifier().updateMonthlyRent('550,000');
@@ -58,7 +58,7 @@ void main() {
       expect(form?.canSave, isFalse);
     });
 
-    test('범위를 벗어난 납부일은 받지 않는다', () async {
+    test('범위를 벗어난 납부일을 넣으면 RangeError를 던진다', () async {
       await container.read(provider.future);
 
       expect(() => notifier().updatePaymentDay(32), throwsRangeError);
@@ -90,6 +90,20 @@ void main() {
       await notifier().save();
 
       expect(repository.updatedDetails.single.earlyTerminationPenalty, isNull);
+    });
+
+    test('저장하지 못하면 false를 돌려주고 고친 내용과 실패 표시를 남긴다', () async {
+      await container.read(provider.future);
+      notifier().updateDocumentType('관리비 고지서');
+      repository.saveError = Exception('network');
+
+      final isSaved = await notifier().save();
+
+      final form = container.read(provider).value;
+      expect(isSaved, isFalse);
+      expect(form?.hasSaveFailed, isTrue);
+      expect(form?.isSaving, isFalse);
+      expect(form?.documentType, '관리비 고지서');
     });
   });
 }

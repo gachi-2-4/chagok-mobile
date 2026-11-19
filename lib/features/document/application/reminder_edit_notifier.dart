@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/features/document/application/reminder_edit_state.dart';
 import 'package:chagok_mobile/features/document/data/document_repository.dart';
 import 'package:chagok_mobile/features/document/data/payment_reminder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 서류 하나의 납부일 알림 입력값. 화면을 벗어나면 버립니다.
@@ -34,11 +35,13 @@ class ReminderEditNotifier extends AsyncNotifier<ReminderEditState> {
     return ReminderEditState(detail: detail, reminder: reminder);
   }
 
+  /// 매월 납부일을 바꿉니다. [value]는 1~31입니다.
   void setPaymentDay(int value) {
     RangeError.checkValueInInterval(value, 1, 31, 'value');
     _update((reminder) => reminder.copyWith(paymentDay: value));
   }
 
+  /// 알림 시각을 바꿉니다. [hour]는 0~23, [minute]는 0~59입니다.
   void setTime({required int hour, required int minute}) {
     RangeError.checkValueInInterval(hour, 0, 23, 'hour');
     RangeError.checkValueInInterval(minute, 0, 59, 'minute');
@@ -54,17 +57,28 @@ class ReminderEditNotifier extends AsyncNotifier<ReminderEditState> {
     });
   }
 
+  /// 매월 반복 여부를 바꿉니다.
   void setMonthly({required bool isMonthly}) =>
       _update((reminder) => reminder.copyWith(isMonthly: isMonthly));
 
   /// 알림을 등록합니다. 등록했으면 true.
+  ///
+  /// 등록하지 못하면 고친 알림은 그대로 두고 [ReminderEditState.hasSaveFailed]를 켭니다.
   Future<bool> save() async {
     final current = state.value;
     if (current == null || !current.canSave) return false;
-    state = AsyncData(current.copyWith(isSaving: true));
-    await ref.read(documentRepositoryProvider).saveReminder(current.reminder);
-    if (ref.mounted) state = AsyncData(current);
-    return true;
+    state = AsyncData(current.copyWith(isSaving: true, hasSaveFailed: false));
+    try {
+      await ref.read(documentRepositoryProvider).saveReminder(current.reminder);
+      if (ref.mounted) {
+        state = AsyncData(current.copyWith(hasSaveFailed: false));
+      }
+      return true;
+    } catch (error, stackTrace) {
+      debugPrint('납부일 알림을 등록하지 못했습니다: $error\n$stackTrace');
+      if (ref.mounted) state = AsyncData(current.copyWith(hasSaveFailed: true));
+      return false;
+    }
   }
 
   void _update(PaymentReminder Function(PaymentReminder reminder) change) {

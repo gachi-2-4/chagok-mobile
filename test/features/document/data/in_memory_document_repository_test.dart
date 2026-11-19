@@ -1,12 +1,12 @@
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
-import 'package:chagok_mobile/features/document/data/document_repository.dart';
+import 'package:chagok_mobile/features/document/data/document_not_found_exception.dart';
 import 'package:chagok_mobile/features/document/data/in_memory_document_repository.dart';
 import 'package:chagok_mobile/features/document/data/payment_reminder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('InMemoryDocumentRepository', () {
-    test('예시 서류를 불러온다', () async {
+    test('예시 서류 id로 불러오면 예시 서류를 돌려준다', () async {
       final repository = InMemoryDocumentRepository();
 
       final detail = await repository.fetchDetail(
@@ -42,7 +42,7 @@ void main() {
       expect(detail.documentType, '관리비 고지서');
     });
 
-    test('알림을 저장하기 전에는 null, 저장한 뒤에는 그 알림을 돌려준다', () async {
+    test('알림을 저장하면 저장 전에는 null, 저장 후에는 그 알림을 돌려준다', () async {
       final repository = InMemoryDocumentRepository();
       const reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
 

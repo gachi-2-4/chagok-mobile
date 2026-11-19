@@ -57,7 +57,7 @@ void main() {
       expect(state.reminder.advanceDays, {7});
     });
 
-    test('미리 알림을 누를 때마다 켜고 끈다', () async {
+    test('미리 알림을 누르면 누를 때마다 켜고 끈다', () async {
       setUpContainer();
       await container.read(provider.future);
 
@@ -93,6 +93,19 @@ void main() {
       expect(isSaved, isTrue);
       expect(saved.minuteOfDay, 20 * 60 + 30);
       expect(saved.isMonthly, isFalse);
+    });
+
+    test('등록하지 못하면 false를 돌려주고 실패 표시를 남긴다', () async {
+      setUpContainer();
+      await container.read(provider.future);
+      repository.saveError = Exception('network');
+
+      final isSaved = await notifier().save();
+
+      final state = container.read(provider).value;
+      expect(isSaved, isFalse);
+      expect(state?.hasSaveFailed, isTrue);
+      expect(state?.isSaving, isFalse);
     });
   });
 }
