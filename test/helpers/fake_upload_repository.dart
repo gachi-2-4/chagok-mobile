@@ -15,10 +15,14 @@ class FakeUploadRepository implements UploadRepository {
     fields: [ExtractedField(label: '납부일', value: '매월 25일')],
   );
   int boxFetchCount = 0;
+
+  /// 값을 넣으면 파일 고르기·분석·저장에서 이 예외를 던집니다.
+  Exception? error;
   final saved = <String>[];
 
   @override
   Future<PickedDocument?> pick(UploadSource source) async {
+    if (error case final error?) throw error;
     if (isCancelled) return null;
     return PickedDocument(
       fileName: '${source.name}.pdf',
@@ -38,7 +42,10 @@ class FakeUploadRepository implements UploadRepository {
   }
 
   @override
-  Future<AnalysisResult> analyze(PickedDocument document) async => result;
+  Future<AnalysisResult> analyze(PickedDocument document) async {
+    if (error case final error?) throw error;
+    return result;
+  }
 
   @override
   Future<void> save({
@@ -46,6 +53,7 @@ class FakeUploadRepository implements UploadRepository {
     required AnalysisSucceeded result,
     required String boxId,
   }) async {
+    if (error case final error?) throw error;
     saved.add('${document.fileName}@$boxId');
   }
 }

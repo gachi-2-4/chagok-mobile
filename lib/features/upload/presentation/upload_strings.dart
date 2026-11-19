@@ -5,6 +5,10 @@ abstract final class UploadStrings {
   static const brand = '차곡';
   static const tagline = '차곡차곡, 쉬워지는 서류 생활';
   static const comingSoon = '곧 지원할 예정이에요.';
+  static const failed = '처리하지 못했어요. 잠시 후 다시 시도해 주세요.';
+
+  /// 방법 카드의 설명과 화살표. 예: "종이 서류를 카메라로 찍어요　›"
+  static String optionDescription(String description) => '$description　›';
 
   // U01 방법 고르기
   static const sourceTitle = '어떤 서류를 담을까요?';

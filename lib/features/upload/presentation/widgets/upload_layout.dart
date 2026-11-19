@@ -12,13 +12,11 @@ import 'package:flutter/material.dart';
 class UploadLayout extends StatelessWidget {
   const UploadLayout({required this.body, required this.actions, super.key});
 
+  /// 본문에 위에서부터 쌓을 위젯.
   final List<Widget> body;
-  final List<Widget> actions;
 
-  /// Figma `div.main`, `div.actions`, `div.footer` 여백.
-  static const _bodyTop = 11.0;
-  static const _actionsTop = 18.0;
-  static const _actionsBottom = 24.0;
+  /// 아래 버튼 영역에 쌓을 버튼. 버튼 사이는 [AppSpacing.buttonGap]만큼 띄웁니다.
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +30,7 @@ class UploadLayout extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenHorizontal,
-                  _bodyTop,
+                  AppSpacing.pageTop,
                   AppSpacing.screenHorizontal,
                   AppSpacing.xl,
                 ),
@@ -42,9 +40,9 @@ class UploadLayout extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenHorizontal,
-                _actionsTop,
+                AppSpacing.block,
                 AppSpacing.screenHorizontal,
-                _actionsBottom,
+                AppSpacing.actionsBottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -77,4 +77,25 @@ abstract final class AppSpacing {
 
   /// 하단 탭 바 아래 여백. 탭을 누르는 영역에 포함됩니다.
   static const navBarPaddingBottom = 16.0;
+
+  /// 상단 바 아래부터 화면의 첫 요소(큰 제목 등)까지 거리.
+  static const pageTop = 11.0;
+
+  /// 화면 안에서 제목·카드·배너·말풍선 같은 덩어리 사이 세로 간격.
+  static const block = 18.0;
+
+  /// 화면 맨 아래 버튼 묶음 아래 여백.
+  static const actionsBottom = 24.0;
+
+  /// 카드 제목과 그 아래 설명 사이 간격.
+  static const cardTitleGap = 10.0;
+
+  /// 이름·값 표에서 줄 사이 간격.
+  static const tableRowGap = 10.0;
+
+  /// 이름·값 표에서 구분선 위아래 여백.
+  static const tableDividerGap = 14.0;
+
+  /// 안내 카드에서 첫 문장과 도움말 사이 간격.
+  static const noticeHelpGap = 9.0;
 }

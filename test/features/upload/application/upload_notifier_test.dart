@@ -51,11 +51,11 @@ void main() {
       expect(container.read(uploadProvider).isBusy, isFalse);
     });
 
-    test('파일을 고르기 전에는 분석하지 않는다', () async {
+    test('파일을 고르기 전에 분석하면 아무것도 하지 않는다', () async {
       expect(await notifier().analyze(), isNull);
     });
 
-    test('분석 결과를 상태에 담고 돌려준다', () async {
+    test('분석하면 결과를 상태에 담고 돌려준다', () async {
       repository.result = const AnalysisUnclear();
       await notifier().pick(UploadSource.camera);
 
@@ -74,7 +74,7 @@ void main() {
       expect(container.read(uploadProvider).result, isNull);
     });
 
-    test('흐린 결과로는 저장할 수 없다', () async {
+    test('분석 결과가 흐리면 저장할 수 없다', () async {
       repository.result = const AnalysisUnclear();
       await notifier().pick(UploadSource.camera);
       await notifier().analyze();
@@ -95,6 +95,52 @@ void main() {
       expect(isSaved, isTrue);
       expect(repository.saved, ['pdf.pdf@car']);
       expect(container.read(uploadProvider).document, isNull);
+    });
+
+    test('파일을 가져오지 못하면 실패를 표시하고 작업 중 상태를 푼다', () async {
+      repository.error = Exception('permission');
+
+      final isPicked = await notifier().pick(UploadSource.camera);
+
+      final state = container.read(uploadProvider);
+      expect(isPicked, isFalse);
+      expect(state.hasFailed, isTrue);
+      expect(state.isBusy, isFalse);
+    });
+
+    test('분석하지 못하면 null을 돌려주고 실패를 표시한다', () async {
+      await notifier().pick(UploadSource.pdf);
+      repository.error = Exception('network');
+
+      final result = await notifier().analyze();
+
+      expect(result, isNull);
+      expect(container.read(uploadProvider).hasFailed, isTrue);
+      expect(container.read(uploadProvider).isBusy, isFalse);
+    });
+
+    test('보관하지 못하면 false를 돌려주고 고른 파일과 결과를 그대로 둔다', () async {
+      await notifier().pick(UploadSource.pdf);
+      await notifier().analyze();
+      repository.error = Exception('network');
+
+      final isSaved = await notifier().save();
+
+      final state = container.read(uploadProvider);
+      expect(isSaved, isFalse);
+      expect(state.hasFailed, isTrue);
+      expect(state.document, isNotNull);
+      expect(state.result, isA<AnalysisSucceeded>());
+    });
+
+    test('실패한 뒤 다시 시도해 성공하면 실패 표시가 사라진다', () async {
+      repository.error = Exception('permission');
+      await notifier().pick(UploadSource.camera);
+
+      repository.error = null;
+      await notifier().pick(UploadSource.camera);
+
+      expect(container.read(uploadProvider).hasFailed, isFalse);
     });
   });
 }

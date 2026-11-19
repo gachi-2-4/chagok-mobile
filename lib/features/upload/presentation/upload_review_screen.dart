@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
@@ -9,6 +11,7 @@ import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/extracted_field.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
+import 'package:chagok_mobile/features/upload/presentation/widgets/upload_failure_notice.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/upload_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,8 +20,6 @@ import 'package:go_router/go_router.dart';
 /// U04 · 서류에서 읽어 낸 조건을 확인하고 보관하는 화면.
 class UploadReviewScreen extends ConsumerWidget {
   const UploadReviewScreen({super.key});
-
-  static const _gap = 18.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,13 +45,10 @@ class UploadReviewScreen extends ConsumerWidget {
       ).showSnackBar(const SnackBar(content: Text(UploadStrings.comingSoon)));
     }
 
-    final uncertain = result.uncertainFields;
-    final renamed = result.renamedFields;
-
     return UploadLayout(
       body: [
         const Text(UploadStrings.reviewTitle, style: AppTypography.pageTitle),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.block),
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
@@ -59,15 +57,46 @@ class UploadReviewScreen extends ConsumerWidget {
             AppChip(label: UploadStrings.pageCount(result.pageCount)),
           ],
         ),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.block),
         const Text(
           UploadStrings.reviewDescription,
           style: AppTypography.pageDescription,
         ),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.block),
         AppCard(child: _FieldTable(fields: result.fields)),
-        for (final field in uncertain) ...[
-          const SizedBox(height: _gap),
+        _ReviewNotes(result: result),
+        if (state.hasFailed) ...[
+          const SizedBox(height: AppSpacing.lg),
+          const UploadFailureNotice(),
+        ],
+      ],
+      actions: [
+        AppButton.primary(
+          label: UploadStrings.saveDocument,
+          onPressed: state.canSave ? () => unawaited(save()) : null,
+        ),
+        AppButton.secondary(
+          label: UploadStrings.editDocument,
+          onPressed: state.isBusy ? null : edit,
+        ),
+      ],
+    );
+  }
+}
+
+/// 확실히 읽지 못한 조건 안내 카드와, 이름을 바꿔 정리한 조건 안내.
+class _ReviewNotes extends StatelessWidget {
+  const _ReviewNotes({required this.result});
+
+  final AnalysisSucceeded result;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final field in result.uncertainFields) ...[
+          const SizedBox(height: AppSpacing.block),
           AppCard.peach(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -76,7 +105,7 @@ class UploadReviewScreen extends ConsumerWidget {
                   UploadStrings.uncertainNotice(field.label),
                   style: AppTypography.body,
                 ),
-                const SizedBox(height: 9),
+                const SizedBox(height: AppSpacing.noticeHelpGap),
                 const Text(
                   UploadStrings.uncertainHelp,
                   style: AppTypography.caption,
@@ -85,23 +114,13 @@ class UploadReviewScreen extends ConsumerWidget {
             ),
           ),
         ],
-        for (final field in renamed) ...[
+        for (final field in result.renamedFields) ...[
           const SizedBox(height: AppSpacing.lg),
           Text(
             UploadStrings.renamedNote(field.originalLabel ?? '', field.label),
             style: AppTypography.caption,
           ),
         ],
-      ],
-      actions: [
-        AppButton.primary(
-          label: UploadStrings.saveDocument,
-          onPressed: state.canSave ? save : null,
-        ),
-        AppButton.secondary(
-          label: UploadStrings.editDocument,
-          onPressed: state.isBusy ? null : edit,
-        ),
       ],
     );
   }
@@ -113,12 +132,43 @@ class _FieldTable extends StatelessWidget {
 
   final List<ExtractedField> fields;
 
+  static const _dividerHeight = 1.0;
+
   @override
   Widget build(BuildContext context) {
     final certain = fields.where((field) => !field.isUncertain).toList();
     final uncertain = fields.where((field) => field.isUncertain).toList();
 
-    Widget row(ExtractedField field) => Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (index, field) in certain.indexed) ...[
+          if (index > 0) const SizedBox(height: AppSpacing.tableRowGap),
+          _FieldRow(field: field),
+        ],
+        if (certain.isNotEmpty && uncertain.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.tableDividerGap),
+            child: Divider(height: _dividerHeight, color: AppColors.divider),
+          ),
+        for (final (index, field) in uncertain.indexed) ...[
+          if (index > 0) const SizedBox(height: AppSpacing.tableRowGap),
+          _FieldRow(field: field),
+        ],
+      ],
+    );
+  }
+}
+
+/// 표의 한 줄. 왼쪽은 조건 이름, 오른쪽은 값 또는 "확인 필요".
+class _FieldRow extends StatelessWidget {
+  const _FieldRow({required this.field});
+
+  final ExtractedField field;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: Text(field.label, style: AppTypography.body)),
@@ -127,25 +177,6 @@ class _FieldTable extends StatelessWidget {
           field.value ?? UploadStrings.needsCheck,
           style: AppTypography.body,
         ),
-      ],
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (index, field) in certain.indexed) ...[
-          if (index > 0) const SizedBox(height: 10),
-          row(field),
-        ],
-        if (certain.isNotEmpty && uncertain.isNotEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 14),
-            child: Divider(height: 1, color: AppColors.divider),
-          ),
-        for (final (index, field) in uncertain.indexed) ...[
-          if (index > 0) const SizedBox(height: 10),
-          row(field),
-        ],
       ],
     );
   }

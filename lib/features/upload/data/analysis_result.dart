@@ -1,6 +1,9 @@
 import 'package:chagok_mobile/features/upload/data/extracted_field.dart';
 
 /// 서류 분석 결과.
+///
+/// sealed 클래스라 하위 클래스([AnalysisSucceeded], [AnalysisUnclear])를
+/// 이 파일에 함께 둡니다.
 sealed class AnalysisResult {
   const AnalysisResult();
 }
@@ -15,9 +18,14 @@ class AnalysisSucceeded extends AnalysisResult {
 
   /// 예: "임대차계약서"
   final String documentType;
+
+  /// 서류 전체 페이지 수.
   final int pageCount;
+
+  /// 읽어 낸 조건. 서류에 나온 순서대로입니다.
   final List<ExtractedField> fields;
 
+  /// 값을 확실히 읽지 못한 조건.
   List<ExtractedField> get uncertainFields =>
       fields.where((field) => field.isUncertain).toList();
 
