@@ -62,6 +62,22 @@ flutter test test/<파일>    # 특정 테스트
 - [`TESTING.md`](TESTING.md)를 따릅니다. Notifier·Repository·유틸은 단위 테스트가 필수입니다.
 - 작업을 마치기 전에 `flutter test` 가 통과해야 합니다.
 
+### 규칙 점검 루프
+작업을 마쳤다고 보고하기 전에, 바꾼 코드가 규칙 문서에 맞는지 점검하고 고치는 일을 **위반이 하나도 남지 않을 때까지 반복**합니다.
+
+1. 바꾼 파일을 확인합니다. (`git status`, `git diff --name-only main...HEAD`)
+2. 규칙 문서를 한 항목씩 대조해 위반을 찾습니다.
+   - [`CODE_STYLE.md`](CODE_STYLE.md): 이름, import, 위젯 분리(긴 `build`, 위젯을 만드는 private 메서드), 색상·글자 크기·간격 하드코딩, 화면 문자열 관리, `!` 사용, 문서 주석, 파일당 public 클래스 하나
+   - [`ARCHITECTURE.md`](ARCHITECTURE.md): 계층 의존 방향, `ref.watch`·`ref.read` 위치, `AsyncValue.when`으로 로딩·에러·데이터 처리, 예외를 application 계층에서 상태로 바꾸기, 경로 상수
+   - [`TESTING.md`](TESTING.md): 필수 단위 테스트, 핵심 화면 위젯 테스트, 파일 위치, 테스트 이름 "~하면 ~한다"
+   - [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md): 커밋 메시지 형식
+3. 위반이 있으면 고치고 `dart format .`, `flutter analyze`, `flutter test`를 다시 실행합니다.
+4. 고친 코드가 새 위반을 만들 수 있으므로 1번부터 다시 점검합니다.
+5. 한 바퀴를 다 돌았는데 위반이 없고 세 명령이 모두 통과하면 끝냅니다.
+
+- 규칙을 지키기 어렵거나 규칙끼리 부딪히면 임의로 넘기지 않고, 이유를 적어 사용자에게 확인합니다.
+- 작업을 보고할 때 몇 바퀴를 돌았는지, 무엇을 찾아 고쳤는지 함께 적습니다.
+
 ### 의존성
 - 새 패키지는 `flutter pub add <패키지>` 로 추가하고, 추가 이유를 변경 요약에 적습니다.
 - 꼭 필요한 경우에만 추가하며, pub.dev에서 유지보수 상태를 확인합니다.
