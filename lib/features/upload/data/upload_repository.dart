@@ -13,6 +13,7 @@ abstract interface class UploadRepository {
   /// 서류를 담을 수 있는 보관함 목록.
   Future<List<DocumentBox>> fetchBoxes();
 
+  /// [document]의 글자를 읽어 조건을 정리합니다.
   Future<AnalysisResult> analyze(PickedDocument document);
 
   /// 분석 결과를 확인한 서류를 [boxId] 보관함에 담습니다.

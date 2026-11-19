@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
@@ -15,6 +17,7 @@ import 'package:chagok_mobile/features/upload/data/picked_document.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/document_preview_card.dart';
+import 'package:chagok_mobile/features/upload/presentation/widgets/upload_failure_notice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,13 +26,9 @@ import 'package:go_router/go_router.dart';
 class UploadConfirmScreen extends ConsumerWidget {
   const UploadConfirmScreen({super.key});
 
-  /// 제목과 파일 카드 사이, 카드들 사이 간격.
-  static const _gap = 18.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(uploadProvider);
-    final notifier = ref.read(uploadProvider.notifier);
     final document = state.document;
 
     if (document == null) {
@@ -38,7 +37,7 @@ class UploadConfirmScreen extends ConsumerWidget {
     }
 
     Future<void> analyze() async {
-      final result = await notifier.analyze();
+      final result = await ref.read(uploadProvider.notifier).analyze();
       if (!context.mounted) return;
       switch (result) {
         case AnalysisSucceeded():
@@ -52,18 +51,52 @@ class UploadConfirmScreen extends ConsumerWidget {
 
     Future<void> pickOther() async {
       final source = document.isPdf ? UploadSource.pdf : UploadSource.album;
-      await notifier.pick(source);
+      await ref.read(uploadProvider.notifier).pick(source);
     }
 
     return AppDocumentLayout(
       body: [
         const Text(UploadStrings.confirmTitle, style: AppTypography.pageTitle),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.block),
+        _ConfirmDetails(state: state, document: document),
+      ],
+      actions: [
+        AppButton.primary(
+          label: state.isBusy
+              ? UploadStrings.analyzing
+              : UploadStrings.startAnalysis,
+          onPressed: state.canAnalyze ? () => unawaited(analyze()) : null,
+        ),
+        AppButton.secondary(
+          label: UploadStrings.pickOtherFile,
+          onPressed: state.isBusy ? null : () => unawaited(pickOther()),
+        ),
+      ],
+    );
+  }
+}
+
+/// 파일 카드, 첫 페이지 미리 보기, 보관할 곳, PDF 안내, 실패 안내.
+class _ConfirmDetails extends ConsumerWidget {
+  const _ConfirmDetails({required this.state, required this.document});
+
+  final UploadState state;
+  final PickedDocument document;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         _FileCard(document: document, boxName: state.selectedBox?.name),
-        const SizedBox(height: _gap),
+        const SizedBox(height: AppSpacing.block),
         _PreviewCard(document: document),
-        const SizedBox(height: _gap),
-        _BoxField(state: state, onSelected: notifier.selectBox),
+        const SizedBox(height: AppSpacing.block),
+        _BoxField(
+          state: state,
+          onSelected: (boxId) =>
+              ref.read(uploadProvider.notifier).selectBox(boxId),
+        ),
         if (document.isPdf) ...[
           const SizedBox(height: AppSpacing.lg),
           const Text(
@@ -71,18 +104,10 @@ class UploadConfirmScreen extends ConsumerWidget {
             style: AppTypography.caption,
           ),
         ],
-      ],
-      actions: [
-        AppButton.primary(
-          label: state.isBusy
-              ? UploadStrings.analyzing
-              : UploadStrings.startAnalysis,
-          onPressed: state.canAnalyze ? analyze : null,
-        ),
-        AppButton.secondary(
-          label: UploadStrings.pickOtherFile,
-          onPressed: state.isBusy ? null : pickOther,
-        ),
+        if (state.hasFailed) ...[
+          const SizedBox(height: AppSpacing.lg),
+          const UploadFailureNotice(),
+        ],
       ],
     );
   }
@@ -118,10 +143,10 @@ class _FileCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.cardTitleGap),
           Text(document.fileName, style: AppTypography.cardTitle),
           if (boxName != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.cardTitleGap),
             Text(
               UploadStrings.boxSuffix(boxName),
               style: AppTypography.caption,
@@ -139,12 +164,14 @@ class _PreviewCard extends StatelessWidget {
 
   final PickedDocument document;
 
+  static const _dividerHeight = 1.0;
+
   @override
   Widget build(BuildContext context) {
     final preview = document.preview;
     const divider = Padding(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Divider(height: 1, color: AppColors.divider),
+      child: Divider(height: _dividerHeight, color: AppColors.divider),
     );
 
     return DocumentPreviewCard(
@@ -154,7 +181,7 @@ class _PreviewCard extends StatelessWidget {
           Text(
             preview.title,
             textAlign: TextAlign.center,
-            style: AppTypography.cardTitle.copyWith(height: 32.3 / 17),
+            style: AppTypography.previewTitle,
           ),
           divider,
           Text(preview.section, style: AppTypography.caption),

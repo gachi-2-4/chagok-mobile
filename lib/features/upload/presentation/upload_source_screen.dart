@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -8,6 +10,8 @@ import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/source_option_card.dart';
+import 'package:chagok_mobile/features/upload/presentation/widgets/source_option_tone.dart';
+import 'package:chagok_mobile/features/upload/presentation/widgets/upload_failure_notice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,12 +20,11 @@ import 'package:go_router/go_router.dart';
 class UploadSourceScreen extends ConsumerWidget {
   const UploadSourceScreen({super.key});
 
-  /// 제목 묶음과 카드 사이 간격.
-  static const _headerGap = 18.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isBusy = ref.watch(uploadProvider.select((state) => state.isBusy));
+    final (isBusy, hasFailed) = ref.watch(
+      uploadProvider.select((state) => (state.isBusy, state.hasFailed)),
+    );
 
     Future<void> pick(UploadSource source) async {
       final isPicked = await ref.read(uploadProvider.notifier).pick(source);
@@ -30,7 +33,7 @@ class UploadSourceScreen extends ConsumerWidget {
     }
 
     VoidCallback? onPick(UploadSource source) =>
-        isBusy ? null : () => pick(source);
+        isBusy ? null : () => unawaited(pick(source));
 
     return AppDocumentLayout(
       body: [
@@ -38,7 +41,7 @@ class UploadSourceScreen extends ConsumerWidget {
           title: UploadStrings.sourceTitle,
           description: UploadStrings.sourceDescription,
         ),
-        const SizedBox(height: _headerGap),
+        const SizedBox(height: AppSpacing.block),
         SourceOptionCard(
           tone: SourceOptionTone.peach,
           title: UploadStrings.cameraTitle,
@@ -61,6 +64,10 @@ class UploadSourceScreen extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         const Text(UploadStrings.sourceNote, style: AppTypography.caption),
+        if (hasFailed) ...[
+          const SizedBox(height: AppSpacing.lg),
+          const UploadFailureNotice(),
+        ],
       ],
       actions: [
         AppButton.primary(

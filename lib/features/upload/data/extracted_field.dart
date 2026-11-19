@@ -11,5 +11,6 @@ class ExtractedField {
   /// 원본 서류에 쓰인 이름이 [label]과 다르면 그 이름. 예: "월세"
   final String? originalLabel;
 
+  /// 값을 확실히 읽지 못했으면 true.
   bool get isUncertain => value == null;
 }
