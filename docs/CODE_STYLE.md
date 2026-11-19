@@ -62,6 +62,7 @@ import 'package:go_router/go_router.dart';
   - `StatefulWidget`은 `TextEditingController`, `AnimationController`처럼 위젯 생명주기에 묶인 객체가 있을 때만 씁니다.
 - 생성자의 매개변수는 named parameter로 받고, 필수 값은 `required`를 붙입니다.
 - 색상·글자 크기·간격은 하드코딩하지 않고 `Theme.of(context)`나 `core/constants`의 값을 씁니다.
+  - 너비·높이·아이콘 크기처럼 부품 자체의 크기는 위젯 안에 이름을 붙인 private 상수로 둘 수 있습니다. (예: `static const _iconSize = 22.0;`) 이름 없는 숫자를 바로 쓰지는 않습니다.
 - 화면에 보이는 문자열은 한 곳에 모아 관리할 수 있게 작성합니다. (다국어 도입 시 옮기기 쉽도록)
 
 ## Dart 문법

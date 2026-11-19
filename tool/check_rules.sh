@@ -94,8 +94,13 @@ null_assertions() {
   grep_in '[]a-zA-Z0-9_)]!(\.|\)|;|,| |\[)' ${LIB_FILES[@]+"${LIB_FILES[@]}"} | grep -v '!='
 }
 
+# CODE_STYLE은 색상·글자 크기·간격을 토큰으로 쓰게 합니다. 다음을 잡습니다.
+# - 이름 없이 바로 쓴 숫자: `height: 12`, `size: 18`, `EdgeInsets.all(16)` 등
+# - 간격을 뜻하는 이름의 private 상수: `_gap`, `_bodyTop`, `_padding` 등 (AppSpacing으로)
+# - 글자 크기·줄 높이·자간 숫자: `fontSize: 14`, `height: 18 / 15` 등 (AppTypography로)
+# 너비·높이·아이콘 크기처럼 부품 자체의 크기는 이름을 붙인 private 상수로 둘 수 있습니다.
 hardcoded_sizes() {
-  grep_in '(height|width|size|top|bottom|left|right|all|letterSpacing|fontSize)\s*:\s*[0-9]|SizedBox\((height|width): [0-9]|static const _[a-zA-Z]+ = [0-9]|EdgeInsets\.[a-zA-Z]+\([0-9]' \
+  grep_in '(height|width|size|top|bottom|left|right|all|horizontal|vertical|letterSpacing|fontSize|dimension)\s*:\s*[0-9]|SizedBox(\.square)?\((height|width|dimension): [0-9]|static const _[a-zA-Z]*([Gg]ap|[Pp]adding|[Tt]op|[Bb]ottom|[Ll]eft|[Rr]ight|[Mm]argin|[Ss]pacing|[Ii]nset|[Ii]ndent) = [0-9]|EdgeInsets\.[a-zA-Z]+\([0-9]' \
     ${NON_CONSTANT_FILES[@]+"${NON_CONSTANT_FILES[@]}"}
 }
 
@@ -236,7 +241,7 @@ echo "점검 대상: lib ${#LIB_FILES[@]}개, test ${#TEST_FILES[@]}개 (기준:
 echo
 
 check 위반 'CODE_STYLE · ! (null 강제 해제)' null_assertions
-check 위반 'CODE_STYLE · 간격·크기 하드코딩 (core/constants 토큰 사용)' hardcoded_sizes
+check 위반 'CODE_STYLE · 간격·글자 크기 하드코딩 (AppSpacing·AppTypography 토큰, 부품 크기는 이름 붙인 상수)' hardcoded_sizes
 check 위반 'CODE_STYLE · 색상 하드코딩 (AppColors 사용)' hardcoded_colors
 check 위반 'CODE_STYLE · 화면 문자열 직접 작성 (*_strings.dart로 모으기)' string_literals
 check 위반 'CODE_STYLE · 위젯을 만드는 private 메서드 (위젯 클래스로 분리)' private_widget_methods
