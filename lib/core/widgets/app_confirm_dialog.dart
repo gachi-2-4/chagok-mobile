@@ -1,5 +1,7 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_shadows.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -57,67 +59,103 @@ class AppConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final description = this.description;
 
-    return Center(
-      child: Container(
-        width: _width,
-        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-        decoration: BoxDecoration(
-          color: AppColors.dialogSurface,
-          borderRadius: BorderRadius.circular(AppRadius.medium),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x2E000000),
-              offset: Offset(0, 8),
-              blurRadius: 24,
+    // 설명이 길거나 글자가 커도 버튼이 화면 밖으로 밀려나지 않도록,
+    // 제목·설명만 스크롤하고 버튼은 항상 아래에 고정합니다.
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Center(
+          child: Container(
+            width: _width,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.dialogPaddingTop,
+              AppSpacing.xl,
+              AppSpacing.xl,
             ),
-          ],
-        ),
-        child: Material(
-          type: MaterialType.transparency,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: AppTypography.dialogTitle,
-              ),
-              if (description != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.dialogBody,
-                ),
-              ],
-              const SizedBox(height: 20),
-              Row(
+            decoration: BoxDecoration(
+              color: AppColors.dialogSurface,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+              boxShadow: AppShadows.dialog,
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: _DialogButton(
-                      label: cancelLabel,
-                      backgroundColor: AppColors.dialogCancel,
-                      foregroundColor: AppColors.textPrimary,
-                      onPressed: () => Navigator.pop(context, false),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.dialogTitle,
+                          ),
+                          if (description != null) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              description,
+                              textAlign: TextAlign.center,
+                              style: AppTypography.dialogBody,
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _DialogButton(
-                      label: confirmLabel,
-                      backgroundColor: isDestructive
-                          ? AppColors.dangerButton
-                          : AppColors.primary,
-                      foregroundColor: AppColors.dialogSurface,
-                      onPressed: () => Navigator.pop(context, true),
-                    ),
+                  const SizedBox(height: AppSpacing.xl),
+                  _DialogActions(
+                    cancelLabel: cancelLabel,
+                    confirmLabel: confirmLabel,
+                    isDestructive: isDestructive,
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DialogActions extends StatelessWidget {
+  const _DialogActions({
+    required this.cancelLabel,
+    required this.confirmLabel,
+    required this.isDestructive,
+  });
+
+  final String cancelLabel;
+  final String confirmLabel;
+  final bool isDestructive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _DialogButton(
+            label: cancelLabel,
+            backgroundColor: AppColors.dialogCancel,
+            foregroundColor: AppColors.textPrimary,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _DialogButton(
+            label: confirmLabel,
+            backgroundColor: isDestructive
+                ? AppColors.dangerButton
+                : AppColors.primary,
+            foregroundColor: AppColors.dialogSurface,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ),
+      ],
     );
   }
 }

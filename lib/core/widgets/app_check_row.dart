@@ -43,7 +43,7 @@ class AppCheckRow extends StatelessWidget {
                   width: 22,
                   height: 22,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(child: Text(label, style: AppTypography.option)),
               ],
             ),

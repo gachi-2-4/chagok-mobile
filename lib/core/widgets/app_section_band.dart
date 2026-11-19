@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:flutter/material.dart';
 
 /// 목록 구역 사이를 나누는 두꺼운 띠.
@@ -11,7 +12,10 @@ class AppSectionBand extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ColoredBox(
       color: AppColors.sectionBand,
-      child: SizedBox(height: 8, width: double.infinity),
+      child: SizedBox(
+        height: AppSpacing.sectionBandHeight,
+        width: double.infinity,
+      ),
     );
   }
 }

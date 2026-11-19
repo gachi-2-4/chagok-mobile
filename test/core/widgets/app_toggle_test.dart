@@ -1,6 +1,6 @@
 import 'package:chagok_mobile/core/widgets/app_toggle.dart';
 import 'package:chagok_mobile/core/widgets/app_toggle_row.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/pump_app.dart';
@@ -34,6 +34,29 @@ void main() {
 
       expect(tester.getSize(find.byType(AppToggle)), const Size(46, 28));
     });
+
+    testWidgets('Tab으로 포커스를 옮기고 Space를 누르면 값을 바꾸라고 알린다', (tester) async {
+      bool? changedValue;
+      await tester.pumpApp(
+        AppToggle(value: false, onChanged: (value) => changedValue = value),
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+
+      expect(changedValue, isTrue);
+    });
+
+    testWidgets('onChanged가 없으면 키보드로도 값을 바꿀 수 없다', (tester) async {
+      await tester.pumpApp(const AppToggle(value: false, onChanged: null));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('AppToggleRow', () {
@@ -51,6 +74,19 @@ void main() {
       await tester.tap(find.text('납부일 알림'));
 
       expect(changedValue, isTrue);
+    });
+
+    testWidgets('스크린 리더에는 제목과 스위치가 하나의 스위치로 읽힌다', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpApp(
+        AppToggleRow(title: '납부일 알림', value: true, onChanged: (_) {}),
+      );
+
+      final node = tester.getSemantics(find.byType(AppToggleRow));
+
+      expect(node.label, contains('납부일 알림'));
+      expect(node, isSemantics(hasToggledState: true, isToggled: true));
+      semantics.dispose();
     });
   });
 }

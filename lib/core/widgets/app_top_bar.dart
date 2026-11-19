@@ -18,7 +18,16 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   static const height = 54.0;
-  static const _sideSlotWidth = 24.0;
+  static const _iconSize = 24.0;
+
+  /// 양쪽 버튼의 누르는 영역. 손가락으로 누르기 쉬운 최소 크기(48)를 지킵니다.
+  /// 양쪽 너비가 같아야 제목이 가운데에 옵니다.
+  static const _sideSlotWidth = kMinInteractiveDimension;
+
+  /// 누르는 영역이 아이콘보다 넓어진 만큼 바깥 여백을 줄여,
+  /// 아이콘이 디자인과 같은 위치(화면 끝에서 [AppSpacing.screenHorizontal])에 오게 합니다.
+  static const _horizontalPadding =
+      AppSpacing.screenHorizontal - (_sideSlotWidth - _iconSize) / 2;
 
   /// 가운데에 보이는 제목. 예: "차곡", "회원가입"
   final String title;
@@ -42,9 +51,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       child: SizedBox(
         height: height,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenHorizontal,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
           child: Row(
             children: [
               SizedBox(
@@ -55,8 +62,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                         onTap: onBack ?? () => Navigator.maybePop(context),
                         child: SvgPicture.asset(
                           AppIcons.back,
-                          width: 24,
-                          height: 24,
+                          width: _iconSize,
+                          height: _iconSize,
                         ),
                       )
                     : null,
@@ -77,11 +84,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                     : _TapTarget(
                         semanticLabel: '더보기',
                         onTap: onMore,
-                        child: const Text(
+                        child: Text(
                           '···',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: AppTypography.listValue.copyWith(
                             color: AppColors.textPrimary,
                           ),
                         ),

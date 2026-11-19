@@ -9,17 +9,19 @@ import 'package:flutter/material.dart';
 class AppBulletRow extends StatelessWidget {
   const AppBulletRow({required this.text, super.key});
 
-  static const height = 44.0;
+  /// 한 줄일 때의 높이. 안내가 길어지면 내용에 맞게 늘어납니다.
+  static const minHeight = 44.0;
 
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: minHeight),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.screenHorizontal,
+          vertical: AppSpacing.sm,
         ),
         child: Row(
           children: [
@@ -30,7 +32,7 @@ class AppBulletRow extends StatelessWidget {
               ),
               child: SizedBox.square(dimension: 6),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(child: Text(text, style: AppTypography.option)),
           ],
         ),

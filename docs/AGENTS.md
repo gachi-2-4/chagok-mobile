@@ -101,5 +101,5 @@ flutter test test/<파일>    # 특정 테스트
 ## 미정 사항 (정해지면 갱신)
 
 - 백엔드/데이터 소스: TODO
-- 디자인 시스템·테마: 토큰은 `lib/core/constants/`(`AppColors`, `AppTypography`, `AppSpacing`, `AppRadius`, `AppIcons`), 공통 위젯은 `lib/core/widgets/`(`App*`)에 있습니다. 새 화면은 이 위젯과 토큰을 먼저 씁니다.
+- 디자인 시스템·테마: 토큰은 `lib/core/constants/`(`AppColors`, `AppTypography`, `AppSpacing`, `AppRadius`, `AppShadows`, `AppIcons`), 공통 위젯은 `lib/core/widgets/`(`App*`)에 있습니다. 새 화면은 이 위젯과 토큰을 먼저 씁니다.
   - TODO: 디자인 폰트(Noto Sans KR, Figtree) 번들 여부

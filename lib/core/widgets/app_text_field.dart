@@ -68,13 +68,15 @@ class AppTextField extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 16,
+              horizontal: AppSpacing.fieldPaddingHorizontal,
+              vertical: AppSpacing.fieldPaddingVertical,
             ),
             suffixIcon: suffix == null
                 ? null
                 : Padding(
-                    padding: const EdgeInsets.only(right: 18),
+                    padding: const EdgeInsets.only(
+                      right: AppSpacing.fieldPaddingHorizontal,
+                    ),
                     child: suffix,
                   ),
             suffixIconConstraints: const BoxConstraints(),

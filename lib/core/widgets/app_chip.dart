@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +15,8 @@ class AppChip extends StatelessWidget {
     super.key,
   });
 
-  static const height = 37.0;
+  /// 한 줄일 때의 높이. 라벨이 길거나 글자가 커지면 내용에 맞게 늘어납니다.
+  static const minHeight = 37.0;
 
   final String label;
   final bool isSelected;
@@ -45,13 +47,21 @@ class AppChip extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          child: SizedBox(
-            height: height,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: minHeight),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.chipPaddingHorizontal,
+                vertical: AppSpacing.sm,
+              ),
               child: Center(
                 widthFactor: 1,
-                child: Text(label, style: textStyle),
+                heightFactor: 1,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: textStyle,
+                ),
               ),
             ),
           ),

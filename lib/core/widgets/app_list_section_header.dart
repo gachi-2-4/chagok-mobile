@@ -15,9 +15,9 @@ class AppListSectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
-        18,
+        AppSpacing.sectionHeaderTop,
         AppSpacing.screenHorizontal,
-        6,
+        AppSpacing.sectionHeaderBottom,
       ),
       child: Text(
         title,

@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +25,10 @@ class AppBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.banner),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.bannerPaddingHorizontal,
+          vertical: AppSpacing.bannerPaddingVertical,
+        ),
         child: DefaultTextStyle.merge(
           style: AppTypography.caption.copyWith(color: AppColors.textPrimary),
           child: child,

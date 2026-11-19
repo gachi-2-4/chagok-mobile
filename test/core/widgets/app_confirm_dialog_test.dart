@@ -6,9 +6,10 @@ import '../../helpers/pump_app.dart';
 
 /// 버튼을 누르면 확인 창을 띄우고 결과를 [onResult]로 넘기는 테스트용 화면.
 class _DialogLauncher extends StatelessWidget {
-  const _DialogLauncher({required this.onResult});
+  const _DialogLauncher({required this.onResult, this.description});
 
   final ValueChanged<bool> onResult;
+  final String? description;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +18,7 @@ class _DialogLauncher extends StatelessWidget {
         final result = await AppConfirmDialog.show(
           context,
           title: '로그아웃하시겠어요?',
+          description: description,
         );
         onResult(result);
       },
@@ -68,6 +70,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(result, isFalse);
+    });
+
+    testWidgets('설명이 길고 글자가 커도 "예"를 눌러 true를 돌려준다', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      bool? result;
+      await tester.pumpApp(
+        _DialogLauncher(
+          description: '회원 정보와 모든 서류가 삭제됩니다. ' * 100,
+          onResult: (value) => result = value,
+        ),
+      );
+      await tester.tap(find.text('열기'));
+      await tester.pumpAndSettle();
+
+      final screenHeight =
+          tester.view.physicalSize.height / tester.view.devicePixelRatio;
+      expect(tester.getRect(find.text('예')).bottom, lessThan(screenHeight));
+      await tester.tap(find.text('예'));
+      await tester.pumpAndSettle();
+
+      expect(result, isTrue);
     });
   });
 }

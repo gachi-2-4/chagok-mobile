@@ -46,7 +46,7 @@ class AppSelectRow extends StatelessWidget {
                         : AppTypography.option,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 SvgPicture.asset(
                   isSelected ? AppIcons.radioOn : AppIcons.radioOff,
                   width: 22,

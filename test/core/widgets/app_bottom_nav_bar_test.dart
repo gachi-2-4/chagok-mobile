@@ -49,5 +49,25 @@ void main() {
       expect(activeLabel.style?.color, AppColors.navActive);
       expect(inactiveLabel.style?.color, AppColors.textPrimary);
     });
+
+    testWidgets('탭의 위쪽 여백을 눌러도 그 탭의 순서를 알린다', (tester) async {
+      int? tappedIndex;
+      await tester.pumpApp(
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: AppBottomNavBar(
+            items: _items,
+            currentIndex: 0,
+            onTap: (index) => tappedIndex = index,
+          ),
+        ),
+      );
+      final barTop = tester.getRect(find.byType(AppBottomNavBar)).top;
+      final homeCenterX = tester.getCenter(find.text('홈')).dx;
+
+      await tester.tapAt(Offset(homeCenterX, barTop + 3));
+
+      expect(tappedIndex, 2);
+    });
   });
 }

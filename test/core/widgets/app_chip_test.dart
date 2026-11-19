@@ -30,5 +30,33 @@ void main() {
 
       expect(material.color, AppColors.chipSelectedFill);
     });
+
+    testWidgets('라벨이 한 줄이면 디자인 높이 37을 따른다', (tester) async {
+      await tester.pumpApp(
+        const Align(
+          alignment: Alignment.topLeft,
+          child: AppChip(label: '전체'),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(AppChip)).height, AppChip.minHeight);
+    });
+
+    testWidgets('라벨이 길어 여러 줄이 되면 높이가 늘어난다', (tester) async {
+      await tester.pumpApp(
+        const Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 120,
+            child: AppChip(label: '계약 기간이 끝나기 전에 나가면 위약금이 있나요?'),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSize(find.byType(AppChip)).height,
+        greaterThan(AppChip.minHeight),
+      );
+    });
   });
 }

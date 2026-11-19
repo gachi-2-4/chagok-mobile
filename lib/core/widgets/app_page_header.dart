@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +20,7 @@ class AppPageHeader extends StatelessWidget {
       children: [
         Text(title, style: AppTypography.pageTitle),
         if (description != null) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(description, style: AppTypography.pageDescription),
         ],
       ],

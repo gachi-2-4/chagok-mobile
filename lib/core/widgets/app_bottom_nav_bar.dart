@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_item.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,10 @@ class AppBottomNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          // 위아래 여백은 탭을 누르는 영역에 넣기 위해 각 탭(_NavTab) 안에 둡니다.
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.navBarPaddingHorizontal,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -92,13 +96,20 @@ class _NavTab extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: SizedBox(
+        child: Container(
           width: _width,
+          constraints: const BoxConstraints(
+            minHeight: kMinInteractiveDimension,
+          ),
+          padding: const EdgeInsets.only(
+            top: AppSpacing.navBarPaddingTop,
+            bottom: AppSpacing.navBarPaddingBottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               icon,
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 item.label,
                 style: isActive

@@ -41,7 +41,7 @@ class AppListRow extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(
             left: AppSpacing.screenHorizontal,
-            right: 20,
+            right: AppSpacing.xl,
           ),
           child: Row(
             children: [
@@ -56,11 +56,11 @@ class AppListRow extends StatelessWidget {
                 ),
               ),
               if (value != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(value, style: AppTypography.listValue),
               ],
               if (showChevron) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 SvgPicture.asset(AppIcons.chevronRight, width: 20, height: 20),
               ],
             ],
