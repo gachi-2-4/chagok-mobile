@@ -1,4 +1,7 @@
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/text_size_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +11,11 @@ import 'package:go_router/go_router.dart';
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
   static const home = '/';
+
+  // 설정 (S01~S05)
+  static const settings = '/settings';
+  static const textSizeSettings = '/settings/text-size';
+  static const notificationSettings = '/settings/notifications';
 }
 
 /// 앱 전역 [GoRouter].
@@ -21,6 +29,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.textSizeSettings,
+        builder: (context, state) => const TextSizeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.notificationSettings,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
     ],
   );
