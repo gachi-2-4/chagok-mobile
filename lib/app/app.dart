@@ -16,7 +16,6 @@ class ChagokApp extends ConsumerWidget {
     return MaterialApp.router(
       title: '차곡',
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
       routerConfig: router,
     );
   }
