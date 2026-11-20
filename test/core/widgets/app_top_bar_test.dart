@@ -30,7 +30,7 @@ void main() {
       expect(find.text('···'), findsOneWidget);
     });
 
-    testWidgets('뒤로 가기의 누르는 영역은 최소 48x48이다', (tester) async {
+    testWidgets('아이콘이 작아도 뒤로 가기를 그리면 누르는 영역은 최소 48x48이다', (tester) async {
       await tester.pumpApp(AppTopBar(title: '회원가입', onBack: () {}));
 
       final size = tester.getSize(find.bySemanticsLabel('뒤로 가기'));
@@ -98,6 +98,30 @@ void main() {
       await tester.pumpApp(const AppTopBar.logo());
 
       expect(find.bySemanticsLabel('뒤로 가기'), findsNothing);
+    });
+
+    testWidgets('action의 hasBadge가 true면 아이콘에 점을 겹쳐 그린다', (tester) async {
+      await tester.pumpApp(
+        AppTopBar.logo(
+          action: AppTopBarAction(
+            icon: AppIcons.bell,
+            semanticLabel: '알림',
+            onTap: () {},
+            hasBadge: true,
+          ),
+        ),
+      );
+
+      final badge = find.descendant(
+        of: find.bySemanticsLabel('알림'),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is DecoratedBox &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+        ),
+      );
+      expect(badge, findsOneWidget);
     });
   });
 }

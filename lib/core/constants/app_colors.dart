@@ -58,6 +58,12 @@ abstract final class AppColors {
   static const toggleOff = Color(0xFFCFC5B6);
   static const toggleKnob = Color(0xFFFFFAF1);
 
+  // 보관함 그림 (뚜껑 · 상자 · 아이콘 · 날짜 표)
+  static const boxLid = Color(0xFFD67F48);
+  static const boxBody = Color(0xFFFFC6A5);
+  static const boxIcon = Color(0xFF643312);
+  static const boxTag = Color(0xFFF9F4ED);
+
   // 기타
   static const chevron = Color(0xFF998D79);
   static const bullet = Color(0xFF827661);
