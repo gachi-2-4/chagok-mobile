@@ -5,12 +5,12 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_document_layout.dart';
+import 'package:chagok_mobile/core/widgets/app_option_sheet.dart';
 import 'package:chagok_mobile/core/widgets/app_page_header.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:chagok_mobile/features/document/application/document_edit_form.dart';
 import 'package:chagok_mobile/features/document/application/document_edit_notifier.dart';
 import 'package:chagok_mobile/features/document/presentation/document_strings.dart';
-import 'package:chagok_mobile/features/document/presentation/widgets/option_sheet.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/picker_field.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/thousands_input_formatter.dart';
 import 'package:flutter/material.dart';
@@ -157,7 +157,7 @@ class _DocumentTypeField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Future<void> pick() async {
-      final type = await showOptionSheet(
+      final type = await showAppOptionSheet(
         context,
         options: ref.read(documentTypesProvider),
         labelOf: (type) => type,
@@ -189,7 +189,7 @@ class _PaymentDayField extends ConsumerWidget {
     final selected = this.selected;
 
     Future<void> pick() async {
-      final day = await showOptionSheet(
+      final day = await showAppOptionSheet(
         context,
         options: [for (var day = 1; day <= 31; day++) day],
         labelOf: DocumentStrings.monthlyDay,

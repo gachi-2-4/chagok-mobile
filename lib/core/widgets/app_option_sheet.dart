@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 /// 아래에서 올라오는 선택 목록을 띄우고, 고른 값을 돌려줍니다.
 ///
-/// 닫으면 null을 돌려줍니다.
-Future<T?> showOptionSheet<T>(
+/// [selected]와 같은 항목에는 체크 표시를 합니다. 닫으면 null을 돌려줍니다.
+Future<T?> showAppOptionSheet<T>(
   BuildContext context, {
   required List<T> options,
   required String Function(T option) labelOf,
