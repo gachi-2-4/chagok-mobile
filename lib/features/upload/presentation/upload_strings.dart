@@ -2,8 +2,6 @@
 ///
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
 abstract final class UploadStrings {
-  static const brand = '차곡';
-  static const tagline = '차곡차곡, 쉬워지는 서류 생활';
   static const comingSoon = '곧 지원할 예정이에요.';
   static const failed = '처리하지 못했어요. 잠시 후 다시 시도해 주세요.';
 

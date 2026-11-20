@@ -13,6 +13,8 @@ import 'package:chagok_mobile/features/auth/presentation/verification_purpose.da
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
+import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
+import 'package:chagok_mobile/features/document/presentation/payment_reminder_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
@@ -42,6 +44,12 @@ abstract final class AppRoute {
   // 채팅 (H01~H02). 채팅 탭 안에 쌓여 바텀바가 계속 보입니다.
   static String chatRoom(String id) => '/chat/$id';
   static String chatAttach(String id) => '/chat/$id/documents';
+
+  // 서류 상세 (D01~D02)
+  static const documentEditPattern = '/documents/:id/edit';
+  static const paymentReminderPattern = '/documents/:id/reminder';
+  static String documentEdit(String id) => '/documents/$id/edit';
+  static String paymentReminder(String id) => '/documents/$id/reminder';
 
   // 서류 올리기 (U01~U04)
   static const upload = '/upload';
@@ -124,6 +132,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       ..._authRoutes(ref),
+      GoRoute(
+        path: AppRoute.documentEditPattern,
+        builder: (context, state) =>
+            DocumentEditScreen(documentId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.paymentReminderPattern,
+        builder: (context, state) =>
+            PaymentReminderScreen(documentId: state.pathParameters['id'] ?? ''),
+      ),
       GoRoute(
         path: AppRoute.upload,
         builder: (context, state) => const UploadSourceScreen(),

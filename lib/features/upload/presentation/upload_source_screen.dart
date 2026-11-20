@@ -4,6 +4,7 @@ import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/core/widgets/app_document_layout.dart';
 import 'package:chagok_mobile/core/widgets/app_page_header.dart';
 import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
@@ -11,7 +12,6 @@ import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/source_option_card.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/source_option_tone.dart';
 import 'package:chagok_mobile/features/upload/presentation/widgets/upload_failure_notice.dart';
-import 'package:chagok_mobile/features/upload/presentation/widgets/upload_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +35,7 @@ class UploadSourceScreen extends ConsumerWidget {
     VoidCallback? onPick(UploadSource source) =>
         isBusy ? null : () => unawaited(pick(source));
 
-    return UploadLayout(
+    return AppDocumentLayout(
       body: [
         const AppPageHeader(
           title: UploadStrings.sourceTitle,
