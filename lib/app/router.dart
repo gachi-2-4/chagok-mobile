@@ -10,6 +10,7 @@ import 'package:chagok_mobile/features/auth/presentation/reset_password_screen.d
 import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/terms_agreement_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
+import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
@@ -115,10 +116,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           _tab(AppRoute.home, (_) => const HomeScreen()),
-          _tab(
-            AppRoute.calendar,
-            (_) => const TabPlaceholderScreen(title: AppStrings.calendarTab),
-          ),
+          _tab(AppRoute.calendar, (_) => const CalendarScreen()),
           _tab(
             AppRoute.settings,
             (_) => const SettingsScreen(),

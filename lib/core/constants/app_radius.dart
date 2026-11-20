@@ -29,4 +29,7 @@ abstract final class AppRadius {
 
   /// 양 끝을 완전히 둥글게 만드는 알약 모양. 예: 진행 막대, D-n 표
   static const pill = 999.0;
+
+  /// 캘린더 달력 카드.
+  static const calendar = 28.0;
 }
