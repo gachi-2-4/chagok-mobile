@@ -233,4 +233,114 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
+
+  /// 요일, 알림 시각처럼 가장 작은 글자.
+  static const small = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 11,
+    height: 13.2 / 11,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+  );
+
+  /// "D-2"처럼 작은 표 안의 굵은 글자. 색은 표마다 바꿔 씁니다.
+  static const tag = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 11,
+    height: 13.2 / 11,
+    fontWeight: FontWeight.w700,
+    color: AppColors.brand,
+  );
+
+  /// 미니 캘린더의 날짜 숫자.
+  static const calendarDay = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    height: 18 / 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 홈의 보관함 이름.
+  static const boxName = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 16,
+    height: 19.2 / 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 목록이 꽉 찬 화면 위의 굵은 큰 제목. 예: 설정 첫 화면의 "설정"
+  static const boldPageTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 26,
+    height: 36.4 / 26,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 프로필의 이름. [cardTitle]보다 줄 높이가 높습니다.
+  static const profileName = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 17,
+    height: 23.8 / 17,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 프로필 이름 아래 전화번호 같은 보조 정보.
+  static const profileDetail = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 13,
+    height: 18.2 / 13,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+
+  /// 글자 크기 설정의 미리 보기 문장.
+  static const textSizePreview = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 20,
+    height: 38 / 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 인증번호 칸 안의 숫자 한 자리.
+  static const verificationDigit = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 23,
+    height: 27.6 / 23,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 서류 미리 보기의 서류 제목.
+  static const previewTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 17,
+    height: 32.3 / 17,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 촬영 틀 안의 안내 문장. 줄 간격을 넓게 둡니다.
+  static const frameGuide = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    height: 28.5 / 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
 }

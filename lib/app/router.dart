@@ -1,11 +1,31 @@
 import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/app/main_shell.dart';
 import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
+import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
+import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
+import 'package:chagok_mobile/features/auth/presentation/forgot_password_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/login_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/phone_verification_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/reset_password_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/terms_agreement_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
+import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
+import 'package:chagok_mobile/features/document/presentation/payment_reminder_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/text_size_screen.dart';
+import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
+import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_confirm_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_retake_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_review_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_source_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +48,34 @@ abstract final class AppRoute {
 
   /// 첫 설문 (O01~O04)
   static const onboarding = '/onboarding';
+
+  // 서류 상세 (D01~D02)
+  static const documentEditPattern = '/documents/:id/edit';
+  static const paymentReminderPattern = '/documents/:id/reminder';
+  static String documentEdit(String id) => '/documents/$id/edit';
+  static String paymentReminder(String id) => '/documents/$id/reminder';
+
+  // 서류 올리기 (U01~U04)
+  static const upload = '/upload';
+  static const uploadConfirm = '/upload/confirm';
+  static const uploadRetake = '/upload/retake';
+  static const uploadReview = '/upload/review';
+
+  // 회원가입 (A01~A03)
+  static const signUp = '/sign-up';
+  static const signUpVerification = '/sign-up/verification';
+  static const signUpTerms = '/sign-up/terms';
+
+  // 로그인 (L01~L04)
+  static const login = '/login';
+  static const forgotPassword = '/login/forgot-password';
+  static const passwordResetVerification =
+      '/login/forgot-password/verification';
+  static const resetPassword = '/login/reset-password';
+
+  // 설정 하위 화면 (S02~S05). 설정 탭 안에 쌓여 바텀바가 계속 보입니다.
+  static const textSizeSettings = '/settings/text-size';
+  static const notificationSettings = '/settings/notifications';
 }
 
 /// 앱 전역 [GoRouter].
@@ -73,9 +121,54 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           _tab(
             AppRoute.settings,
-            (_) => const TabPlaceholderScreen(title: AppStrings.settingsTab),
+            (_) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'text-size',
+                builder: (context, state) => const TextSizeScreen(),
+              ),
+              GoRoute(
+                path: 'notifications',
+                builder: (context, state) => const NotificationSettingsScreen(),
+              ),
+            ],
           ),
         ],
+      ),
+      ..._authRoutes(ref),
+      GoRoute(
+        path: AppRoute.documentEditPattern,
+        builder: (context, state) =>
+            DocumentEditScreen(documentId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.paymentReminderPattern,
+        builder: (context, state) =>
+            PaymentReminderScreen(documentId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: AppRoute.upload,
+        builder: (context, state) => const UploadSourceScreen(),
+      ),
+      // 고른 파일·분석 결과 없이 주소로 바로 들어오면(앱을 다시 연 경우 등)
+      // 빈 화면에 갇히지 않도록 서류 올리기 첫 화면으로 돌려보냅니다.
+      GoRoute(
+        path: AppRoute.uploadConfirm,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).document == null ? AppRoute.upload : null,
+        builder: (context, state) => const UploadConfirmScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadRetake,
+        builder: (context, state) => const UploadRetakeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadReview,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).result is AnalysisSucceeded
+            ? null
+            : AppRoute.upload,
+        builder: (context, state) => const UploadReviewScreen(),
       ),
       GoRoute(
         path: AppRoute.onboarding,
@@ -103,3 +196,53 @@ StatefulShellBranch _tab(
     ],
   );
 }
+
+/// 회원가입·로그인 경로.
+///
+/// 인증 단계를 건너뛰고 주소로 바로 들어오면 그 흐름의 첫 화면으로 돌려보냅니다.
+/// 실제로 막는 일은 저장소가 인증 증명을 검사해서 하고, 여기서는 빈 입력으로
+/// 화면이 열리지 않게 합니다.
+List<RouteBase> _authRoutes(Ref ref) => [
+  GoRoute(
+    path: AppRoute.signUp,
+    builder: (context, state) => const SignUpScreen(),
+  ),
+  GoRoute(
+    path: AppRoute.signUpVerification,
+    redirect: (context, state) =>
+        ref.read(signUpProvider).codeSentTo == null ? AppRoute.signUp : null,
+    builder: (context, state) =>
+        const PhoneVerificationScreen(purpose: VerificationPurpose.signUp),
+  ),
+  GoRoute(
+    path: AppRoute.signUpTerms,
+    redirect: (context, state) =>
+        ref.read(signUpProvider).isVerified ? null : AppRoute.signUp,
+    builder: (context, state) => const TermsAgreementScreen(),
+  ),
+  GoRoute(
+    path: AppRoute.login,
+    builder: (context, state) => const LoginScreen(),
+  ),
+  GoRoute(
+    path: AppRoute.forgotPassword,
+    builder: (context, state) => const ForgotPasswordScreen(),
+  ),
+  GoRoute(
+    path: AppRoute.passwordResetVerification,
+    redirect: (context, state) =>
+        ref.read(passwordResetProvider).codeSentTo == null
+        ? AppRoute.forgotPassword
+        : null,
+    builder: (context, state) => const PhoneVerificationScreen(
+      purpose: VerificationPurpose.passwordReset,
+    ),
+  ),
+  GoRoute(
+    path: AppRoute.resetPassword,
+    redirect: (context, state) => ref.read(passwordResetProvider).isVerified
+        ? null
+        : AppRoute.forgotPassword,
+    builder: (context, state) => const ResetPasswordScreen(),
+  ),
+];
