@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
@@ -32,11 +34,7 @@ class HomeScreen extends ConsumerWidget {
       error: (error, stackTrace) => false,
     );
 
-    void showComingSoon() {
-      // TODO: 알림 화면이 생기면 연결합니다.
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text(HomeStrings.comingSoon)));
-    }
+    void openNotifications() => unawaited(context.push(AppRoute.notifications));
 
     return _RefreshTodayOnResume(
       child: Scaffold(
@@ -47,7 +45,7 @@ class HomeScreen extends ConsumerWidget {
             semanticLabel: hasUnreadAlert
                 ? HomeStrings.notificationsUnread
                 : HomeStrings.notifications,
-            onTap: showComingSoon,
+            onTap: openNotifications,
             hasBadge: hasUnreadAlert,
           ),
         ),
@@ -57,7 +55,7 @@ class HomeScreen extends ConsumerWidget {
             child: _HomeContent(
               summary: summary,
               now: ref.watch(homeClockProvider)(),
-              onAlertTap: showComingSoon,
+              onAlertTap: openNotifications,
             ),
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
