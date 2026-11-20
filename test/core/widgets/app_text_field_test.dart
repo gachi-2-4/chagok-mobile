@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +51,16 @@ void main() {
       await tester.enterText(find.byType(TextField), '5a0b0');
 
       expect(changedText, '500');
+    });
+
+    testWidgets('라벨을 비우면 입력창만 보여 준다', (tester) async {
+      await tester.pumpApp(const AppTextField(hintText: '대화 내용 검색'));
+
+      final labels = find.byWidgetPredicate(
+        (widget) => widget is Text && widget.style == AppTypography.fieldLabel,
+      );
+      expect(labels, findsNothing);
+      expect(find.text('대화 내용 검색'), findsOneWidget);
     });
   });
 }

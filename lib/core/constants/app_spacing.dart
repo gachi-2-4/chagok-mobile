@@ -87,8 +87,17 @@ abstract final class AppSpacing {
   /// 화면 맨 아래 버튼 묶음 아래 여백.
   static const actionsBottom = 24.0;
 
+  /// 목록 끝에서 그 아래 주요 버튼까지 거리. 예: 채팅 목록의 "새 대화 시작"
+  static const primaryActionTop = 44.0;
+
   /// 카드 제목과 그 아래 설명 사이 간격.
   static const cardTitleGap = 10.0;
+
+  /// "오늘", "이전 대화" 같은 구역 이름 위 여백.
+  static const eyebrowTop = 3.0;
+
+  /// 내 질문 말풍선 왼쪽을 비워 두는 너비.
+  static const chatBubbleIndent = 45.0;
 
   /// 이름·값 표에서 줄 사이 간격.
   static const tableRowGap = 10.0;

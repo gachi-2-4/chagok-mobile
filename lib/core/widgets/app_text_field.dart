@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 /// Figma `div.field` / `div.input`에 해당합니다.
 class AppTextField extends StatelessWidget {
   const AppTextField({
-    required this.label,
+    this.label,
     this.hintText,
     this.controller,
     this.onChanged,
@@ -24,7 +24,8 @@ class AppTextField extends StatelessWidget {
     super.key,
   });
 
-  final String label;
+  /// 입력창 위 라벨. 비우면 라벨 없이 입력창만 보입니다. 예: 검색창
+  final String? label;
   final String? hintText;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
@@ -49,11 +50,15 @@ class AppTextField extends StatelessWidget {
       borderSide: BorderSide(color: color),
     );
 
+    final label = this.label;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: AppTypography.fieldLabel),
-        const SizedBox(height: AppSpacing.fieldLabelGap),
+        if (label != null) ...[
+          Text(label, style: AppTypography.fieldLabel),
+          const SizedBox(height: AppSpacing.fieldLabelGap),
+        ],
         TextField(
           controller: controller,
           onChanged: onChanged,
