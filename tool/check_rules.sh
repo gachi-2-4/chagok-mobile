@@ -162,7 +162,36 @@ long_build_methods() {
 missing_doc_comments() {
   local file
   for file in ${LIB_FILES[@]+"${LIB_FILES[@]}"}; do
-    awk -v file="${file}" '
+    awk -v file="${file}" -v q="'" '
+      BEGIN {
+        tq_re = q q q "|\"\"\""
+        sq_re = q "([^" q "\\\\]|\\\\.)*" q
+        dq_re = "\"([^\"\\\\]|\\\\.)*\""
+      }
+      # 한 줄짜리 문자열을 비워, 그 안의 주석 기호를 주석으로 보지 않게 합니다.
+      function drop_strings(s) {
+        gsub(sq_re, "", s)
+        gsub(dq_re, "", s)
+        return s
+      }
+      # 주석을 뺀 코드 부분. 줄 주석과 블록 주석 중 먼저 오는 쪽을 주석으로 봅니다.
+      # 같은 줄에서 닫히는 블록 주석은 지우고, 닫히지 않으면 in_block을 켭니다.
+      function code_of(s,    p, c, rest) {
+        while (1) {
+          p = index(s, "//")
+          c = index(s, "/*")
+          if (c && (!p || c < p)) {
+            rest = substr(s, c + 2)
+            if (match(rest, /\*\//)) {
+              s = substr(s, 1, c - 1) " " substr(rest, RSTART + 2)
+              continue
+            }
+            in_block = 1
+            return substr(s, 1, c - 1)
+          }
+          return p ? substr(s, 1, p - 1) : s
+        }
+      }
       /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
         in_class = 1
         # private 클래스의 멤버는 밖에서 쓰지 않으므로 문서 주석을 요구하지 않습니다.
@@ -174,12 +203,32 @@ missing_doc_comments() {
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
         && prev !~ /\/\/\// && prev_code !~ /@override/ { print file ":" NR ": " $0 }
       /^}/ { in_class = 0 }
-      # 주석(줄·블록·빈 //)과 빈 줄은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
+      # 주석(줄·블록)과 빈 줄, 여러 줄 문자열 안은 건너뛰고 바로 앞 코드 줄
+      # (@override 등)을 봅니다. 주석 뒤에 같은 줄로 코드가 이어지면 코드 줄입니다.
       {
-        is_code = 1
-        if (in_block) { is_code = 0; if ($0 ~ /\*\//) in_block = 0 }
-        else if ($0 ~ /^[[:space:]]*\/\*/) { is_code = 0; if ($0 !~ /\*\//) in_block = 1 }
-        else if ($0 ~ /^[[:space:]]*\/\// || $0 ~ /^[[:space:]]*$/) is_code = 0
+        is_code = 0
+        line = $0
+        if (in_string) {
+          if (gsub(tq_re, "&", line) % 2 == 1) in_string = 0
+        } else {
+          if (in_block) {
+            if (match(line, /\*\//)) {
+              in_block = 0
+              line = substr(line, RSTART + 2)
+            } else {
+              line = ""
+            }
+          }
+          if (line != "") {
+            t = gsub(tq_re, "&", line)
+            if (t > 0) {
+              match(line, tq_re)
+              line = substr(line, 1, RSTART - 1)
+              if (t % 2 == 1) in_string = 1
+            }
+            is_code = (code_of(drop_strings(line)) ~ /[^[:space:]]/)
+          }
+        }
         prev = $0
         if (is_code) prev_code = $0
       }' "${file}"
