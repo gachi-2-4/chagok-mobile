@@ -1,3 +1,4 @@
+import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/app/theme.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_repository.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/onboarding_screen.dart';
@@ -5,6 +6,7 @@ import 'package:chagok_mobile/features/onboarding/presentation/onboarding_string
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../helpers/fake_onboarding_repository.dart';
 
@@ -68,6 +70,37 @@ void main() {
       }
 
       expect(find.text(OnboardingStrings.submitFailed), findsOneWidget);
+    });
+
+    testWidgets('이전 화면 없이 바로 열린 첫 단계에서 뒤로 가기를 누르면 홈으로 간다', (tester) async {
+      final router = GoRouter(
+        initialLocation: AppRoute.onboarding,
+        routes: [
+          GoRoute(
+            path: AppRoute.home,
+            builder: (context, state) => const Text('홈 화면'),
+          ),
+          GoRoute(
+            path: AppRoute.onboarding,
+            builder: (context, state) => const OnboardingScreen(),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            theme: AppTheme.light,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('뒤로 가기'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('홈 화면'), findsOneWidget);
     });
   });
 }

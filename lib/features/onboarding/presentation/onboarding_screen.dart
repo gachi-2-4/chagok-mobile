@@ -24,7 +24,8 @@ import 'package:go_router/go_router.dart';
 /// O01~O04 · 가입 직후 생활 정보를 묻는 첫 설문 화면.
 ///
 /// 네 단계를 한 화면 안에서 바꿔 보여 줍니다. 뒤로 가기를 누르면
-/// 이전 단계로 돌아가고, 첫 단계에서는 화면을 닫습니다.
+/// 이전 단계로 돌아가고, 첫 단계에서는 화면을 닫습니다. 닫을 이전 화면이 없으면
+/// 홈으로 갑니다.
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
@@ -39,8 +40,12 @@ class OnboardingScreen extends ConsumerWidget {
     }
 
     void back() {
-      if (!ref.read(onboardingProvider.notifier).back()) {
+      if (ref.read(onboardingProvider.notifier).back()) return;
+      // 가입 직후처럼 go로 바로 열리면 닫을 이전 화면이 없으므로 홈으로 보냅니다.
+      if (Navigator.canPop(context)) {
         unawaited(Navigator.maybePop(context));
+      } else {
+        context.go(AppRoute.home);
       }
     }
 
