@@ -140,4 +140,10 @@ abstract final class AppSpacing {
 
   /// 보관함 상자 그림과 그 아래 이름 사이 간격.
   static const boxLabelGap = 10.0;
+
+  /// 설정 화면 프로필 사진과 이름 사이 간격.
+  static const avatarGap = 14.0;
+
+  /// 그림이 왼쪽에 붙는 배너에서 배너 끝부터 그림까지 거리.
+  static const bannerIllustrationInset = 14.0;
 }

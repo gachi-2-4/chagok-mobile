@@ -263,4 +263,44 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
   );
+
+  /// 목록이 꽉 찬 화면 위의 굵은 큰 제목. 예: 설정 첫 화면의 "설정"
+  static const boldPageTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 26,
+    height: 36.4 / 26,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 프로필의 이름. [cardTitle]보다 줄 높이가 높습니다.
+  static const profileName = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 17,
+    height: 23.8 / 17,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 프로필 이름 아래 전화번호 같은 보조 정보.
+  static const profileDetail = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 13,
+    height: 18.2 / 13,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
+
+  /// 글자 크기 설정의 미리 보기 문장.
+  static const textSizePreview = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 20,
+    height: 38 / 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
 }
