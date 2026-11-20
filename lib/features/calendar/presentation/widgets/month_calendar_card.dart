@@ -3,7 +3,7 @@ import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
-import 'package:chagok_mobile/features/calendar/application/calendar_dates.dart';
+import 'package:chagok_mobile/features/calendar/application/calendar_day.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_strings.dart';
 import 'package:flutter/material.dart';
 
@@ -11,28 +11,20 @@ import 'package:flutter/material.dart';
 class MonthCalendarCard extends StatelessWidget {
   const MonthCalendarCard({
     required this.month,
-    required this.today,
-    required this.marks,
+    required this.weeks,
     required this.onSelect,
     required this.onPrevious,
     required this.onNext,
     required this.onPickYear,
     required this.onPickMonth,
-    this.selectedDate,
     super.key,
   });
 
   /// 보여 줄 달(1일 0시).
   final DateTime month;
 
-  /// 오늘(0시). 테두리 원으로 표시합니다.
-  final DateTime today;
-
-  /// 기한이 있는 날과 그날 기한을 모두 등록했는지 여부. 칸 아래 점 색을 정합니다.
-  final Map<int, bool> marks;
-
-  /// 고른 날짜. 꽉 찬 원으로 표시합니다.
-  final DateTime? selectedDate;
+  /// 주 단위로 나눈 날짜 칸. 빈칸은 null입니다.
+  final List<List<CalendarDay?>> weeks;
 
   /// 날짜 칸을 눌렀을 때.
   final ValueChanged<DateTime> onSelect;
@@ -51,9 +43,6 @@ class MonthCalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cells = CalendarDates.cellsOf(month);
-    final selectedDate = this.selectedDate;
-
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.calendarSurface,
@@ -73,29 +62,14 @@ class MonthCalendarCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             const _WeekdayRow(),
-            for (
-              var start = 0;
-              start < cells.length;
-              start += CalendarDates.daysInWeek
-            )
+            for (final week in weeks)
               Row(
                 children: [
-                  for (final date in cells.sublist(
-                    start,
-                    start + CalendarDates.daysInWeek,
-                  ))
+                  for (final day in week)
                     Expanded(
-                      child: date == null
+                      child: day == null
                           ? const SizedBox(height: _DayCell.height)
-                          : _DayCell(
-                              date: date,
-                              isToday: CalendarDates.isSameDay(date, today),
-                              isSelected:
-                                  selectedDate != null &&
-                                  CalendarDates.isSameDay(date, selectedDate),
-                              isRegistered: marks[date.day],
-                              onTap: () => onSelect(date),
-                            ),
+                          : _DayCell(day: day, onTap: () => onSelect(day.date)),
                     ),
                 ],
               ),
@@ -215,6 +189,8 @@ class _RoundButton extends StatelessWidget {
       button: true,
       label: semanticLabel,
       excludeSemantics: true,
+      // 아래 InkWell은 의미 트리에서 빠지므로, 화면 읽기 프로그램의 탭도 여기서 받습니다.
+      onTap: onTap,
       child: Material(
         color: AppColors.calendarControl,
         shape: const CircleBorder(),
@@ -256,35 +232,20 @@ class _WeekdayRow extends StatelessWidget {
   }
 }
 
-/// 날짜 칸 하나. 오늘은 테두리 원, 고른 날은 꽉 찬 원, 기한이 있으면 아래에 점을 찍습니다.
+/// 날짜 칸 하나. 날짜 동그라미 아래에 기한 점을 찍습니다.
 class _DayCell extends StatelessWidget {
-  const _DayCell({
-    required this.date,
-    required this.isToday,
-    required this.isSelected,
-    required this.isRegistered,
-    required this.onTap,
-  });
+  const _DayCell({required this.day, required this.onTap});
 
-  final DateTime date;
-  final bool isToday;
-  final bool isSelected;
-
-  /// 그날 기한을 모두 등록했으면 true, 아직 남았으면 false, 기한이 없으면 null.
-  final bool? isRegistered;
+  final CalendarDay day;
   final VoidCallback onTap;
 
   /// 칸 높이.
   static const height = 44.0;
-  static const _circleSize = 32.0;
-  static const _ringWidth = 2.0;
   static const _dotSize = 5.0;
 
   @override
   Widget build(BuildContext context) {
-    final isRegistered = this.isRegistered;
-    final isBold = isToday || isSelected || isRegistered != null;
-    final dotColor = switch (isRegistered) {
+    final dotColor = switch (day.isRegistered) {
       null => AppColors.transparent,
       true => AppColors.primary,
       false => AppColors.calendarDotMuted,
@@ -292,9 +253,14 @@ class _DayCell extends StatelessWidget {
 
     return Semantics(
       button: true,
-      selected: isSelected,
-      label: CalendarStrings.daySemantics(date, isRegistered: isRegistered),
+      selected: day.isSelected,
+      label: CalendarStrings.daySemantics(
+        day.date,
+        isRegistered: day.isRegistered,
+      ),
       excludeSemantics: true,
+      // 아래 InkWell은 의미 트리에서 빠지므로, 화면 읽기 프로그램의 탭도 여기서 받습니다.
+      onTap: onTap,
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
@@ -303,29 +269,7 @@ class _DayCell extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: _circleSize,
-                height: _circleSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected ? AppColors.textPrimary : null,
-                  border: isToday && !isSelected
-                      ? Border.all(color: AppColors.primary, width: _ringWidth)
-                      : null,
-                ),
-                // 글자를 키워도 원 안에 들어가도록 줄입니다.
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${date.day}',
-                    style: AppTypography.calendarDate.copyWith(
-                      fontWeight: isBold ? FontWeight.w700 : null,
-                      color: isSelected ? AppColors.calendarSurface : null,
-                    ),
-                  ),
-                ),
-              ),
+              _DayCircle(day: day),
               const SizedBox(height: AppSpacing.xxs),
               Container(
                 width: _dotSize,
@@ -336,6 +280,45 @@ class _DayCell extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 날짜 숫자 동그라미. 오늘은 테두리 원, 고른 날은 꽉 찬 원입니다.
+class _DayCircle extends StatelessWidget {
+  const _DayCircle({required this.day});
+
+  final CalendarDay day;
+
+  static const _size = 32.0;
+  static const _ringWidth = 2.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final isBold = day.isToday || day.isSelected || day.isRegistered != null;
+
+    return Container(
+      width: _size,
+      height: _size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: day.isSelected ? AppColors.textPrimary : null,
+        border: day.isToday && !day.isSelected
+            ? Border.all(color: AppColors.primary, width: _ringWidth)
+            : null,
+      ),
+      // 글자를 키워도 원 안에 들어가도록 줄입니다.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          '${day.date.day}',
+          style: AppTypography.calendarDate.copyWith(
+            fontWeight: isBold ? FontWeight.w700 : null,
+            color: day.isSelected ? AppColors.calendarSurface : null,
           ),
         ),
       ),

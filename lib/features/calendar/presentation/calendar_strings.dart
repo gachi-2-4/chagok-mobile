@@ -23,8 +23,12 @@ abstract final class CalendarStrings {
   /// 고른 날짜 제목. 예: "11월 25일"
   static String date(DateTime date) => '${date.month}월 ${date.day}일';
 
-  /// 남은 날. 예: 8 → "D-8", 0 → "D-DAY"
-  static String dDay(int days) => days == 0 ? 'D-DAY' : 'D-$days';
+  /// 남은 날. 예: 8 → "D-8", 0 → "D-DAY", 지난 9일 → "D+9"
+  static String dDay(int days) => switch (days) {
+    0 => 'D-DAY',
+    < 0 => 'D+${-days}',
+    _ => 'D-$days',
+  };
 
   /// 기한 아래 줄. 예: "11월 20일 · 병원 · 보험"
   static String deadlineMeta(DateTime date, List<String> tags) =>

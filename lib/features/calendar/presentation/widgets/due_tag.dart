@@ -6,10 +6,12 @@ import 'package:chagok_mobile/features/calendar/presentation/calendar_strings.da
 import 'package:flutter/material.dart';
 
 /// 기한 목록 왼쪽의 "D-8" 표. 2주 안으로 다가오면 눈에 띄는 색으로 바꿉니다.
+///
+/// 지난 기한은 "D+9"처럼 지난 날 수로 보여 주고, 강조색을 쓰지 않습니다.
 class DueTag extends StatelessWidget {
   const DueTag({required this.days, super.key});
 
-  /// 남은 날 수.
+  /// 남은 날 수. 지났으면 음수입니다.
   final int days;
 
   /// 이 날 수 안으로 남으면 눈에 띄는 색으로 보여 줍니다.
@@ -20,7 +22,7 @@ class DueTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUrgent = days <= urgentDays;
+    final isUrgent = days >= 0 && days <= urgentDays;
 
     return Container(
       constraints: const BoxConstraints(

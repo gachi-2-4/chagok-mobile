@@ -85,6 +85,8 @@ class _RegisterButton extends StatelessWidget {
         isRegistered: isRegistered,
       ),
       excludeSemantics: true,
+      // 아래 InkWell은 의미 트리에서 빠지므로, 화면 읽기 프로그램의 탭도 여기서 받습니다.
+      onTap: onTap,
       child: Material(
         color: isRegistered ? AppColors.primary : AppColors.transparent,
         shape: const CircleBorder(

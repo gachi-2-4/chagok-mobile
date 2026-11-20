@@ -184,5 +184,48 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('화면 읽기 프로그램으로 등록 버튼을 누르면 기한을 등록한다', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCalendar(tester);
+
+      tester.semantics.tap(find.semantics.byLabel('실손보험 청구 안내, 캘린더에 추가'));
+      await tester.pumpAndSettle();
+
+      expect(repository.saved, [('claim', true)]);
+      semantics.dispose();
+    });
+
+    testWidgets('화면 읽기 프로그램으로 날짜 칸을 누르면 그날 기한을 보여 준다', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCalendar(tester);
+
+      tester.semantics.tap(find.semantics.byLabel('11월 25일, 미추가 기한 있음'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('11월 25일'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('화면 읽기 프로그램으로 다음 달 버튼을 누르면 다음 달로 넘긴다', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCalendar(tester);
+
+      tester.semantics.tap(find.semantics.byLabel(CalendarStrings.nextMonth));
+      await tester.pumpAndSettle();
+
+      expect(find.text('12월'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('지난 기한이 있는 날을 고르면 D+n으로 지난 날 수를 보여 준다', (tester) async {
+      await pumpCalendar(tester);
+
+      await tester.tap(dayCell(3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('지난 기한'), findsOneWidget);
+      expect(find.text('D+9'), findsOneWidget);
+    });
   });
 }

@@ -5,9 +5,10 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_option_sheet.dart';
-import 'package:chagok_mobile/features/calendar/application/calendar_clock.dart';
+import 'package:chagok_mobile/features/calendar/application/calendar_content.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_dates.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_view_notifier.dart';
+import 'package:chagok_mobile/features/calendar/application/deadline_item.dart';
 import 'package:chagok_mobile/features/calendar/application/deadline_list_notifier.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_strings.dart';
@@ -39,9 +40,9 @@ class CalendarScreen extends ConsumerWidget {
             const Text(CalendarStrings.title, style: AppTypography.pageTitle),
             const SizedBox(height: AppSpacing.block),
             ref
-                .watch(deadlineListProvider)
+                .watch(calendarContentProvider)
                 .when(
-                  data: (deadlines) => _CalendarContent(deadlines: deadlines),
+                  data: (content) => _CalendarContent(content: content),
                   loading: () => const Padding(
                     padding: EdgeInsets.all(AppSpacing.xl),
                     child: Center(child: CircularProgressIndicator()),
@@ -67,28 +68,26 @@ class CalendarScreen extends ConsumerWidget {
   }
 }
 
-/// 불러온 [deadlines]로 그린 달력 카드와 기한 목록.
+/// 계산해 둔 [content]로 그린 달력 카드와 기한 목록.
 class _CalendarContent extends ConsumerWidget {
-  const _CalendarContent({required this.deadlines});
+  const _CalendarContent({required this.content});
 
-  final List<Deadline> deadlines;
+  final CalendarContent content;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final view = ref.watch(calendarViewProvider);
-    final today = CalendarDates.dateOnly(ref.watch(calendarClockProvider)());
     CalendarViewNotifier viewNotifier() =>
         ref.read(calendarViewProvider.notifier);
 
     Future<void> pickYear() async {
       final year = await showAppOptionSheet(
         context,
-        options: CalendarDates.selectableYears(today),
+        options: CalendarDates.selectableYears(content.today),
         labelOf: CalendarStrings.year,
-        selected: view.month.year,
+        selected: content.month.year,
       );
       if (year == null || !context.mounted) return;
-      viewNotifier().showMonth(year: year, month: view.month.month);
+      viewNotifier().showMonth(year: year, month: content.month.month);
     }
 
     Future<void> pickMonth() async {
@@ -96,20 +95,18 @@ class _CalendarContent extends ConsumerWidget {
         context,
         options: CalendarDates.selectableMonths,
         labelOf: CalendarStrings.month,
-        selected: view.month.month,
+        selected: content.month.month,
       );
       if (month == null || !context.mounted) return;
-      viewNotifier().showMonth(year: view.month.year, month: month);
+      viewNotifier().showMonth(year: content.month.year, month: month);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         MonthCalendarCard(
-          month: view.month,
-          today: today,
-          selectedDate: view.selectedDate,
-          marks: CalendarDates.markedDaysOf(deadlines, view.month),
+          month: content.month,
+          weeks: content.weeks,
           onSelect: (date) => viewNotifier().select(date),
           onPrevious: () => viewNotifier().showPreviousMonth(),
           onNext: () => viewNotifier().showNextMonth(),
@@ -118,9 +115,8 @@ class _CalendarContent extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         _DeadlineSection(
-          deadlines: deadlines,
-          today: today,
-          selectedDate: view.selectedDate,
+          items: content.items,
+          selectedDate: content.selectedDate,
         ),
       ],
     );
@@ -129,22 +125,14 @@ class _CalendarContent extends ConsumerWidget {
 
 /// "다가오는 기한" 또는 고른 날짜의 기한 목록.
 class _DeadlineSection extends ConsumerWidget {
-  const _DeadlineSection({
-    required this.deadlines,
-    required this.today,
-    required this.selectedDate,
-  });
+  const _DeadlineSection({required this.items, required this.selectedDate});
 
-  final List<Deadline> deadlines;
-  final DateTime today;
+  final List<DeadlineItem> items;
   final DateTime? selectedDate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = this.selectedDate;
-    final shown = selectedDate == null
-        ? CalendarDates.upcoming(deadlines, today)
-        : CalendarDates.on(deadlines, selectedDate);
 
     Future<void> toggle(Deadline deadline) async {
       final isSaved = await ref
@@ -164,7 +152,7 @@ class _DeadlineSection extends ConsumerWidget {
           onViewAll: () =>
               ref.read(calendarViewProvider.notifier).clearSelection(),
         ),
-        if (shown.isEmpty)
+        if (items.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
             child: Text(
@@ -174,11 +162,11 @@ class _DeadlineSection extends ConsumerWidget {
               style: AppTypography.listSubtitle,
             ),
           ),
-        for (final deadline in shown)
+        for (final item in items)
           DeadlineTile(
-            deadline: deadline,
-            daysLeft: CalendarDates.daysUntil(today, deadline.dueDate),
-            onToggleRegistered: () => unawaited(toggle(deadline)),
+            deadline: item.deadline,
+            daysLeft: item.daysLeft,
+            onToggleRegistered: () => unawaited(toggle(item.deadline)),
           ),
       ],
     );
