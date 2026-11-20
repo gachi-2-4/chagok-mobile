@@ -9,11 +9,11 @@ void main() {
     boxName: '집 · 임대',
     documentType: '임대차계약서',
   );
-  const reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
+  final reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
 
   group('ReminderEditState', () {
     test('미리 알림을 하나 이상 골랐으면 등록할 수 있다', () {
-      const state = ReminderEditState(detail: detail, reminder: reminder);
+      final state = ReminderEditState(detail: detail, reminder: reminder);
 
       expect(state.canSave, isTrue);
     });
@@ -28,7 +28,7 @@ void main() {
     });
 
     test('등록하는 중이면 등록할 수 없다', () {
-      const state = ReminderEditState(
+      final state = ReminderEditState(
         detail: detail,
         reminder: reminder,
         isSaving: true,

@@ -70,15 +70,23 @@ class ReminderEditNotifier extends AsyncNotifier<ReminderEditState> {
     state = AsyncData(current.copyWith(isSaving: true, hasSaveFailed: false));
     try {
       await ref.read(documentRepositoryProvider).saveReminder(current.reminder);
-      if (ref.mounted) {
-        state = AsyncData(current.copyWith(hasSaveFailed: false));
-      }
+      _finishSaving(hasFailed: false);
       return true;
     } catch (error, stackTrace) {
       debugPrint('납부일 알림을 등록하지 못했습니다: $error\n$stackTrace');
-      if (ref.mounted) state = AsyncData(current.copyWith(hasSaveFailed: true));
+      _finishSaving(hasFailed: true);
       return false;
     }
+  }
+
+  /// 등록을 시작할 때의 상태가 아니라 최신 입력에서 등록 표시만 바꿉니다.
+  /// 등록하는 동안 고친 값이 이전 값으로 되돌아가지 않게 합니다.
+  void _finishSaving({required bool hasFailed}) {
+    final latest = state.value;
+    if (!ref.mounted || latest == null) return;
+    state = AsyncData(
+      latest.copyWith(isSaving: false, hasSaveFailed: hasFailed),
+    );
   }
 
   void _update(PaymentReminder Function(PaymentReminder reminder) change) {

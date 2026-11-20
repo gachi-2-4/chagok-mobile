@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/document/application/document_edit_notifier.dart';
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
 import 'package:chagok_mobile/features/document/data/document_repository.dart';
@@ -105,5 +107,26 @@ void main() {
       expect(form?.isSaving, isFalse);
       expect(form?.documentType, '관리비 고지서');
     });
+
+    for (final isSaved in [true, false]) {
+      test(
+        '저장하는 중에 입력을 고치면 저장이 ${isSaved ? '끝나도' : '실패해도'} 고친 입력이 남는다',
+        () async {
+          await container.read(provider.future);
+          repository.saveGate = Completer<void>();
+          if (!isSaved) repository.saveError = Exception('network');
+          final saving = notifier().save();
+
+          notifier().updatePenalty('저장 중에 고친 위약금');
+          repository.saveGate?.complete();
+          await saving;
+
+          final form = container.read(provider).value;
+          expect(form?.penaltyText, '저장 중에 고친 위약금');
+          expect(form?.isSaving, isFalse);
+          expect(form?.hasSaveFailed, !isSaved);
+        },
+      );
+    }
   });
 }

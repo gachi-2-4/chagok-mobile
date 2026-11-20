@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/document/application/reminder_edit_notifier.dart';
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
 import 'package:chagok_mobile/features/document/data/document_repository.dart';
@@ -44,7 +46,7 @@ void main() {
 
     test('이미 건 알림이 있으면 그 알림을 불러온다', () async {
       setUpContainer(
-        reminder: const PaymentReminder(
+        reminder: PaymentReminder(
           documentId: 'lease',
           paymentDay: 10,
           advanceDays: {7},
@@ -107,5 +109,27 @@ void main() {
       expect(state?.hasSaveFailed, isTrue);
       expect(state?.isSaving, isFalse);
     });
+
+    for (final isSaved in [true, false]) {
+      test(
+        '등록하는 중에 알림을 고치면 등록이 ${isSaved ? '끝나도' : '실패해도'} 고친 값이 남는다',
+        () async {
+          setUpContainer();
+          await container.read(provider.future);
+          repository.saveGate = Completer<void>();
+          if (!isSaved) repository.saveError = Exception('network');
+          final saving = notifier().save();
+
+          notifier().setTime(hour: 20, minute: 30);
+          repository.saveGate?.complete();
+          await saving;
+
+          final state = container.read(provider).value;
+          expect(state?.reminder.minuteOfDay, 20 * 60 + 30);
+          expect(state?.isSaving, isFalse);
+          expect(state?.hasSaveFailed, !isSaved);
+        },
+      );
+    }
   });
 }

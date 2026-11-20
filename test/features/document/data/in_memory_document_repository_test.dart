@@ -44,7 +44,7 @@ void main() {
 
     test('알림을 저장하면 저장 전에는 null, 저장 후에는 그 알림을 돌려준다', () async {
       final repository = InMemoryDocumentRepository();
-      const reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
+      final reminder = PaymentReminder(documentId: 'lease', paymentDay: 25);
 
       expect(await repository.fetchReminder('lease'), isNull);
       await repository.saveReminder(reminder);

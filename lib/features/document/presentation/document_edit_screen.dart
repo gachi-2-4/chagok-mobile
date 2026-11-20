@@ -12,8 +12,8 @@ import 'package:chagok_mobile/features/document/application/document_edit_notifi
 import 'package:chagok_mobile/features/document/presentation/document_strings.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/option_sheet.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/picker_field.dart';
+import 'package:chagok_mobile/features/document/presentation/widgets/thousands_input_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// D01 · 서류에서 읽어 낸 조건을 바로잡는 화면.
@@ -263,7 +263,7 @@ class _MonthlyRentField extends StatefulWidget {
 
 class _MonthlyRentFieldState extends State<_MonthlyRentField> {
   late final _controller = TextEditingController(
-    text: _ThousandsFormatter.format(widget.initialValue),
+    text: ThousandsInputFormatter.format(widget.initialValue),
   );
 
   @override
@@ -282,7 +282,7 @@ class _MonthlyRentFieldState extends State<_MonthlyRentField> {
           controller: _controller,
           onChanged: widget.onChanged,
           keyboardType: TextInputType.number,
-          inputFormatters: const [_ThousandsFormatter()],
+          inputFormatters: const [ThousandsInputFormatter()],
           suffix: const Text(
             DocumentStrings.won,
             style: AppTypography.fieldInput,
@@ -296,29 +296,6 @@ class _MonthlyRentFieldState extends State<_MonthlyRentField> {
           ),
         ],
       ],
-    );
-  }
-}
-
-/// 숫자만 남기고 세 자리마다 쉼표를 넣습니다. 예: "500000" → "500,000"
-class _ThousandsFormatter extends TextInputFormatter {
-  const _ThousandsFormatter();
-
-  static String format(String text) {
-    final digits = text.replaceAll(RegExp(r'\D'), '');
-    final value = int.tryParse(digits);
-    return value == null ? '' : DocumentStrings.amount(value);
-  }
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = format(newValue.text);
-    return TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }

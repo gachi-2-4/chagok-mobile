@@ -53,19 +53,29 @@ class DocumentEditNotifier extends AsyncNotifier<DocumentEditForm> {
   /// 고친 내용을 저장합니다. 저장했으면 true.
   ///
   /// 저장하지 못하면 고친 내용은 그대로 두고 [DocumentEditForm.hasSaveFailed]를 켭니다.
+  /// 저장하는 동안 고친 입력은 끝난 뒤에도 남깁니다(그 입력은 다시 저장해야 합니다).
   Future<bool> save() async {
     final form = state.value;
     if (form == null || !form.canSave) return false;
     state = AsyncData(form.copyWith(isSaving: true, hasSaveFailed: false));
     try {
       await ref.read(documentRepositoryProvider).updateDetail(form.toDetail());
-      if (ref.mounted) state = AsyncData(form.copyWith(hasSaveFailed: false));
+      _finishSaving(hasFailed: false);
       return true;
     } catch (error, stackTrace) {
       debugPrint('서류 내용을 저장하지 못했습니다: $error\n$stackTrace');
-      if (ref.mounted) state = AsyncData(form.copyWith(hasSaveFailed: true));
+      _finishSaving(hasFailed: true);
       return false;
     }
+  }
+
+  /// 저장을 시작할 때의 폼이 아니라 최신 입력에서 저장 표시만 바꿉니다.
+  void _finishSaving({required bool hasFailed}) {
+    final latest = state.value;
+    if (!ref.mounted || latest == null) return;
+    state = AsyncData(
+      latest.copyWith(isSaving: false, hasSaveFailed: hasFailed),
+    );
   }
 
   void _update(DocumentEditForm Function(DocumentEditForm form) change) {

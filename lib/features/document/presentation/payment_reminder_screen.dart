@@ -9,6 +9,7 @@ import 'package:chagok_mobile/core/widgets/app_card.dart';
 import 'package:chagok_mobile/core/widgets/app_chip.dart';
 import 'package:chagok_mobile/core/widgets/app_document_layout.dart';
 import 'package:chagok_mobile/core/widgets/app_toggle.dart';
+import 'package:chagok_mobile/features/document/application/document_clock.dart';
 import 'package:chagok_mobile/features/document/application/reminder_edit_notifier.dart';
 import 'package:chagok_mobile/features/document/application/reminder_edit_state.dart';
 import 'package:chagok_mobile/features/document/application/reminder_schedule.dart';
@@ -94,15 +95,7 @@ class _ReminderBody extends ConsumerWidget {
           isMonthly: reminder.isMonthly,
         ),
         const SizedBox(height: AppSpacing.block),
-        AppBanner(
-          child: Text(switch (ReminderSchedule.nextAlert(
-            reminder,
-            DateTime.now(),
-          )) {
-            final next? => DocumentStrings.nextAlertNotice(next),
-            null => DocumentStrings.noAdvanceSelected,
-          }),
-        ),
+        _NextAlertBanner(reminder: reminder),
         if (state.hasSaveFailed) ...[
           const SizedBox(height: AppSpacing.stack),
           Text(
@@ -259,6 +252,53 @@ class _MonthlyRepeatRow extends ConsumerWidget {
               .setMonthly(isMonthly: isOn),
         ),
       ],
+    );
+  }
+}
+
+/// 다음 알림 시각과 기기 알림 안내 배너.
+///
+/// 화면을 켜 둔 채 다음 알림 시각이 지나면 그다음 알림으로 다시 계산해
+/// 보여 줍니다. 그 시각에 맞춰 다시 그리려고 [Timer]를 들고 있습니다.
+class _NextAlertBanner extends ConsumerStatefulWidget {
+  const _NextAlertBanner({required this.reminder});
+
+  final PaymentReminder reminder;
+
+  @override
+  ConsumerState<_NextAlertBanner> createState() => _NextAlertBannerState();
+}
+
+class _NextAlertBannerState extends ConsumerState<_NextAlertBanner> {
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// [next] 알림 시각이 지나는 순간 다시 그리도록 예약합니다.
+  void _scheduleRefresh(DateTime? next, DateTime now) {
+    _timer?.cancel();
+    if (next == null) return;
+    _timer = Timer(next.difference(now), () {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = ref.watch(documentClockProvider)();
+    final next = ReminderSchedule.nextAlert(widget.reminder, now);
+    _scheduleRefresh(next, now);
+
+    return AppBanner(
+      child: Text(
+        next == null
+            ? DocumentStrings.noAdvanceSelected
+            : DocumentStrings.nextAlertNotice(next),
+      ),
     );
   }
 }
