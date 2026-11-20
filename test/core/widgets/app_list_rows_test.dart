@@ -30,6 +30,18 @@ void main() {
 
       expect(title.style?.color, AppColors.danger);
     });
+
+    testWidgets('값이 짧으면 화살표 바로 왼쪽, 행의 오른쪽 끝에 붙는다', (tester) async {
+      await tester.pumpApp(
+        AppListRow(title: '글자 크기', value: '보통', onTap: () {}),
+      );
+
+      final rowRight = tester.getTopRight(find.byType(AppListRow)).dx;
+      final valueRight = tester.getTopRight(find.text('보통')).dx;
+
+      // 오른쪽 여백(20) + 화살표(20) + 간격(8) 만큼만 떨어져 있어야 합니다.
+      expect(rowRight - valueRight, moreOrLessEquals(48));
+    });
   });
 
   group('AppSelectRow', () {
@@ -123,6 +135,17 @@ void main() {
           AppCheckRow(label: longText * 3, isChecked: false, onChanged: (_) {}),
         ),
         greaterThan(AppCheckRow.minHeight),
+      );
+    });
+
+    testWidgets('높이 제한이 있는 부모 안에 값이 있는 행을 두면 최소 높이를 지킨다', (tester) async {
+      await tester.pumpApp(
+        AppListRow(title: '글자 크기', value: '보통', onTap: () {}),
+      );
+
+      expect(
+        tester.getSize(find.byType(AppListRow)).height,
+        AppListRow.minHeight,
       );
     });
   });

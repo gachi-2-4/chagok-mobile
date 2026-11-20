@@ -58,6 +58,12 @@ abstract final class AppColors {
   static const toggleOff = Color(0xFFCFC5B6);
   static const toggleKnob = Color(0xFFFFFAF1);
 
+  // 보관함 그림 (뚜껑 · 상자 · 아이콘 · 날짜 표)
+  static const boxLid = Color(0xFFD67F48);
+  static const boxBody = Color(0xFFFFC6A5);
+  static const boxIcon = Color(0xFF643312);
+  static const boxTag = Color(0xFFF9F4ED);
+
   // 기타
   static const chevron = Color(0xFF998D79);
   static const bullet = Color(0xFF827661);
@@ -65,4 +71,14 @@ abstract final class AppColors {
   static const dangerButton = Color(0xFF9C4E39);
   static const dialogCancel = Color(0xFFECDFCA);
   static const scrim = Color(0x801F1A14);
+
+  // 간편 로그인: 각 회사 로그인 버튼 가이드의 색을 그대로 씁니다.
+  /// 카카오 로그인 버튼 배경.
+  static const kakao = Color(0xFFFEE500);
+
+  /// 간편 로그인 버튼 글자.
+  static const socialLoginText = Color(0xFF302B19);
+
+  /// 보이지 않게 그릴 때 쓰는 투명 색. 예: 칸 뒤에 겹쳐 둔 입력창 글자
+  static const transparent = Color(0x00000000);
 }

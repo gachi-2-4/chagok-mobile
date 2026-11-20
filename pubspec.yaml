@@ -62,6 +62,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/images/
     # 폰트 라이선스(OFL). 앱의 라이선스 화면에 보여 줍니다.
     - assets/fonts/OFL-Figtree.txt
     - assets/fonts/OFL-Jua.txt

@@ -21,12 +21,16 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     repository = FakeUploadRepository();
-    final container = ProviderContainer(
-      overrides: [uploadRepositoryProvider.overrideWithValue(repository)],
-    );
-    addTearDown(container.dispose);
+    // 위젯 트리와 함께 정리되도록 ProviderScope를 씁니다. 홈 화면의 자정
+    // Timer 같은 것이 testWidgets의 Timer 검사 전에 함께 취소됩니다.
     await tester.pumpWidget(
-      UncontrolledProviderScope(container: container, child: const ChagokApp()),
+      ProviderScope(
+        overrides: [uploadRepositoryProvider.overrideWithValue(repository)],
+        child: const ChagokApp(),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ChagokApp)),
     );
     container.read(routerProvider).go(AppRoute.upload);
     await tester.pumpAndSettle();
