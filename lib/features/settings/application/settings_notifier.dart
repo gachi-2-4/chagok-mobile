@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
 import 'package:chagok_mobile/features/settings/data/text_size.dart';
@@ -22,20 +24,20 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     return ref.watch(settingsRepositoryProvider).fetchSettings();
   }
 
-  /// 앱 글자 크기를 바꾸고 저장합니다.
-  Future<void> setTextSize(TextSize value) =>
+  /// 앱 글자 크기를 바꾸고 저장합니다. 저장했으면 true.
+  Future<bool> setTextSize(TextSize value) =>
       _update((settings) => settings.copyWith(textSize: value));
 
-  /// 납부일 알림을 켜거나 끄고 저장합니다.
-  Future<void> setPaymentReminder({required bool isOn}) =>
+  /// 납부일 알림을 켜거나 끄고 저장합니다. 저장했으면 true.
+  Future<bool> setPaymentReminder({required bool isOn}) =>
       _update((settings) => settings.copyWith(isPaymentReminderOn: isOn));
 
-  /// 마케팅 수신을 켜거나 끄고 저장합니다.
-  Future<void> setMarketing({required bool isOn}) =>
+  /// 마케팅 수신을 켜거나 끄고 저장합니다. 저장했으면 true.
+  Future<bool> setMarketing({required bool isOn}) =>
       _update((settings) => settings.copyWith(isMarketingOn: isOn));
 
   /// 알림 시각을 바꿉니다. [hour]는 0~23, [minute]는 0~59입니다.
-  Future<void> setReminderTime({required int hour, required int minute}) {
+  Future<bool> setReminderTime({required int hour, required int minute}) {
     RangeError.checkValueInInterval(hour, 0, 23, 'hour');
     RangeError.checkValueInInterval(minute, 0, 59, 'minute');
     return _update(
@@ -66,16 +68,35 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     return true;
   }
 
-  Future<void> _update(
+  /// 마지막으로 시작한 저장. 다음 저장은 이것이 끝난 뒤 시작합니다.
+  Future<void> _lastSave = Future.value();
+
+  /// 설정을 바로 바꿔 보여 주고 저장합니다. 저장했으면 true.
+  ///
+  /// 저장은 요청한 순서대로 하나씩 합니다. 늦게 끝난 앞선 저장이 최신 설정을
+  /// 덮어쓰지 않도록, 끝났을 때 더 최근 요청이 있으면 상태는 그 요청에 맡깁니다.
+  Future<bool> _update(
     AppSettings Function(AppSettings settings) change,
   ) async {
     final current = state.value;
-    if (current == null) return;
+    if (current == null) return false;
     final next = change(current);
     state = AsyncData(next);
-    state = await AsyncValue.guard(() async {
-      await ref.read(settingsRepositoryProvider).saveSettings(next);
-      return next;
-    });
+
+    final previous = _lastSave;
+    final done = Completer<void>();
+    _lastSave = done.future;
+    try {
+      await previous;
+      final result = await AsyncValue.guard(() async {
+        await ref.read(settingsRepositoryProvider).saveSettings(next);
+        return next;
+      });
+      final isLatest = identical(_lastSave, done.future);
+      if (ref.mounted && isLatest) state = result;
+      return !result.hasError;
+    } finally {
+      done.complete();
+    }
   }
 }

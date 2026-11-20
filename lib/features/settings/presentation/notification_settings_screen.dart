@@ -118,7 +118,9 @@ class _ReceiveSettingRows extends ConsumerWidget {
           minute: minuteOfDay % 60,
         ),
       );
-      if (picked == null) return;
+      // 선택 창이 열린 사이 설정을 다시 불러오다 이 줄이 사라졌을 수 있으므로,
+      // 위젯이 남아 있을 때만 ref를 씁니다.
+      if (picked == null || !context.mounted) return;
       await notifier().setReminderTime(
         hour: picked.hour,
         minute: picked.minute,

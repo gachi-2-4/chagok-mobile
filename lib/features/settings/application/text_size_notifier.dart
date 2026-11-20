@@ -23,8 +23,17 @@ class TextSizeDraftNotifier extends Notifier<TextSize> {
   void select(TextSize value) => state = value;
 
   /// 고른 크기를 앱 설정에 저장합니다. 저장했으면 true, 실패하면 false.
+  ///
+  /// 설정을 아직 불러오는 중이면 다 불러온 뒤 저장합니다. 불러오면 초안이 저장된
+  /// 크기로 다시 시작하므로, 기다리기 전에 고른 크기를 붙잡아 둡니다.
   Future<bool> save() async {
-    await ref.read(settingsProvider.notifier).setTextSize(state);
-    return !ref.read(settingsProvider).hasError;
+    final chosen = state;
+    try {
+      await ref.read(settingsProvider.future);
+    } catch (error) {
+      return false;
+    }
+    if (!ref.mounted) return false;
+    return ref.read(settingsProvider.notifier).setTextSize(chosen);
   }
 }

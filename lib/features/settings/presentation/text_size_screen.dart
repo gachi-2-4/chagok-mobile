@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/utils/app_text_scaler.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_list_section_header.dart';
 import 'package:chagok_mobile/core/widgets/app_section_band.dart';
@@ -110,22 +112,25 @@ class _TextSizePreview extends StatelessWidget {
 
   final TextSize textSize;
 
-  static const _radius = 16.0;
-
   @override
   Widget build(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final deviceScaler = scaler is AppTextScaler ? scaler.base : scaler;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.dialogSurface,
-        borderRadius: BorderRadius.circular(_radius),
+        borderRadius: BorderRadius.circular(AppRadius.paper),
         border: Border.all(color: AppColors.chipBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
-        // 아직 저장하지 않은 크기를 보여 주므로 앱 전체 배율 대신 고른 배율만 씁니다.
-        child: MediaQuery.withClampedTextScaling(
-          minScaleFactor: textSize.scale,
-          maxScaleFactor: textSize.scale,
+        // 앱 전체에는 기기 배율에 저장한 배율이 곱해져 있습니다. 미리 보기는
+        // 저장한 배율을 빼고 기기 배율에 고른 배율만 곱해, 저장 뒤 크기와 맞춥니다.
+        child: MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: AppTextScaler(deviceScaler, textSize.scale)),
           child: const Text(
             SettingsStrings.previewText,
             style: AppTypography.textSizePreview,

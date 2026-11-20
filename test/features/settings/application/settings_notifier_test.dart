@@ -112,5 +112,25 @@ void main() {
       expect(isDone, isFalse);
       expect((await settings()).textSize, TextSize.large);
     });
+
+    test('설정을 연달아 바꾸면 요청 순서대로 저장하고 앞선 저장이 최신 설정을 덮어쓰지 않는다', () async {
+      await settings();
+      repository.holdSaves = true;
+
+      final first = notifier().setPaymentReminder(isOn: false);
+      final second = notifier().setMarketing(isOn: true);
+      await pumpEventQueue();
+      repository.pendingSaves.first.complete();
+      await first;
+      final afterFirst = container.read(settingsProvider).value;
+      await pumpEventQueue();
+      repository.pendingSaves.last.complete();
+      await second;
+
+      expect(afterFirst?.isMarketingOn, isTrue);
+      expect(repository.stored.isPaymentReminderOn, isFalse);
+      expect(repository.stored.isMarketingOn, isTrue);
+      expect(container.read(settingsProvider).value?.isMarketingOn, isTrue);
+    });
   });
 }

@@ -137,5 +137,16 @@ void main() {
         greaterThan(AppCheckRow.minHeight),
       );
     });
+
+    testWidgets('높이 제한이 있는 부모 안에 값이 있는 행을 두면 최소 높이를 지킨다', (tester) async {
+      await tester.pumpApp(
+        AppListRow(title: '글자 크기', value: '보통', onTap: () {}),
+      );
+
+      expect(
+        tester.getSize(find.byType(AppListRow)).height,
+        AppListRow.minHeight,
+      );
+    });
   });
 }

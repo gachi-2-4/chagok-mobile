@@ -72,6 +72,8 @@ class AppListRow extends StatelessWidget {
                   flex: _valueFlex,
                   child: Align(
                     alignment: Alignment.centerRight,
+                    // 높이 제한이 있는 부모에서도 세로로 늘어나지 않고 글자 높이에 맞춥니다.
+                    heightFactor: 1,
                     child: Text(
                       value,
                       textAlign: TextAlign.right,
