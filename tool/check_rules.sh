@@ -174,8 +174,15 @@ missing_doc_comments() {
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
         && prev !~ /\/\/\// && prev_code !~ /@override/ { print file ":" NR ": " $0 }
       /^}/ { in_class = 0 }
-      # `// ignore:` 같은 일반 주석은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
-      { prev = $0; if ($0 !~ /^[[:space:]]*\/\/[^\/]/) prev_code = $0 }' "${file}"
+      # 주석(줄·블록·빈 //)과 빈 줄은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
+      {
+        is_code = 1
+        if (in_block) { is_code = 0; if ($0 ~ /\*\//) in_block = 0 }
+        else if ($0 ~ /^[[:space:]]*\/\*/) { is_code = 0; if ($0 !~ /\*\//) in_block = 1 }
+        else if ($0 ~ /^[[:space:]]*\/\// || $0 ~ /^[[:space:]]*$/) is_code = 0
+        prev = $0
+        if (is_code) prev_code = $0
+      }' "${file}"
   done | grep -vE '^\S+: class _|State<' || true
 }
 
