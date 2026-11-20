@@ -29,7 +29,7 @@ void main() {
       expect(changedValue, isFalse);
     });
 
-    testWidgets('크기는 디자인 값 46x28을 따른다', (tester) async {
+    testWidgets('스위치를 그리면 디자인 값 46x28 크기로 그린다', (tester) async {
       await tester.pumpApp(AppToggle(value: true, onChanged: (_) {}));
 
       expect(tester.getSize(find.byType(AppToggle)), const Size(46, 28));
@@ -60,7 +60,7 @@ void main() {
   });
 
   group('AppToggleRow', () {
-    testWidgets('행의 글자를 눌러도 스위치 값을 바꾸라고 알린다', (tester) async {
+    testWidgets('행의 글자를 누르면 스위치 값을 바꾸라고 알린다', (tester) async {
       bool? changedValue;
       await tester.pumpApp(
         AppToggleRow(
@@ -76,7 +76,7 @@ void main() {
       expect(changedValue, isTrue);
     });
 
-    testWidgets('스크린 리더에는 제목과 스위치가 하나의 스위치로 읽힌다', (tester) async {
+    testWidgets('스크린 리더로 읽으면 제목과 스위치를 하나의 스위치로 읽는다', (tester) async {
       final semantics = tester.ensureSemantics();
       await tester.pumpApp(
         AppToggleRow(title: '납부일 알림', value: true, onChanged: (_) {}),

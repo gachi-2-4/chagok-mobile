@@ -38,7 +38,7 @@ void main() {
       expect(button.enabled, isFalse);
     });
 
-    testWidgets('높이는 디자인 값 51을 따른다', (tester) async {
+    testWidgets('버튼을 그리면 디자인 값 51 높이로 그린다', (tester) async {
       await tester.pumpApp(AppButton.primary(label: '다음', onPressed: () {}));
 
       expect(tester.getSize(find.byType(FilledButton)).height, 51);

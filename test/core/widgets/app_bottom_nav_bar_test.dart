@@ -38,7 +38,7 @@ void main() {
       expect(tappedIndex, 2);
     });
 
-    testWidgets('선택된 탭의 라벨은 강조 색으로 보인다', (tester) async {
+    testWidgets('탭을 고르면 그 탭의 라벨을 강조 색으로 보여 준다', (tester) async {
       await tester.pumpApp(
         AppBottomNavBar(items: _items, currentIndex: 1, onTap: (_) {}),
       );
@@ -50,7 +50,7 @@ void main() {
       expect(inactiveLabel.style?.color, AppColors.textPrimary);
     });
 
-    testWidgets('탭의 위쪽 여백을 눌러도 그 탭의 순서를 알린다', (tester) async {
+    testWidgets('탭의 위쪽 여백을 누르면 그 탭의 순서를 알린다', (tester) async {
       int? tappedIndex;
       await tester.pumpApp(
         Align(
