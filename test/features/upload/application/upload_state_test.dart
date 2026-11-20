@@ -7,14 +7,14 @@ import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const document = PickedDocument(
+  final document = PickedDocument(
     fileName: '임대차계약서.pdf',
     source: UploadSource.pdf,
     pageCount: 1,
     preview: DocumentPreview(title: '제목', section: '조항', lines: []),
   );
   const boxes = [DocumentBox(id: 'housing', name: '집 · 임대')];
-  const succeeded = AnalysisSucceeded(
+  final succeeded = AnalysisSucceeded(
     documentType: '임대차계약서',
     pageCount: 1,
     fields: [],
@@ -28,7 +28,7 @@ void main() {
     });
 
     test('파일과 보관함을 골랐으면 분석할 수 있다', () {
-      const state = UploadState(
+      final state = UploadState(
         document: document,
         boxes: boxes,
         selectedBoxId: 'housing',
@@ -38,7 +38,7 @@ void main() {
     });
 
     test('분석에 성공했으면 보관할 수 있고 흐린 결과면 보관할 수 없다', () {
-      const state = UploadState(
+      final state = UploadState(
         document: document,
         boxes: boxes,
         selectedBoxId: 'housing',
@@ -53,7 +53,7 @@ void main() {
     });
 
     test('다른 일을 하는 중이면 분석도 보관도 할 수 없다', () {
-      const state = UploadState(
+      final state = UploadState(
         document: document,
         boxes: boxes,
         selectedBoxId: 'housing',
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('copyWith에 null을 돌려주는 함수를 넘기면 분석 결과를 지운다', () {
-      const state = UploadState(result: succeeded, hasFailed: true);
+      final state = UploadState(result: succeeded, hasFailed: true);
 
       final updated = state.copyWith(result: () => null);
 

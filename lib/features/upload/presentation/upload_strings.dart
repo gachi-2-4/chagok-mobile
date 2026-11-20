@@ -24,8 +24,15 @@ abstract final class UploadStrings {
   static const confirmTitle = '이 파일을 분석할까요?';
   static const pdfLabel = 'PDF';
   static const imageLabel = '사진';
+
+  /// 서류 전체 페이지 수. 예: 3 → "3페이지"
   static String pageCount(int count) => '$count페이지';
+
+  /// 파일을 담을 보관함 이름. 예: "집 · 임대" → "집 · 임대 보관함"
   static String boxSuffix(String boxName) => '$boxName 보관함';
+
+  /// 미리 보기 아래 쪽수. [current]는 보고 있는 쪽, [total]은 전체 쪽수입니다.
+  /// 예: (1, 3) → "서류 미리보기 · 1 / 3"
   static String previewPage(int current, int total) =>
       '서류 미리보기 · $current / $total';
   static const boxLabel = '보관할 곳';
@@ -52,8 +59,14 @@ abstract final class UploadStrings {
   static const reviewDescription =
       '서류에서 찾은 조건을 같은 이름으로 정리했어요. 다른 내용이 있으면 수정해 주세요.';
   static const needsCheck = '확인 필요';
+
+  /// 값을 확실히 읽지 못한 조건 안내. [label]은 조건 이름입니다.
+  /// 예: "중도 해지 위약금" → "중도 해지 위약금을 확실히 읽지 못했어요."
   static String uncertainNotice(String label) => '$label을 확실히 읽지 못했어요.';
   static const uncertainHelp = '원본을 확인한 뒤 직접 입력할 수 있어요.';
+
+  /// 이름을 바꿔 정리한 조건 안내. [original]은 원본 서류에 쓰인 이름,
+  /// [label]은 차곡이 정리한 이름입니다. 예: ("월세", "월 임대료")
   static String renamedNote(String original, String label) =>
       '원본의 ‘$original’를 ‘$label’로 정리했어요.';
   static const saveDocument = '확인하고 보관';

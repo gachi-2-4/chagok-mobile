@@ -173,9 +173,13 @@ class _FieldRow extends StatelessWidget {
       children: [
         Expanded(child: Text(field.label, style: AppTypography.body)),
         const SizedBox(width: AppSpacing.md),
-        Text(
-          field.value ?? UploadStrings.needsCheck,
-          style: AppTypography.body,
+        // 특약처럼 긴 값도 표 밖으로 넘치지 않고 줄을 바꾸도록 너비를 제한합니다.
+        Flexible(
+          child: Text(
+            field.value ?? UploadStrings.needsCheck,
+            textAlign: TextAlign.right,
+            style: AppTypography.body,
+          ),
         ),
       ],
     );

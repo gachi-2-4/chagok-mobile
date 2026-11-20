@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/upload_repository.dart';
@@ -22,6 +24,19 @@ void main() {
   UploadNotifier notifier() => container.read(uploadProvider.notifier);
 
   group('UploadNotifier', () {
+    test('파일을 고르는 중에 또 고르면 무시하고 false를 돌려준다', () async {
+      repository.pickGate = Completer<void>();
+      final first = notifier().pick(UploadSource.pdf);
+
+      final isSecondPicked = await notifier().pick(UploadSource.album);
+      repository.pickGate?.complete();
+      await first;
+
+      expect(isSecondPicked, isFalse);
+      expect(repository.pickCount, 1);
+      expect(container.read(uploadProvider).document?.fileName, 'pdf.pdf');
+    });
+
     test('파일을 고르면 보관함 목록을 불러와 첫 보관함을 골라 둔다', () async {
       final isPicked = await notifier().pick(UploadSource.pdf);
 
