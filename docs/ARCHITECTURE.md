@@ -79,6 +79,7 @@ presentation  →  application  →  data
 - 비동기 데이터는 `AsyncNotifier`를 쓰고, UI에서는 `AsyncValue.when`으로 로딩·에러·데이터를 모두 처리합니다.
 - 전역 가변 변수나 싱글턴 대신 Provider를 씁니다.
 - `ref.watch`는 `build` 안에서, `ref.read`는 이벤트 핸들러(버튼 콜백 등) 안에서만 씁니다.
+  - GoRoute의 `redirect`도 화면을 이동할 때마다 불리는 콜백이므로 이벤트 핸들러로 보고 `ref.read`를 씁니다. 그 순간의 상태를 보고 보낼 곳을 정하는 것이 목적이고, `routerProvider`에서 `ref.watch`를 쓰면 상태가 바뀔 때마다 `GoRouter`가 다시 만들어지기 때문입니다.
 
 예시:
 
@@ -114,6 +115,7 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
 - 경로 문자열은 직접 쓰지 않고 상수나 라우트 이름으로 참조합니다.
 - 화면 이동은 `context.go()`(교체) / `context.push()`(쌓기)를 의도에 맞게 구분해 씁니다.
 - 화면에 넘기는 값은 경로 파라미터(id 등 단순 값) 위주로 하고, 큰 객체는 Provider로 공유합니다.
+- 앞 단계를 건너뛰고 주소로 바로 들어오면 안 되는 화면은 GoRoute의 `redirect`에서 `ref.read`로 상태를 확인해 그 흐름의 첫 화면으로 돌려보냅니다.
 - 하단 탭은 `StatefulShellRoute.indexedStack`으로 만들고, 탭마다 `StatefulShellBranch`를 하나씩 둡니다.
   - 탭 아래로 쌓이는 화면(예: 대화방)은 바텀바가 계속 보이도록 그 탭의 하위 경로로 둡니다.
   - 바텀바의 탭은 `app/main_shell.dart`의 `MainShell.tabs`에 두고, `router.dart`의 branch 순서와 맞춥니다.
