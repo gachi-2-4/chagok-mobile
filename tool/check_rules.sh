@@ -163,72 +163,68 @@ missing_doc_comments() {
   local file
   for file in ${LIB_FILES[@]+"${LIB_FILES[@]}"}; do
     awk -v file="${file}" -v q="'" '
-      BEGIN {
-        tq_re = q q q "|\"\"\""
-        sq_re = q "([^" q "\\\\]|\\\\.)*" q
-        dq_re = "\"([^\"\\\\]|\\\\.)*\""
-      }
-      # 한 줄짜리 문자열을 비워, 그 안의 주석 기호를 주석으로 보지 않게 합니다.
-      function drop_strings(s) {
-        gsub(sq_re, "", s)
-        gsub(dq_re, "", s)
-        return s
-      }
-      # 주석을 뺀 코드 부분. 줄 주석과 블록 주석 중 먼저 오는 쪽을 주석으로 봅니다.
-      # 같은 줄에서 닫히는 블록 주석은 지우고, 닫히지 않으면 in_block을 켭니다.
-      function code_of(s,    p, c, rest) {
-        while (1) {
-          p = index(s, "//")
-          c = index(s, "/*")
-          if (c && (!p || c < p)) {
-            rest = substr(s, c + 2)
-            if (match(rest, /\*\//)) {
-              s = substr(s, 1, c - 1) " " substr(rest, RSTART + 2)
+      # 줄을 왼쪽부터 한 글자씩 읽어 코드·주석·문자열을 가르고, 주석을 뺀 코드를
+      # 돌려줍니다. 상태(mode)는 줄을 넘어 이어집니다.
+      #   mode "": 코드, "block": 블록 주석(Dart는 중첩 가능, depth로 셈),
+      #   "str": 문자열(delim으로 연 것과 같은 구분자로만 닫힘, raw면 \ 무시)
+      function scan(s,    i, n, c, two, three, code) {
+        code = ""
+        i = 1
+        n = length(s)
+        while (i <= n) {
+          c = substr(s, i, 1)
+          two = substr(s, i, 2)
+          three = substr(s, i, 3)
+          if (mode == "block") {
+            if (two == "/*") { depth++; i += 2; continue }
+            if (two == "*/") { depth--; i += 2; if (depth == 0) mode = ""; continue }
+            i++
+            continue
+          }
+          if (mode == "str") {
+            if (!raw && c == "\\") { i += 2; continue }
+            if ((length(delim) == 3 && three == delim) || (length(delim) == 1 && c == delim)) {
+              i += length(delim)
+              mode = ""
               continue
             }
-            in_block = 1
-            return substr(s, 1, c - 1)
+            i++
+            continue
           }
-          return p ? substr(s, 1, p - 1) : s
+          if (two == "//") break
+          if (two == "/*") { mode = "block"; depth = 1; i += 2; continue }
+          if (c == q || c == "\"") {
+            raw = (i > 1 && substr(s, i - 1, 1) == "r")
+            delim = (three == c c c) ? three : c
+            i += length(delim)
+            mode = "str"
+            # 문자열도 코드이므로 자리를 남깁니다.
+            code = code "s"
+            continue
+          }
+          code = code c
+          i++
         }
+        # 따옴표 하나로 연 문자열은 줄을 넘지 못하므로 줄 끝에서 닫습니다.
+        if (mode == "str" && length(delim) == 1) mode = ""
+        return code
       }
-      /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
+      # 줄이 문자열·블록 주석 안에서 시작하면 선언 검사를 하지 않습니다(mode는 줄 시작 상태).
+      mode == "" && /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
         in_class = 1
         # private 클래스의 멤버는 밖에서 쓰지 않으므로 문서 주석을 요구하지 않습니다.
         in_private = ($0 ~ /(class|enum|mixin|extension) _/)
         if ($0 !~ / _[A-Za-z]/ && prev !~ /^\/\/\//) print file ":" NR ": " $0
       }
-      /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
-      in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
+      mode == "" && /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
+      mode == "" && in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
         && prev !~ /\/\/\// && prev_code !~ /@override/ { print file ":" NR ": " $0 }
-      /^}/ { in_class = 0 }
-      # 주석(줄·블록)과 빈 줄, 여러 줄 문자열 안은 건너뛰고 바로 앞 코드 줄
-      # (@override 등)을 봅니다. 주석 뒤에 같은 줄로 코드가 이어지면 코드 줄입니다.
+      mode == "" && /^}/ { in_class = 0 }
+      # 주석·빈 줄·문자열 안 줄은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
+      # 주석 뒤에 같은 줄로 코드가 이어지면 코드 줄입니다.
       {
-        is_code = 0
-        line = $0
-        if (in_string) {
-          if (gsub(tq_re, "&", line) % 2 == 1) in_string = 0
-        } else {
-          if (in_block) {
-            if (match(line, /\*\//)) {
-              in_block = 0
-              line = substr(line, RSTART + 2)
-            } else {
-              line = ""
-            }
-          }
-          if (line != "") {
-            t = gsub(tq_re, "&", line)
-            if (t > 0) {
-              match(line, tq_re)
-              line = substr(line, 1, RSTART - 1)
-              if (t % 2 == 1) in_string = 1
-            }
-            is_code = (code_of(drop_strings(line)) ~ /[^[:space:]]/)
-          }
-        }
+        is_code = (scan($0) ~ /[^[:space:]]/)
         prev = $0
         if (is_code) prev_code = $0
       }' "${file}"
