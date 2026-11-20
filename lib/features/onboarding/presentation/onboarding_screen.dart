@@ -50,9 +50,11 @@ class OnboardingScreen extends ConsumerWidget {
     }
 
     return PopScope(
-      canPop: state.isFirstStep,
+      // 기기 뒤로 가기도 화면 위 버튼과 같게 처리합니다. 첫 단계라도 닫을 이전
+      // 화면이 없으면 시스템 pop을 막아, 앱이 닫히지 않고 back()이 홈으로 보냅니다.
+      canPop: state.isFirstStep && Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) ref.read(onboardingProvider.notifier).back();
+        if (!didPop) back();
       },
       child: Scaffold(
         appBar: AppTopBar(title: OnboardingStrings.barTitle, onBack: back),

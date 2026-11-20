@@ -72,7 +72,8 @@ void main() {
       expect(find.text(OnboardingStrings.submitFailed), findsOneWidget);
     });
 
-    testWidgets('이전 화면 없이 바로 열린 첫 단계에서 뒤로 가기를 누르면 홈으로 간다', (tester) async {
+    /// 이전 화면 없이 /onboarding으로 바로 연 앱을 띄웁니다.
+    Future<void> pumpDirectOnboarding(WidgetTester tester) async {
       final router = GoRouter(
         initialLocation: AppRoute.onboarding,
         routes: [
@@ -96,10 +97,26 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+    }
+
+    testWidgets('이전 화면 없이 바로 열린 첫 단계에서 뒤로 가기를 누르면 홈으로 간다', (tester) async {
+      await pumpDirectOnboarding(tester);
 
       await tester.tap(find.bySemanticsLabel('뒤로 가기'));
       await tester.pumpAndSettle();
 
+      expect(find.text('홈 화면'), findsOneWidget);
+    });
+
+    testWidgets('이전 화면 없이 바로 열린 첫 단계에서 기기 뒤로 가기를 누르면 앱을 닫지 않고 홈으로 간다', (
+      tester,
+    ) async {
+      await pumpDirectOnboarding(tester);
+
+      final isHandled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(isHandled, isTrue);
       expect(find.text('홈 화면'), findsOneWidget);
     });
   });
