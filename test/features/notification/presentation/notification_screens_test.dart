@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
+import 'package:chagok_mobile/features/home/application/home_clock.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:chagok_mobile/features/home/data/home_repository.dart';
 import 'package:chagok_mobile/features/home/presentation/home_strings.dart';
 import 'package:chagok_mobile/features/notification/application/notification_clock.dart';
 import 'package:chagok_mobile/features/notification/application/notification_filter.dart';
+import 'package:chagok_mobile/features/notification/data/app_notification.dart';
+import 'package:chagok_mobile/features/notification/data/notification_kind.dart';
 import 'package:chagok_mobile/features/notification/data/notification_repository.dart';
 import 'package:chagok_mobile/features/notification/presentation/notification_detail_screen.dart';
 import 'package:chagok_mobile/features/notification/presentation/notification_list_screen.dart';
@@ -18,6 +24,7 @@ import '../../../helpers/sample_notifications.dart';
 
 void main() {
   late FakeNotificationRepository repository;
+  late DateTime now;
 
   /// 앱을 띄우고 홈의 종 버튼으로 알림 목록을 엽니다.
   Future<void> openNotifications(WidgetTester tester) async {
@@ -30,9 +37,8 @@ void main() {
       ProviderScope(
         overrides: [
           notificationRepositoryProvider.overrideWithValue(repository),
-          notificationClockProvider.overrideWithValue(
-            () => DateTime(2026, 11, 18, 10),
-          ),
+          notificationClockProvider.overrideWithValue(() => now),
+          homeClockProvider.overrideWithValue(() => now),
           homeRepositoryProvider.overrideWithValue(FakeHomeRepository()),
         ],
         retry: (_, _) => null,
@@ -51,11 +57,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  setUp(
-    () => repository = FakeNotificationRepository(
+  setUp(() {
+    now = DateTime(2026, 11, 18, 10);
+    repository = FakeNotificationRepository(
       notifications: sampleNotifications(),
-    ),
-  );
+    );
+  });
 
   group('NotificationListScreen', () {
     testWidgets('홈의 종 버튼을 누르면 바텀바가 있는 알림 목록을 연다', (tester) async {
@@ -153,13 +160,15 @@ void main() {
       await tapText(tester, '내일은 월세 납부일이에요');
 
       await tapText(tester, NotificationStrings.markDone);
+      expect(find.byType(NotificationDetailScreen), findsNothing);
+      expect(find.byType(NotificationListScreen), findsOneWidget);
+
       await tapText(
         tester,
         NotificationStrings.filter(NotificationFilter.done),
       );
 
       expect(repository.doneRequests, ['rent']);
-      expect(find.byType(NotificationListScreen), findsOneWidget);
       expect(find.text('내일은 월세 납부일이에요'), findsOneWidget);
     });
 
@@ -204,6 +213,77 @@ void main() {
       await tapText(tester, NotificationStrings.viewDocument);
 
       expect(find.text(NotificationStrings.comingSoon), findsOneWidget);
+    });
+
+    testWidgets('완료를 저장하는 사이 버튼을 다시 누르면 한 번만 저장하고 목록으로 한 번만 돌아간다', (
+      tester,
+    ) async {
+      await openNotifications(tester);
+      await tapText(tester, '내일은 월세 납부일이에요');
+      repository.saveGate = Completer<void>();
+
+      await tester.tap(find.text(NotificationStrings.markDone));
+      await tester.pump();
+      await tester.tap(
+        find.text(NotificationStrings.markDone),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+      repository.saveGate?.complete();
+      await tester.pumpAndSettle();
+
+      expect(repository.doneRequests, ['rent']);
+      expect(find.byType(NotificationListScreen), findsOneWidget);
+    });
+
+    testWidgets('보관함 이름이 길어도 글자를 2배로 키우면 연결 서류 줄이 넘치지 않는다', (tester) async {
+      repository.notifications = [
+        for (final notification in sampleNotifications())
+          notification.id == 'rent'
+              ? AppNotification(
+                  id: 'rent',
+                  kind: NotificationKind.payment,
+                  title: notification.title,
+                  sentAt: notification.sentAt,
+                  boxName: '우리 가족이 함께 사는 집 · 전세 임대 계약',
+                  dueDate: notification.dueDate,
+                  amount: notification.amount,
+                  documentName: '주택 임대차 표준 계약서',
+                )
+              : notification,
+      ];
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await openNotifications(tester);
+
+      await tapText(tester, '내일은 월세 납부일이에요');
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('날짜·읽음 처리', () {
+    testWidgets('목록을 연 채로 자정이 지나면 납부 알림의 D-1을 D-DAY로 바꾼다', (tester) async {
+      await openNotifications(tester);
+      expect(find.text('D-1'), findsOneWidget);
+
+      now = DateTime(2026, 11, 19, 0, 1);
+      ProviderScope.containerOf(
+        tester.element(find.byType(NotificationListScreen)),
+      ).read(homeTodayProvider.notifier).refresh();
+      await tester.pumpAndSettle();
+
+      expect(find.text('D-DAY'), findsOneWidget);
+    });
+
+    testWidgets('알림을 읽음으로 저장하지 못하면 상세는 열고 다시 시도하라고 알린다', (tester) async {
+      await openNotifications(tester);
+      repository.saveError = Exception('network');
+
+      await tapText(tester, '내일은 월세 납부일이에요');
+
+      expect(find.byType(NotificationDetailScreen), findsOneWidget);
+      expect(find.text(NotificationStrings.saveFailed), findsOneWidget);
     });
   });
 }

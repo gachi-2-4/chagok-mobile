@@ -7,7 +7,7 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
-import 'package:chagok_mobile/features/notification/application/notification_clock.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:chagok_mobile/features/notification/application/notification_due.dart';
 import 'package:chagok_mobile/features/notification/application/notification_filter.dart';
 import 'package:chagok_mobile/features/notification/application/notification_filter_notifier.dart';
@@ -89,14 +89,19 @@ class _NotificationList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final today = ref.watch(notificationClockProvider)();
+    // 홈 탭의 기준 날짜를 씁니다. 자정이 지나거나 앱으로 돌아오면 바뀌어 D-n을 다시 그립니다.
+    final today = ref.watch(homeTodayProvider);
     final shown = filter.apply(notifications);
     NotificationListNotifier notifier() =>
         ref.read(notificationListProvider.notifier);
 
-    void open(AppNotification notification) {
-      unawaited(notifier().markRead(notification.id));
+    Future<void> open(AppNotification notification) async {
       unawaited(context.push(AppRoute.notificationDetail(notification.id)));
+      final isSaved = await notifier().markRead(notification.id);
+      if (isSaved || !context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(NotificationStrings.saveFailed)),
+      );
     }
 
     Future<void> markAllRead() async {
@@ -125,7 +130,7 @@ class _NotificationList extends ConsumerWidget {
           NotificationTile(
             notification: notification,
             daysLeft: NotificationDue.daysLeft(notification, today),
-            onTap: () => open(notification),
+            onTap: () => unawaited(open(notification)),
           ),
           const Divider(
             height: _dividerThickness,

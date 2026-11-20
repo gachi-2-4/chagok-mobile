@@ -7,6 +7,7 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
+import 'package:chagok_mobile/features/notification/application/notification_done_notifier.dart';
 import 'package:chagok_mobile/features/notification/application/notification_filter_notifier.dart';
 import 'package:chagok_mobile/features/notification/application/notification_list_notifier.dart';
 import 'package:chagok_mobile/features/notification/data/app_notification.dart';
@@ -90,6 +91,9 @@ class _DetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final canMarkDone =
         notification.kind == NotificationKind.payment && !notification.isDone;
+    final isSavingDone = ref
+        .watch(notificationDoneProvider)
+        .contains(notification.id);
 
     void showComingSoon() {
       // TODO: 서류 보기 화면이 생기면 연결합니다.
@@ -100,9 +104,10 @@ class _DetailContent extends ConsumerWidget {
 
     Future<void> markDone() async {
       final isSaved = await ref
-          .read(notificationListProvider.notifier)
+          .read(notificationDoneProvider.notifier)
           .markDone(notification.id);
-      if (!context.mounted) return;
+      // null이면 이미 저장하고 있는 중이라, 먼저 누른 쪽이 안내와 복귀를 맡습니다.
+      if (isSaved == null || !context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -118,28 +123,48 @@ class _DetailContent extends ConsumerWidget {
     return Column(
       children: [
         Expanded(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: _DetailHeader(notification: notification),
-              ),
-              // 본문 바탕을 화면 아래까지 채우고, 길면 함께 스크롤합니다.
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _DetailBody(
-                  notification: notification,
-                  showsPaymentGuide: canMarkDone,
-                  onDocumentTap: showComingSoon,
-                ),
-              ),
-            ],
+          child: _DetailScroll(
+            notification: notification,
+            showsPaymentGuide: canMarkDone,
+            onDocumentTap: showComingSoon,
           ),
         ),
         _DetailActions(
-          onMarkDone: canMarkDone ? () => unawaited(markDone()) : null,
+          canMarkDone: canMarkDone,
+          onMarkDone: isSavingDone ? null : () => unawaited(markDone()),
           onViewDocument: notification.documentName == null
               ? null
               : showComingSoon,
+        ),
+      ],
+    );
+  }
+}
+
+/// 머리와 본문. 본문 바탕을 화면 아래까지 채우고, 길면 함께 스크롤합니다.
+class _DetailScroll extends StatelessWidget {
+  const _DetailScroll({
+    required this.notification,
+    required this.showsPaymentGuide,
+    required this.onDocumentTap,
+  });
+
+  final AppNotification notification;
+  final bool showsPaymentGuide;
+  final VoidCallback onDocumentTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _DetailHeader(notification: notification)),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _DetailBody(
+            notification: notification,
+            showsPaymentGuide: showsPaymentGuide,
+            onDocumentTap: onDocumentTap,
+          ),
         ),
       ],
     );
@@ -355,10 +380,13 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTypography.fieldInput.copyWith(
-            color: AppColors.textSecondary,
+        // 이름이 길면 줄을 바꿔 오른쪽 값 자리를 남깁니다.
+        Flexible(
+          child: Text(
+            label,
+            style: AppTypography.fieldInput.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.lg),
@@ -381,18 +409,22 @@ class _InfoRow extends StatelessWidget {
 /// 아래 버튼 묶음. 누를 수 없는 버튼은 숨깁니다.
 class _DetailActions extends StatelessWidget {
   const _DetailActions({
+    required this.canMarkDone,
     required this.onMarkDone,
     required this.onViewDocument,
   });
 
+  /// 완료 버튼을 보여 줄지 여부.
+  final bool canMarkDone;
+
+  /// 완료 버튼을 눌렀을 때. 저장하는 동안은 null이라 버튼이 꺼집니다.
   final VoidCallback? onMarkDone;
   final VoidCallback? onViewDocument;
 
   @override
   Widget build(BuildContext context) {
-    final onMarkDone = this.onMarkDone;
     final onViewDocument = this.onViewDocument;
-    if (onMarkDone == null && onViewDocument == null) {
+    if (!canMarkDone && onViewDocument == null) {
       return const SizedBox.shrink();
     }
 
@@ -408,12 +440,12 @@ class _DetailActions extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (onMarkDone != null)
+            if (canMarkDone)
               AppButton.primary(
                 label: NotificationStrings.markDone,
                 onPressed: onMarkDone,
               ),
-            if (onMarkDone != null && onViewDocument != null)
+            if (canMarkDone && onViewDocument != null)
               const SizedBox(height: AppSpacing.buttonGap),
             if (onViewDocument != null)
               AppButton.secondary(
