@@ -35,7 +35,7 @@ reviews:
         - 의존 방향은 presentation → application → data 한 방향입니다. 반대 방향 import, 다른 기능의 presentation import를 지적합니다.
         - presentation에서 Repository·API를 직접 호출하거나 비즈니스 로직을 두면 지적합니다.
         - application(Notifier)에 BuildContext·Widget 의존이 있으면 지적합니다.
-        - ref.watch는 build 안에서, ref.read는 이벤트 핸들러 안에서만 써야 합니다.
+        - ref.watch는 build 안에서, ref.read는 이벤트 핸들러 안에서만 써야 합니다. GoRoute의 redirect 콜백은 이동할 때마다 불리는 이벤트 핸들러로 보므로 그 안의 ref.read는 지적하지 않습니다.
         - 색상·글자 크기·간격·모서리는 하드코딩하지 않고 core/constants 토큰(AppColors, AppTypography, AppSpacing, AppRadius)이나 Theme을 씁니다.
         - core/widgets에 같은 역할의 App* 공통 위젯이 있는데 새로 만들었다면 재사용을 제안합니다.
         - `!` 강제 해제, 다시 대입하지 않는 var, 상대 경로 import를 지적합니다.
