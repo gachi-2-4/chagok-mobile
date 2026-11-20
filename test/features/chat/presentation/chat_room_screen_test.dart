@@ -156,5 +156,34 @@ void main() {
       repository.sendGate?.complete();
       await tester.pumpAndSettle();
     });
+
+    testWidgets('질문을 보내면 답을 받을 때까지 서류 추가 아이콘을 흐리게 그린다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatRoomScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      Color? addIconColor() => IconTheme.of(
+        tester.element(
+          find.descendant(
+            of: find.byTooltip(ChatStrings.addDocument),
+            matching: find.byType(Icon),
+          ),
+        ),
+      ).color;
+      final enabledColor = addIconColor();
+      repository.sendGate = Completer<void>();
+
+      await tester.enterText(find.byType(TextField), question);
+      await tester.tap(find.byTooltip(ChatStrings.send));
+      await tester.pump();
+
+      // 버튼은 색을 AnimatedTheme으로 바꾸므로 애니메이션이 끝날 때까지 기다립니다.
+      await tester.pump(kThemeChangeDuration);
+
+      expect(addIconColor(), isNot(enabledColor));
+      repository.sendGate?.complete();
+      await tester.pumpAndSettle();
+    });
   });
 }

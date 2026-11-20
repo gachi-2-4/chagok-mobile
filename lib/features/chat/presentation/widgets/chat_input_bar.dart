@@ -5,7 +5,6 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 /// 대화 화면 아래 입력줄. "서류 추가" 버튼, 질문 입력칸, 보내기(↑) 버튼.
 class ChatInputBar extends StatefulWidget {
@@ -30,6 +29,9 @@ class ChatInputBar extends StatefulWidget {
 }
 
 class _ChatInputBarState extends State<ChatInputBar> {
+  /// 누를 수 없는 서류 추가 아이콘의 불투명도. [AppButton]의 비활성과 같습니다.
+  static const _disabledOpacity = 0.4;
+
   final _controller = TextEditingController();
 
   @override
@@ -61,17 +63,18 @@ class _ChatInputBarState extends State<ChatInputBar> {
             tooltip: ChatStrings.addDocument,
             style: IconButton.styleFrom(
               foregroundColor: AppColors.textPrimary,
+              // 답을 기다리는 동안 누를 수 없다는 것이 보이도록 흐리게 그립니다.
+              disabledForegroundColor: AppColors.textPrimary.withValues(
+                alpha: _disabledOpacity,
+              ),
               padding: const EdgeInsets.only(
                 left: AppSpacing.fieldPaddingHorizontal,
                 right: AppSpacing.sm,
               ),
               minimumSize: const Size(0, kMinInteractiveDimension),
             ),
-            icon: SvgPicture.asset(
-              AppIcons.arrowBack,
-              width: AppIcons.mediumSize,
-              height: AppIcons.mediumSize,
-            ),
+            // 버튼의 활성·비활성 색을 그대로 따르도록 SVG 대신 글꼴 아이콘을 씁니다.
+            icon: const Icon(Icons.add_rounded, size: AppIcons.mediumSize),
           ),
           Expanded(
             child: TextField(
