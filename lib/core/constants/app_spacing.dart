@@ -170,4 +170,13 @@ abstract final class AppSpacing {
 
   /// 설문 진행 막대 칸 사이 간격.
   static const progressSegmentGap = 6.0;
+
+  /// 알림 한 줄·상세 머리의 위아래 여백.
+  static const noticePaddingVertical = 18.0;
+
+  /// 알림 상세 본문의 안쪽 여백.
+  static const noticeBodyPadding = 24.0;
+
+  /// 알림 상세 본문의 정보 묶음 사이 간격.
+  static const noticeBlockGap = 26.0;
 }
