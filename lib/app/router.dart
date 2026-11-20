@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
+import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_confirm_screen.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_retake_screen.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_review_screen.dart';
@@ -36,8 +38,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoute.upload,
         builder: (context, state) => const UploadSourceScreen(),
       ),
+      // 고른 파일·분석 결과 없이 주소로 바로 들어오면(앱을 다시 연 경우 등)
+      // 빈 화면에 갇히지 않도록 서류 올리기 첫 화면으로 돌려보냅니다.
       GoRoute(
         path: AppRoute.uploadConfirm,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).document == null ? AppRoute.upload : null,
         builder: (context, state) => const UploadConfirmScreen(),
       ),
       GoRoute(
@@ -46,6 +52,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoute.uploadReview,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).result is AnalysisSucceeded
+            ? null
+            : AppRoute.upload,
         builder: (context, state) => const UploadReviewScreen(),
       ),
     ],

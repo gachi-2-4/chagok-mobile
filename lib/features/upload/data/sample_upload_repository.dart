@@ -14,7 +14,7 @@ class SampleUploadRepository implements UploadRepository {
   var _cameraAnalysisCount = 0;
   final savedFileNames = <String>[];
 
-  static const _preview = DocumentPreview(
+  static final _preview = DocumentPreview(
     title: '주택 임대차계약서',
     section: '제1조 보증금 및 월 임대료',
     lines: ['월 임대료　500,000원', '납부일　매월 25일'],

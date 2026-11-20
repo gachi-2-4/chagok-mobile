@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -15,8 +16,6 @@ class DocumentPreviewCard extends StatelessWidget {
   /// 상자의 최소 높이. 비우면 내용 높이에 맞춥니다.
   final double? minHeight;
 
-  static const _radius = 16.0;
-
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -24,7 +23,7 @@ class DocumentPreviewCard extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.dialogSurface,
-          borderRadius: BorderRadius.circular(_radius),
+          borderRadius: BorderRadius.circular(AppRadius.paper),
           border: Border.all(color: AppColors.chipBorder),
         ),
         child: Padding(

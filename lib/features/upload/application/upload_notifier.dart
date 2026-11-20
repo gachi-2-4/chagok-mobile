@@ -22,7 +22,9 @@ class UploadNotifier extends Notifier<UploadState> {
   /// [source]에서 파일을 고릅니다. 골랐으면 true, 취소하거나 실패하면 false.
   ///
   /// 처음 고를 때 보관함 목록을 불러와 첫 보관함을 골라 둡니다.
+  /// 다른 일을 하는 중이면 겹치지 않도록 무시하고 false를 돌려줍니다.
   Future<bool> pick(UploadSource source) async {
+    if (state.isBusy) return false;
     state = state.copyWith(isBusy: true, hasFailed: false);
     try {
       final document = await _repository.pick(source);
