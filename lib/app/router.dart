@@ -17,6 +17,12 @@ import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/text_size_screen.dart';
+import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
+import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_confirm_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_retake_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_review_screen.dart';
+import 'package:chagok_mobile/features/upload/presentation/upload_source_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,6 +42,12 @@ abstract final class AppRoute {
   // 채팅 (H01~H02). 채팅 탭 안에 쌓여 바텀바가 계속 보입니다.
   static String chatRoom(String id) => '/chat/$id';
   static String chatAttach(String id) => '/chat/$id/documents';
+
+  // 서류 올리기 (U01~U04)
+  static const upload = '/upload';
+  static const uploadConfirm = '/upload/confirm';
+  static const uploadRetake = '/upload/retake';
+  static const uploadReview = '/upload/review';
 
   // 회원가입 (A01~A03)
   static const signUp = '/sign-up';
@@ -112,6 +124,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       ..._authRoutes(ref),
+      GoRoute(
+        path: AppRoute.upload,
+        builder: (context, state) => const UploadSourceScreen(),
+      ),
+      // 고른 파일·분석 결과 없이 주소로 바로 들어오면(앱을 다시 연 경우 등)
+      // 빈 화면에 갇히지 않도록 서류 올리기 첫 화면으로 돌려보냅니다.
+      GoRoute(
+        path: AppRoute.uploadConfirm,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).document == null ? AppRoute.upload : null,
+        builder: (context, state) => const UploadConfirmScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadRetake,
+        builder: (context, state) => const UploadRetakeScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.uploadReview,
+        redirect: (context, state) =>
+            ref.read(uploadProvider).result is AnalysisSucceeded
+            ? null
+            : AppRoute.upload,
+        builder: (context, state) => const UploadReviewScreen(),
+      ),
     ],
   );
   ref.onDispose(router.dispose);

@@ -313,4 +313,24 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
+
+  /// 서류 미리 보기의 서류 제목.
+  static const previewTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 17,
+    height: 32.3 / 17,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 촬영 틀 안의 안내 문장. 줄 간격을 넓게 둡니다.
+  static const frameGuide = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    height: 28.5 / 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+  );
 }

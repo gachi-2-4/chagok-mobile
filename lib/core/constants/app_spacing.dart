@@ -155,4 +155,13 @@ abstract final class AppSpacing {
 
   /// 간편 로그인 버튼의 회사 로고와 글자 사이 간격.
   static const socialLogoGap = 6.0;
+
+  /// 이름·값 표에서 줄 사이 간격.
+  static const tableRowGap = 10.0;
+
+  /// 이름·값 표에서 구분선 위아래 여백.
+  static const tableDividerGap = 14.0;
+
+  /// 안내 카드에서 첫 문장과 도움말 사이 간격.
+  static const noticeHelpGap = 9.0;
 }
