@@ -1,8 +1,14 @@
-/// `assets/icons/`에 있는 SVG 아이콘 경로.
+/// `assets/icons/`에 있는 SVG 아이콘 경로와 아이콘 크기.
 ///
 /// Figma에서 내보낸 원본을 그대로 씁니다.
 abstract final class AppIcons {
   static const _base = 'assets/icons';
+
+  /// 18. 입력줄 안 보내기(↑)처럼 작은 버튼 아이콘 크기.
+  static const smallSize = 18.0;
+
+  /// 20. 입력창 끝의 검색 아이콘 크기.
+  static const mediumSize = 20.0;
 
   static const back = '$_base/back.svg';
   static const arrowBack = '$_base/arrow_back.svg';
