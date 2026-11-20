@@ -99,6 +99,54 @@ abstract final class AppSpacing {
   /// 내 질문 말풍선 왼쪽을 비워 두는 너비.
   static const chatBubbleIndent = 45.0;
 
+  /// 홈처럼 상단 바 바로 아래 구역 제목이 오는 화면의 위 여백.
+  static const pageTopCompact = 6.0;
+
+  /// 구역 제목 줄과 그 아래 내용 사이 간격.
+  static const sectionTitleGap = 10.0;
+
+  /// 가로로 나란히 놓은 카드 사이 간격.
+  static const cardGap = 10.0;
+
+  /// 미니 캘린더에서 요일·날짜·일정 점 사이 간격.
+  static const calendarDayGap = 6.0;
+
+  /// "D-2" 같은 알약 모양 표 안쪽 좌우 여백.
+  static const pillPaddingHorizontal = 9.0;
+
+  /// 알약 모양 표와 옆 글자 사이 간격.
+  static const pillGap = 10.0;
+
+  /// 작은 표(예: 보관함의 "D-13") 안쪽 위아래 여백.
+  static const tagPaddingVertical = 3.0;
+
+  /// 최근 알림 카드 안쪽 위아래 여백.
+  static const alertCardPaddingVertical = 6.0;
+
+  /// 알림 제목과 그 아래 보관함·시각 사이 간격.
+  static const alertMetaGap = 3.0;
+
+  /// 보관함 상자 그림에서 몸통이 뚜껑보다 안쪽으로 들어간 너비.
+  static const boxBodyInset = 9.0;
+
+  /// 보관함 상자 그림에서 몸통이 시작하는 높이.
+  static const boxBodyTop = 22.0;
+
+  /// 보관함 상자 몸통 안쪽 왼쪽·위 여백.
+  static const boxBodyPaddingStart = 14.0;
+
+  /// 보관함 상자 몸통 안쪽 오른쪽·아래 여백.
+  static const boxBodyPaddingEnd = 10.0;
+
+  /// 보관함 상자 그림과 그 아래 이름 사이 간격.
+  static const boxLabelGap = 10.0;
+
+  /// 설정 화면 프로필 사진과 이름 사이 간격.
+  static const avatarGap = 14.0;
+
+  /// 그림이 왼쪽에 붙는 배너에서 배너 끝부터 그림까지 거리.
+  static const bannerIllustrationInset = 14.0;
+
   /// 화면 제목 묶음(AppPageHeader)과 그 아래 내용 사이 간격.
   static const pageHeaderBottom = 24.0;
 

@@ -15,7 +15,6 @@ void main() {
         authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
       ],
     );
-    addTearDown(container.dispose);
     final router = container.read(routerProvider);
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -26,8 +25,13 @@ void main() {
 
     router.go(location);
     await tester.pumpAndSettle();
+    final path = router.routerDelegate.currentConfiguration.uri.path;
 
-    return router.routerDelegate.currentConfiguration.uri.path;
+    // 홈 화면이 건 자정 Timer가 남지 않도록 testWidgets의 Timer 검사 전에
+    // 화면과 컨테이너를 정리합니다.
+    await tester.pumpWidget(const SizedBox.shrink());
+    container.dispose();
+    return path;
   }
 
   group('routerProvider', () {

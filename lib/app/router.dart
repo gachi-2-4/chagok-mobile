@@ -14,6 +14,9 @@ import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/text_size_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,6 +48,10 @@ abstract final class AppRoute {
   static const passwordResetVerification =
       '/login/forgot-password/verification';
   static const resetPassword = '/login/reset-password';
+
+  // 설정 하위 화면 (S02~S05). 설정 탭 안에 쌓여 바텀바가 계속 보입니다.
+  static const textSizeSettings = '/settings/text-size';
+  static const notificationSettings = '/settings/notifications';
 }
 
 /// 앱 전역 [GoRouter].
@@ -90,7 +97,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           _tab(
             AppRoute.settings,
-            (_) => const TabPlaceholderScreen(title: AppStrings.settingsTab),
+            (_) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'text-size',
+                builder: (context, state) => const TextSizeScreen(),
+              ),
+              GoRoute(
+                path: 'notifications',
+                builder: (context, state) => const NotificationSettingsScreen(),
+              ),
+            ],
           ),
         ],
       ),
