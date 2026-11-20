@@ -146,4 +146,13 @@ abstract final class AppSpacing {
 
   /// 그림이 왼쪽에 붙는 배너에서 배너 끝부터 그림까지 거리.
   static const bannerIllustrationInset = 14.0;
+
+  /// 화면 제목 묶음(AppPageHeader)과 그 아래 내용 사이 간격.
+  static const pageHeaderBottom = 24.0;
+
+  /// 전화번호 인증처럼 내용 묶음 사이를 넓게 띄우는 화면의 간격.
+  static const sectionGapLarge = 28.0;
+
+  /// 간편 로그인 버튼의 회사 로고와 글자 사이 간격.
+  static const socialLogoGap = 6.0;
 }
