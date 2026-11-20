@@ -1,4 +1,3 @@
-import 'package:chagok_mobile/features/calendar/application/calendar_clock.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_dates.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_day.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_view.dart';
@@ -6,12 +5,17 @@ import 'package:chagok_mobile/features/calendar/application/calendar_view_notifi
 import 'package:chagok_mobile/features/calendar/application/deadline_item.dart';
 import 'package:chagok_mobile/features/calendar/application/deadline_list_notifier.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 캘린더 화면이 그대로 그릴 값. 기한 목록·보기 상태·오늘에서 계산합니다.
+///
+/// 오늘은 홈의 기준 날짜([homeTodayProvider])를 따릅니다.
 final calendarContentProvider = Provider<AsyncValue<CalendarContent>>((ref) {
   final view = ref.watch(calendarViewProvider);
-  final today = CalendarDates.dateOnly(ref.watch(calendarClockProvider)());
+  // 홈 탭의 기준 날짜(오늘 0시)를 씁니다. 자정이 지나거나 앱으로 돌아오면 바뀌어
+  // 오늘 표시와 남은 날을 다시 계산합니다. 하단 탭은 홈 탭을 계속 살려 둡니다.
+  final today = ref.watch(homeTodayProvider);
   return ref
       .watch(deadlineListProvider)
       .whenData(

@@ -4,6 +4,8 @@ import 'package:chagok_mobile/features/calendar/data/calendar_repository.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_strings.dart';
+import 'package:chagok_mobile/features/home/application/home_clock.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +14,7 @@ import '../../../helpers/fake_calendar_repository.dart';
 
 void main() {
   late FakeCalendarRepository repository;
+  late DateTime now;
 
   Deadline deadline(
     String id,
@@ -36,9 +39,8 @@ void main() {
       ProviderScope(
         overrides: [
           calendarRepositoryProvider.overrideWithValue(repository),
-          calendarClockProvider.overrideWithValue(
-            () => DateTime(2026, 11, 12, 9),
-          ),
+          calendarClockProvider.overrideWithValue(() => now),
+          homeClockProvider.overrideWithValue(() => now),
         ],
         retry: (_, _) => null,
         child: MaterialApp(
@@ -56,6 +58,7 @@ void main() {
   }
 
   setUp(() {
+    now = DateTime(2026, 11, 12, 9);
     repository = FakeCalendarRepository(
       deadlines: [
         deadline('past', '지난 기한', DateTime(2026, 11, 3)),
@@ -226,6 +229,20 @@ void main() {
 
       expect(find.text('지난 기한'), findsOneWidget);
       expect(find.text('D+9'), findsOneWidget);
+    });
+
+    testWidgets('화면을 연 채로 자정이 지나면 오늘 표시와 D-n을 다음 날 기준으로 바꾼다', (tester) async {
+      await pumpCalendar(tester);
+      expect(find.text('D-8'), findsOneWidget);
+
+      now = DateTime(2026, 11, 13, 0, 1);
+      ProviderScope.containerOf(tester.element(find.byType(CalendarScreen)))
+          .read(homeTodayProvider.notifier)
+          .refresh();
+      await tester.pumpAndSettle();
+
+      expect(find.text('D-7'), findsOneWidget);
+      expect(find.text('D-8'), findsNothing);
     });
   });
 }

@@ -6,6 +6,8 @@ import 'package:chagok_mobile/features/calendar/application/calendar_view_notifi
 import 'package:chagok_mobile/features/calendar/application/deadline_list_notifier.dart';
 import 'package:chagok_mobile/features/calendar/data/calendar_repository.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
+import 'package:chagok_mobile/features/home/application/home_clock.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -103,14 +105,14 @@ void main() {
 
   group('calendarContentProvider', () {
     test('날짜를 고르면 기한 목록을 그날 것으로 다시 계산한다', () async {
+      final now = DateTime(2026, 11, 12, 9);
       final container = ProviderContainer(
         overrides: [
           calendarRepositoryProvider.overrideWithValue(
             FakeCalendarRepository(deadlines: deadlines),
           ),
-          calendarClockProvider.overrideWithValue(
-            () => DateTime(2026, 11, 12, 9),
-          ),
+          calendarClockProvider.overrideWithValue(() => now),
+          homeClockProvider.overrideWithValue(() => now),
         ],
       );
       addTearDown(container.dispose);
@@ -124,6 +126,29 @@ void main() {
       final content = container.read(calendarContentProvider).value;
       expect(content?.items.map((item) => item.deadline.id), ['soon']);
       expect(content?.today, DateTime(2026, 11, 12));
+    });
+
+    test('홈의 기준 날짜가 다음 날로 바뀌면 오늘과 남은 날을 다시 계산한다', () async {
+      var now = DateTime(2026, 11, 12, 23, 59);
+      final container = ProviderContainer(
+        overrides: [
+          calendarRepositoryProvider.overrideWithValue(
+            FakeCalendarRepository(deadlines: deadlines),
+          ),
+          calendarClockProvider.overrideWithValue(() => now),
+          homeClockProvider.overrideWithValue(() => now),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(calendarContentProvider, (_, _) {});
+      await container.read(deadlineListProvider.future);
+
+      now = DateTime(2026, 11, 13, 0, 1);
+      container.read(homeTodayProvider.notifier).refresh();
+
+      final content = container.read(calendarContentProvider).value;
+      expect(content?.today, DateTime(2026, 11, 13));
+      expect(content?.items.first.daysLeft, 7);
     });
   });
 }
