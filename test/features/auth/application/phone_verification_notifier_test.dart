@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:chagok_mobile/features/auth/application/auth_clock.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_notifier.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
@@ -12,17 +15,31 @@ void main() {
 
   late FakeAuthRepository repository;
   late ProviderContainer container;
+  late DateTime now;
 
   setUp(() {
+    now = DateTime(2026, 11, 20, 9);
     repository = FakeAuthRepository();
     container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        authClockProvider.overrideWithValue(() => now),
+      ],
     );
     addTearDown(container.dispose);
   });
 
   /// autoDispose Provider가 테스트 도중 사라지지 않도록 구독해 둡니다.
   void keepAlive() => container.listen(provider, (_, _) {});
+
+  /// 시계와 가짜 Timer를 함께 [duration]만큼 보냅니다.
+  Future<void> elapse(WidgetTester tester, Duration duration) async {
+    now = now.add(duration);
+    await tester.pump(duration);
+  }
+
+  /// testWidgets의 남은 Timer 검사 전에 정리해 타이머를 멈춥니다.
+  void disposeNow() => container.dispose();
 
   group('PhoneVerificationNotifier', () {
     test('처음 읽으면 3분이 남아 있다', () {
@@ -38,12 +55,26 @@ void main() {
     testWidgets('시간이 흐르면 1초마다 남은 시간이 줄고 0에서 멈춘다', (tester) async {
       keepAlive();
 
-      await tester.pump(const Duration(seconds: 1));
+      await elapse(tester, const Duration(seconds: 1));
       expect(container.read(provider).remainingSeconds, 179);
 
-      await tester.pump(const Duration(minutes: 5));
+      await elapse(tester, const Duration(minutes: 5));
       expect(container.read(provider).remainingSeconds, 0);
       expect(container.read(provider).isExpired, isTrue);
+      disposeNow();
+    });
+
+    testWidgets('Timer 콜백이 밀려 몇 번 빠지면 빠진 만큼이 아니라 실제 흐른 시간만큼 줄인다', (
+      tester,
+    ) async {
+      keepAlive();
+
+      // 앱이 멈춰 있던 사이 4초가 흘렀는데 콜백은 한 번만 온 경우.
+      now = now.add(const Duration(seconds: 4));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(container.read(provider).remainingSeconds, 176);
+      disposeNow();
     });
 
     test('숫자가 아닌 글자나 6자리를 넘는 숫자를 넣으면 버린다', () {
@@ -69,19 +100,42 @@ void main() {
       keepAlive();
       container.read(provider.notifier).updateCode('123456');
 
-      await tester.pump(const Duration(minutes: 3));
+      await elapse(tester, const Duration(minutes: 3));
 
       expect(container.read(provider).canVerify, isFalse);
+      disposeNow();
     });
 
-    test('인증번호가 맞으면 true를 돌려준다', () async {
+    test('Timer가 오기 전이라도 3분이 지났으면 확인을 보내지 않는다', () async {
+      keepAlive();
+      final notifier = container.read(provider.notifier)..updateCode('123456');
+      now = now.add(const Duration(minutes: 3));
+
+      final token = await notifier.verify();
+
+      expect(token, isNull);
+      expect(container.read(provider).isExpired, isTrue);
+    });
+
+    test('인증번호가 맞으면 인증 증명 값을 돌려준다', () async {
       keepAlive();
       final notifier = container.read(provider.notifier)..updateCode('123456');
 
-      final isVerified = await notifier.verify();
+      final token = await notifier.verify();
 
-      expect(isVerified, isTrue);
+      expect(token, FakeAuthRepository.tokenFor(phoneNumber));
       expect(container.read(provider).failure, isNull);
+    });
+
+    testWidgets('인증에 성공한 뒤 시간이 흐르면 남은 시간이 실제 흐른 만큼 계속 줄어든다', (tester) async {
+      keepAlive();
+      final notifier = container.read(provider.notifier)..updateCode('123456');
+      await notifier.verify();
+
+      await elapse(tester, const Duration(seconds: 10));
+
+      expect(container.read(provider).remainingSeconds, 170);
+      disposeNow();
     });
 
     test('인증번호가 틀리면 codeMismatch를 상태에 담는다', () async {
@@ -89,16 +143,16 @@ void main() {
       keepAlive();
       final notifier = container.read(provider.notifier)..updateCode('123456');
 
-      final isVerified = await notifier.verify();
+      final token = await notifier.verify();
 
-      expect(isVerified, isFalse);
+      expect(token, isNull);
       expect(container.read(provider).failure, AuthFailure.codeMismatch);
     });
 
     testWidgets('다시 받으면 인증번호를 보내고 입력과 남은 시간을 처음으로 돌린다', (tester) async {
       keepAlive();
       final notifier = container.read(provider.notifier)..updateCode('123');
-      await tester.pump(const Duration(seconds: 30));
+      await elapse(tester, const Duration(seconds: 30));
 
       await notifier.resend();
 
@@ -109,8 +163,21 @@ void main() {
         state.remainingSeconds,
         PhoneVerificationNotifier.codeLifetimeSeconds,
       );
-      // 테스트가 끝나기 전에 타이머가 멈추도록 만료될 때까지 시간을 보냅니다.
-      await tester.pump(const Duration(minutes: 3));
+      disposeNow();
+    });
+
+    test('인증번호를 확인하는 중이면 다시 받기를 하지 않는다', () async {
+      repository.verifyGate = Completer<void>();
+      keepAlive();
+      final notifier = container.read(provider.notifier)..updateCode('123456');
+      final verifying = notifier.verify();
+
+      final isSent = await notifier.resend();
+      repository.verifyGate?.complete();
+      await verifying;
+
+      expect(isSent, isFalse);
+      expect(repository.sentCodes, isEmpty);
     });
 
     test('인증번호를 확인하지 못하면 unknown을 상태에 담고 확인 중 상태를 푼다', () async {
@@ -118,9 +185,9 @@ void main() {
       keepAlive();
       final notifier = container.read(provider.notifier)..updateCode('123456');
 
-      final isVerified = await notifier.verify();
+      final token = await notifier.verify();
 
-      expect(isVerified, isFalse);
+      expect(token, isNull);
       expect(container.read(provider).failure, AuthFailure.unknown);
       expect(container.read(provider).isSubmitting, isFalse);
     });

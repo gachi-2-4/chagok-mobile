@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/app/theme.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
 import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,6 +62,29 @@ void main() {
         find.byType(TextField).at(3),
       );
       expect(passwordField.obscureText, isFalse);
+    });
+
+    testWidgets('인증번호를 요청하는 중이면 전화번호를 고칠 수 없다', (tester) async {
+      tester.view.physicalSize = const Size(390, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final repository = FakeAuthRepository()..sendGate = Completer<void>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [authRepositoryProvider.overrideWithValue(repository)],
+          child: MaterialApp(theme: AppTheme.light, home: const SignUpScreen()),
+        ),
+      );
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '01066453576');
+      await tester.enterText(fields.at(1), '김차곡');
+      await tester.enterText(fields.at(2), '1995.03.21');
+      await enterPasswords(tester, password: 'chagok12!', confirm: 'chagok12!');
+
+      await tester.tap(find.text(AuthStrings.requestCode));
+      await tester.pump();
+
+      expect(tester.widget<TextField>(fields.at(0)).readOnly, isTrue);
     });
   });
 }

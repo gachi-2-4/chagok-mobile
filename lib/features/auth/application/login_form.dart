@@ -35,7 +35,10 @@ class LoginForm {
       password.isNotEmpty &&
       !isSubmitting;
 
-  /// 넘긴 값만 바꾼 새 상태를 돌려줍니다. [failure]는 null로도 바꿀 수 있게 함수로 받습니다.
+  /// 넘긴 값만 바꾼 새 상태를 돌려줍니다.
+  ///
+  /// [failure]는 null로도 바꿀 수 있게 함수로 받습니다. 넘기지 않으면 앞선
+  /// 실패를 그대로 두고, `() => null`을 넘기면 지웁니다.
   LoginForm copyWith({
     String? phoneNumber,
     String? password,

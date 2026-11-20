@@ -21,6 +21,7 @@ abstract final class AuthStrings {
     AuthFailure.alreadyRegistered => '이미 가입한 전화번호예요.',
     AuthFailure.wrongCredentials => '전화번호 또는 비밀번호가 맞지 않아요.',
     AuthFailure.notRegistered => '가입하지 않은 전화번호예요.',
+    AuthFailure.notVerified => '인증이 끝났거나 만료됐어요. 인증번호를 다시 받아 주세요.',
     AuthFailure.codeMismatch => '인증번호가 맞지 않아요.',
     AuthFailure.unknown => '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
   };

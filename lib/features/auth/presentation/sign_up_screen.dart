@@ -80,6 +80,8 @@ class _SignUpFields extends ConsumerWidget {
           onChanged: (value) => notifier().updatePhoneNumber(value),
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
+          // 요청하는 사이 번호를 바꾸면 보낸 번호와 입력이 달라지므로 잠급니다.
+          readOnly: form.isSubmitting,
         ),
         const SizedBox(height: AppSpacing.stack),
         AppTextField(

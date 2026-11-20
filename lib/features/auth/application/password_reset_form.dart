@@ -7,6 +7,8 @@ class PasswordResetForm {
     this.phoneNumber = '',
     this.newPassword = '',
     this.newPasswordConfirm = '',
+    this.codeSentTo,
+    this.verificationToken,
     this.isSubmitting = false,
     this.failure,
   });
@@ -20,6 +22,12 @@ class PasswordResetForm {
   /// 새 비밀번호 확인 칸.
   final String newPasswordConfirm;
 
+  /// 인증번호를 보낸 번호(숫자만). 요청하는 사이 입력을 바꿔도 이 번호로 인증합니다.
+  final String? codeSentTo;
+
+  /// 인증번호를 확인하고 받은 증명 값. 계정 요청에 함께 넘깁니다.
+  final String? verificationToken;
+
   /// 요청을 보내는 중이면 true.
   final bool isSubmitting;
 
@@ -28,6 +36,10 @@ class PasswordResetForm {
 
   /// 하이픈 등을 뺀, 숫자만 남긴 전화번호.
   String get normalizedPhoneNumber => AuthValidators.digitsOnly(phoneNumber);
+
+  /// 지금 입력한 번호로 인증을 마쳤으면 true.
+  bool get isVerified =>
+      verificationToken != null && codeSentTo == normalizedPhoneNumber;
 
   /// 전화번호 형식이 맞고 보내는 중이 아니면 true.
   bool get canRequestCode =>
@@ -40,15 +52,23 @@ class PasswordResetForm {
   bool get hasPasswordMismatch =>
       newPasswordConfirm.isNotEmpty && newPasswordConfirm != newPassword;
 
-  /// 새 비밀번호가 규칙에 맞고 확인 칸과 같으며 보내는 중이 아니면 true.
+  /// 인증을 마쳤고 새 비밀번호가 규칙에 맞고 확인 칸과 같으며 보내는 중이 아니면 true.
   bool get canReset =>
-      isNewPasswordValid && newPasswordConfirm == newPassword && !isSubmitting;
+      isVerified &&
+      isNewPasswordValid &&
+      newPasswordConfirm == newPassword &&
+      !isSubmitting;
 
-  /// 넘긴 값만 바꾼 새 상태를 돌려줍니다. [failure]는 null로도 바꿀 수 있게 함수로 받습니다.
+  /// 넘긴 값만 바꾼 새 상태를 돌려줍니다.
+  ///
+  /// [codeSentTo]·[verificationToken]·[failure]는 null로도 바꿀 수 있게 함수로
+  /// 받습니다. 넘기지 않으면 앞선 값을 그대로 두고, `() => null`을 넘기면 지웁니다.
   PasswordResetForm copyWith({
     String? phoneNumber,
     String? newPassword,
     String? newPasswordConfirm,
+    String? Function()? codeSentTo,
+    String? Function()? verificationToken,
     bool? isSubmitting,
     AuthFailure? Function()? failure,
   }) {
@@ -56,6 +76,10 @@ class PasswordResetForm {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       newPassword: newPassword ?? this.newPassword,
       newPasswordConfirm: newPasswordConfirm ?? this.newPasswordConfirm,
+      codeSentTo: codeSentTo == null ? this.codeSentTo : codeSentTo(),
+      verificationToken: verificationToken == null
+          ? this.verificationToken
+          : verificationToken(),
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failure: failure == null ? this.failure : failure(),
     );

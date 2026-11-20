@@ -7,8 +7,12 @@ import 'package:chagok_mobile/features/auth/data/term.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 회원가입 입력값. A01~A03 화면이 함께 쓰므로 화면을 벗어나도 유지합니다.
-final signUpProvider = NotifierProvider<SignUpNotifier, SignUpForm>(
+/// 회원가입 입력값.
+///
+/// A01~A03 화면이 차례로 쌓여 함께 보는 동안 유지하고, 가입 흐름을 벗어나
+/// 아무 화면도 보지 않으면 비웁니다. 다시 열었을 때 빈 입력창 뒤에 이전 값이
+/// 남아 그 값으로 진행되지 않게 하기 위해서입니다.
+final signUpProvider = NotifierProvider.autoDispose<SignUpNotifier, SignUpForm>(
   SignUpNotifier.new,
 );
 
@@ -18,8 +22,16 @@ class SignUpNotifier extends Notifier<SignUpForm> {
   SignUpForm build() => const SignUpForm();
 
   /// 전화번호 입력값을 바꿉니다.
-  void updatePhoneNumber(String value) =>
-      state = state.copyWith(phoneNumber: value);
+  ///
+  /// 번호가 바뀌면 그 번호로 받은 인증은 쓸 수 없으므로 함께 지웁니다.
+  void updatePhoneNumber(String value) {
+    final isChanged =
+        AuthValidators.digitsOnly(value) != state.normalizedPhoneNumber;
+    state = state.copyWith(
+      phoneNumber: value,
+      verificationToken: isChanged ? () => null : null,
+    );
+  }
 
   /// 이름 입력값을 바꿉니다.
   void updateName(String value) => state = state.copyWith(name: value);
@@ -50,19 +62,31 @@ class SignUpNotifier extends Notifier<SignUpForm> {
   }
 
   /// 입력한 전화번호로 인증번호를 보냅니다. 보냈으면 true.
+  ///
+  /// 보낸 번호를 [SignUpForm.codeSentTo]에 남겨, 요청하는 사이 입력이 바뀌어도
+  /// 인증 화면은 실제로 보낸 번호로 인증합니다. 앞선 인증은 버립니다.
   Future<bool> requestVerificationCode() async {
     if (!state.canRequestCode) return false;
-    return _run(
-      () => ref
-          .read(authRepositoryProvider)
-          .sendVerificationCode(state.normalizedPhoneNumber),
+    final phoneNumber = state.normalizedPhoneNumber;
+    state = state.copyWith(verificationToken: () => null);
+    final isSent = await _run(
+      () => ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber),
     );
+    if (isSent && ref.mounted) {
+      state = state.copyWith(codeSentTo: () => phoneNumber);
+    }
+    return isSent;
   }
+
+  /// 인증 화면에서 받은 증명 값을 남깁니다. 계정 요청에 함께 넘깁니다.
+  void markVerified(String verificationToken) =>
+      state = state.copyWith(verificationToken: () => verificationToken);
 
   /// 약관 동의를 마치고 계정을 만듭니다. 만들었으면 true.
   Future<bool> complete() async {
-    if (!state.canComplete) return false;
     final form = state;
+    final token = form.verificationToken;
+    if (!form.canComplete || token == null) return false;
     return _run(
       () => ref
           .read(authRepositoryProvider)
@@ -72,6 +96,7 @@ class SignUpNotifier extends Notifier<SignUpForm> {
             birthDate: AuthValidators.digitsOnly(form.birthDate),
             password: form.password,
             agreedToMarketing: form.agreedTerms.contains(Term.marketing),
+            verificationToken: token,
           ),
     );
   }

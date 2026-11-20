@@ -20,8 +20,10 @@ void main() {
       expect(validForm.copyWith(name: '  ').canRequestCode, isFalse);
     });
 
-    test('필수 약관에 모두 동의하면 가입을 마칠 수 있다', () {
+    test('인증을 마치고 필수 약관에 모두 동의하면 가입을 마칠 수 있다', () {
       final form = validForm.copyWith(
+        codeSentTo: () => '01011111111',
+        verificationToken: () => 'token',
         agreedTerms: {Term.service, Term.privacy},
       );
 
@@ -33,6 +35,12 @@ void main() {
       final form = validForm.copyWith(
         agreedTerms: {Term.service, Term.marketing},
       );
+
+      expect(form.canComplete, isFalse);
+    });
+
+    test('인증하지 않았으면 필수 약관에 모두 동의해도 가입을 마칠 수 없다', () {
+      final form = validForm.copyWith(agreedTerms: Term.values.toSet());
 
       expect(form.canComplete, isFalse);
     });

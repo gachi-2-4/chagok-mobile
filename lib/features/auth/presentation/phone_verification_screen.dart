@@ -31,25 +31,32 @@ class PhoneVerificationScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final phoneNumber = switch (purpose) {
-      VerificationPurpose.signUp => ref.watch(
-        signUpProvider.select((form) => form.normalizedPhoneNumber),
-      ),
-      VerificationPurpose.passwordReset => ref.watch(
-        passwordResetProvider.select((form) => form.normalizedPhoneNumber),
-      ),
-    };
+    // 입력창의 지금 번호가 아니라 실제로 인증번호를 보낸 번호로 인증합니다.
+    final phoneNumber =
+        switch (purpose) {
+          VerificationPurpose.signUp => ref.watch(
+            signUpProvider.select((form) => form.codeSentTo),
+          ),
+          VerificationPurpose.passwordReset => ref.watch(
+            passwordResetProvider.select((form) => form.codeSentTo),
+          ),
+        } ??
+        '';
     final provider = phoneVerificationProvider(phoneNumber);
     final verification = ref.watch(provider);
 
     Future<void> verify() async {
-      final isVerified = await ref.read(provider.notifier).verify();
-      if (!isVerified || !context.mounted) return;
-      final next = switch (purpose) {
-        VerificationPurpose.signUp => AppRoute.signUpTerms,
-        VerificationPurpose.passwordReset => AppRoute.resetPassword,
-      };
-      unawaited(context.push(next));
+      final token = await ref.read(provider.notifier).verify();
+      if (token == null || !context.mounted) return;
+      // 받은 증명을 흐름의 입력값에 남겨, 다음 화면의 계정 요청에 함께 넘깁니다.
+      switch (purpose) {
+        case VerificationPurpose.signUp:
+          ref.read(signUpProvider.notifier).markVerified(token);
+          unawaited(context.push(AppRoute.signUpTerms));
+        case VerificationPurpose.passwordReset:
+          ref.read(passwordResetProvider.notifier).markVerified(token);
+          unawaited(context.push(AppRoute.resetPassword));
+      }
     }
 
     return AuthFormLayout(
@@ -118,7 +125,10 @@ class _CodeInput extends ConsumerWidget {
         const SizedBox(height: AppSpacing.md),
         _TimerRow(
           remainingSeconds: verification.remainingSeconds,
-          onResend: () => unawaited(resend()),
+          // 확인하는 중에 다시 받으면 확인 결과가 새 인증번호 상태를 덮으므로 막습니다.
+          onResend: verification.isSubmitting
+              ? null
+              : () => unawaited(resend()),
         ),
         if (message != null) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -134,7 +144,9 @@ class _TimerRow extends StatelessWidget {
   const _TimerRow({required this.remainingSeconds, required this.onResend});
 
   final int remainingSeconds;
-  final VoidCallback onResend;
+
+  /// "다시 받기"를 눌렀을 때. null이면 버튼을 끕니다.
+  final VoidCallback? onResend;
 
   @override
   Widget build(BuildContext context) {

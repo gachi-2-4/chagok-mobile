@@ -12,6 +12,9 @@ enum AuthFailure {
   /// 입력한 인증번호가 보낸 번호와 다름.
   codeMismatch,
 
+  /// 인증을 마치지 않았거나, 인증 증명이 만료·사용돼 다시 인증해야 함.
+  notVerified,
+
   /// 네트워크 오류 등 그 밖의 이유.
   unknown,
 }
