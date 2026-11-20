@@ -31,9 +31,13 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   /// 지금 인증번호가 만료되는 시각.
   late DateTime _expiresAt;
 
+  /// 지금 시각을 돌려주는 함수. 만료 시각과 남은 시간을 같은 시계로 계산합니다.
+  late DateTime Function() _now;
+
   @override
   PhoneVerificationState build() {
     ref.onDispose(() => _timer?.cancel());
+    _now = ref.watch(authClockProvider);
     _startTimer();
     return const PhoneVerificationState(remainingSeconds: codeLifetimeSeconds);
   }
@@ -100,9 +104,7 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   /// 만료 시각과 지금 시각의 차이로 남은 시간을 계산합니다.
   void _startTimer() {
     _timer?.cancel();
-    _expiresAt = ref
-        .read(authClockProvider)()
-        .add(const Duration(seconds: codeLifetimeSeconds));
+    _expiresAt = _now().add(const Duration(seconds: codeLifetimeSeconds));
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _syncRemaining();
       if (state.isExpired) timer.cancel();
@@ -110,7 +112,7 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   }
 
   void _syncRemaining() {
-    final left = _expiresAt.difference(ref.read(authClockProvider)());
+    final left = _expiresAt.difference(_now());
     final remaining = max(0, (left.inMilliseconds / 1000).ceil());
     if (remaining != state.remainingSeconds) {
       state = state.copyWith(remainingSeconds: remaining);
