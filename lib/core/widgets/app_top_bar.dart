@@ -2,6 +2,7 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar_action.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -56,7 +57,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
        _variant = _AppTopBarVariant.plain;
 
   /// 로고 글자.
-  static const logoText = '차곡';
+  static const logoText = CoreStrings.appName;
 
   /// 기본·로고 상단 바의 높이.
   static const height = 54.0;
@@ -98,7 +99,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       (null, final VoidCallback onMore) => _TapTarget(
         height: variant.height,
-        semanticLabel: '더보기',
+        semanticLabel: CoreStrings.more,
         onTap: onMore,
         child: Text(
           '···',
@@ -121,7 +122,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                 child: showBackButton
                     ? _TapTarget(
                         height: variant.height,
-                        semanticLabel: '뒤로 가기',
+                        semanticLabel: CoreStrings.back,
                         onTap: onBack ?? () => Navigator.maybePop(context),
                         child: _Icon(asset: variant.backIcon),
                       )

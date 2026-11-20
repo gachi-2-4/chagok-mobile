@@ -23,6 +23,8 @@ class AppCheckRow extends StatelessWidget {
   final bool isChecked;
   final ValueChanged<bool>? onChanged;
 
+  static const _iconSize = 22.0;
+
   @override
   Widget build(BuildContext context) {
     final onChanged = this.onChanged;
@@ -42,8 +44,8 @@ class AppCheckRow extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   isChecked ? AppIcons.checkboxOn : AppIcons.checkboxOff,
-                  width: 22,
-                  height: 22,
+                  width: _iconSize,
+                  height: _iconSize,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(child: Text(label, style: AppTypography.option)),

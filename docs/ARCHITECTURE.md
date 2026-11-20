@@ -60,6 +60,7 @@ presentation  →  application  →  data
 
 ### application (상태·로직)
 - `Notifier` / `AsyncNotifier`로 화면 상태와 로직을 관리합니다.
+  - 예외: 비밀번호 보이기·숨기기처럼 그 위젯 안에서만 쓰고 다른 위젯·화면·저장소와 나누지 않는 작은 화면 상태는 위젯의 `State`에 둘 수 있고, 왜 Notifier에 두지 않는지 주석으로 적습니다. → [`CODE_STYLE.md`](CODE_STYLE.md) 위젯 작성
 - Repository는 Provider로 주입받아 사용합니다.
 - Flutter UI 의존(`BuildContext`, `Widget`)을 가지지 않습니다. → 단위 테스트가 가능해야 합니다.
 
@@ -78,6 +79,7 @@ presentation  →  application  →  data
 - 이름은 `<대상>Provider` 형식입니다. 예: `todoListProvider`, `authRepositoryProvider`
 - 비동기 데이터는 `AsyncNotifier`를 쓰고, UI에서는 `AsyncValue.when`으로 로딩·에러·데이터를 모두 처리합니다.
 - 전역 가변 변수나 싱글턴 대신 Provider를 씁니다.
+- 다른 위젯과 나누거나, 화면을 벗어나도 남거나, 저장해야 하는 상태는 반드시 Notifier에 둡니다. 위젯 안에서만 쓰는 작은 화면 상태의 예외는 위 application 계층 설명을 따릅니다.
 - `ref.watch`는 `build` 안에서, `ref.read`는 이벤트 핸들러(버튼 콜백 등) 안에서만 씁니다.
   - GoRoute의 `redirect`도 화면을 이동할 때마다 불리는 콜백이므로 이벤트 핸들러로 보고 `ref.read`를 씁니다. 그 순간의 상태를 보고 보낼 곳을 정하는 것이 목적이고, `routerProvider`에서 `ref.watch`를 쓰면 상태가 바뀔 때마다 `GoRouter`가 다시 만들어지기 때문입니다.
 

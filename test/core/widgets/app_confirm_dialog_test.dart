@@ -72,7 +72,7 @@ void main() {
       expect(result, isFalse);
     });
 
-    testWidgets('설명이 길고 글자가 커도 "예"를 눌러 true를 돌려준다', (tester) async {
+    testWidgets('설명이 길고 글자가 커도 "예"를 누르면 true를 돌려준다', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       bool? result;

@@ -22,6 +22,8 @@ class AppSelectRow extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
 
+  static const _iconSize = 22.0;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -51,8 +53,8 @@ class AppSelectRow extends StatelessWidget {
                 const SizedBox(width: AppSpacing.md),
                 SvgPicture.asset(
                   isSelected ? AppIcons.radioOn : AppIcons.radioOff,
-                  width: 22,
-                  height: 22,
+                  width: _iconSize,
+                  height: _iconSize,
                 ),
               ],
             ),

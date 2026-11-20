@@ -14,6 +14,8 @@ class AppBulletRow extends StatelessWidget {
 
   final String text;
 
+  static const _bulletSize = 6.0;
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -30,7 +32,7 @@ class AppBulletRow extends StatelessWidget {
                 color: AppColors.bullet,
                 shape: BoxShape.circle,
               ),
-              child: SizedBox.square(dimension: 6),
+              child: SizedBox.square(dimension: _bulletSize),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(child: Text(text, style: AppTypography.option)),

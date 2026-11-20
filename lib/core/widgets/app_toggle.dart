@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_shadows.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,7 @@ class AppToggle extends StatelessWidget {
   static const _width = 46.0;
   static const _height = 28.0;
   static const _knobSize = 22.0;
-  static const _padding = 3.0;
+  static const _disabledOpacity = 0.5;
   static const _focusBorderWidth = 2.0;
   static const _duration = Duration(milliseconds: 150);
 
@@ -41,44 +42,57 @@ class AppToggle extends StatelessWidget {
         child: GestureDetector(
           onTap: isEnabled ? () => onChanged(!value) : null,
           child: Opacity(
-            opacity: isEnabled ? 1 : 0.5,
-            // 포커스 테두리를 그리려면 포커스 변화에 맞춰 다시 그려야 해서 Builder로 감쌉니다.
-            child: Builder(
-              builder: (context) => AnimatedContainer(
-                duration: _duration,
-                width: _width,
-                height: _height,
-                padding: const EdgeInsets.all(_padding),
-                decoration: BoxDecoration(
-                  color: value ? AppColors.toggleOn : AppColors.toggleOff,
-                  borderRadius: BorderRadius.circular(_height / 2),
-                ),
-                foregroundDecoration: Focus.of(context).hasPrimaryFocus
-                    ? BoxDecoration(
-                        borderRadius: BorderRadius.circular(_height / 2),
-                        border: Border.all(
-                          color: AppColors.primary,
-                          width: _focusBorderWidth,
-                        ),
-                      )
-                    : null,
-                child: AnimatedAlign(
-                  duration: _duration,
-                  alignment: value
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.toggleKnob,
-                      shape: BoxShape.circle,
-                      boxShadow: AppShadows.toggleKnob,
-                    ),
-                    child: SizedBox.square(dimension: _knobSize),
-                  ),
-                ),
-              ),
-            ),
+            opacity: isEnabled ? 1 : _disabledOpacity,
+            child: _ToggleTrack(value: value),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 스위치 바탕과 손잡이. 포커스를 받으면 테두리를 그립니다.
+class _ToggleTrack extends StatelessWidget {
+  const _ToggleTrack({required this.value});
+
+  final bool value;
+
+  @override
+  Widget build(BuildContext context) {
+    // 포커스 테두리를 그리려면 포커스 변화에 맞춰 다시 그려야 해서 Focus.of로 읽습니다.
+    final hasFocus = Focus.of(context).hasPrimaryFocus;
+
+    return AnimatedContainer(
+      duration: AppToggle._duration,
+      width: AppToggle._width,
+      height: AppToggle._height,
+      // 손잡이를 바탕 가운데에 두도록, 바탕 높이와 손잡이 크기의 차이만큼 띄웁니다.
+      padding: const EdgeInsets.all(
+        (AppToggle._height - AppToggle._knobSize) / 2,
+      ),
+      decoration: BoxDecoration(
+        color: value ? AppColors.toggleOn : AppColors.toggleOff,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      foregroundDecoration: hasFocus
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border: Border.all(
+                color: AppColors.primary,
+                width: AppToggle._focusBorderWidth,
+              ),
+            )
+          : null,
+      child: AnimatedAlign(
+        duration: AppToggle._duration,
+        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+        child: const DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.toggleKnob,
+            shape: BoxShape.circle,
+            boxShadow: AppShadows.toggleKnob,
+          ),
+          child: SizedBox.square(dimension: AppToggle._knobSize),
         ),
       ),
     );
