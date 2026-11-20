@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/app/theme.dart';
+import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/utils/app_text_scaler.dart';
 import 'package:chagok_mobile/features/settings/application/settings_notifier.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class ChagokApp extends ConsumerWidget {
     );
 
     return MaterialApp.router(
-      title: '차곡',
+      title: CoreStrings.appName,
       theme: AppTheme.light,
       routerConfig: router,
       // 설정의 글자 크기를 기기 글자 크기 위에 곱해 앱 전체에 적용합니다.

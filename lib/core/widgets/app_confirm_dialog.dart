@@ -3,6 +3,7 @@ import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_shadows.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:flutter/material.dart';
 
 /// "예/아니요"로 한 번 더 확인받는 작은 창.
@@ -13,8 +14,8 @@ class AppConfirmDialog extends StatelessWidget {
   const AppConfirmDialog({
     required this.title,
     this.description,
-    this.confirmLabel = '예',
-    this.cancelLabel = '아니요',
+    this.confirmLabel = CoreStrings.confirm,
+    this.cancelLabel = CoreStrings.cancel,
     this.isDestructive = false,
     super.key,
   });
@@ -37,8 +38,8 @@ class AppConfirmDialog extends StatelessWidget {
     BuildContext context, {
     required String title,
     String? description,
-    String confirmLabel = '예',
-    String cancelLabel = '아니요',
+    String confirmLabel = CoreStrings.confirm,
+    String cancelLabel = CoreStrings.cancel,
     bool isDestructive = false,
   }) async {
     final result = await showDialog<bool>(
@@ -57,8 +58,6 @@ class AppConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final description = this.description;
-
     // 설명이 길거나 글자가 커도 버튼이 화면 밖으로 밀려나지 않도록,
     // 제목·설명만 스크롤하고 버튼은 항상 아래에 고정합니다.
     return SafeArea(
@@ -84,25 +83,9 @@ class AppConfirmDialog extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            title,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.dialogTitle,
-                          ),
-                          if (description != null) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              description,
-                              textAlign: TextAlign.center,
-                              style: AppTypography.dialogBody,
-                            ),
-                          ],
-                        ],
-                      ),
+                    child: _DialogMessage(
+                      title: title,
+                      description: description,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -116,6 +99,40 @@ class AppConfirmDialog extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 제목과 설명. 길면 이 부분만 스크롤합니다.
+class _DialogMessage extends StatelessWidget {
+  const _DialogMessage({required this.title, required this.description});
+
+  final String title;
+  final String? description;
+
+  @override
+  Widget build(BuildContext context) {
+    final description = this.description;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppTypography.dialogTitle,
+          ),
+          if (description != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: AppTypography.dialogBody,
+            ),
+          ],
+        ],
       ),
     );
   }

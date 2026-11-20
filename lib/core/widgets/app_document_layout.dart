@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +17,7 @@ class AppDocumentLayout extends StatelessWidget {
   });
 
   /// 맨 아래 한 줄 문구.
-  static const tagline = '차곡차곡, 쉬워지는 서류 생활';
+  static const tagline = CoreStrings.tagline;
 
   /// 본문에 위에서부터 쌓을 위젯.
   final List<Widget> body;
