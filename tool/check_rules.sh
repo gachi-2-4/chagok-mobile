@@ -164,10 +164,11 @@ missing_doc_comments() {
   for file in ${LIB_FILES[@]+"${LIB_FILES[@]}"}; do
     awk -v file="${file}" -v q="'" '
       # 줄을 왼쪽부터 한 글자씩 읽어 코드·주석·문자열을 가르고, 주석을 뺀 코드를
-      # 돌려줍니다. 상태(mode)는 줄을 넘어 이어집니다.
-      #   mode "": 코드, "block": 블록 주석(Dart는 중첩 가능, depth로 셈),
-      #   "str": 문자열(delim으로 연 것과 같은 구분자로만 닫힘, raw면 \ 무시)
-      function scan(s,    i, n, c, two, three, code) {
+      # 돌려줍니다. 문맥은 스택(top, kind, delim, raw, brace)으로 줄을 넘어 이어집니다.
+      #   kind "code": 코드. 문자열 보간 ${...} 안이면 brace로 짝을 셉니다.
+      #   kind "str":  문자열. 연 것과 같은 구분자로만 닫히고, raw면 \ 와 보간을 무시합니다.
+      #   depth: 블록 주석 깊이(Dart는 중첩 가능). 코드 문맥에서만 열립니다.
+      function scan(s,    i, n, c, two, three, d, code) {
         code = ""
         i = 1
         n = length(s)
@@ -175,29 +176,42 @@ missing_doc_comments() {
           c = substr(s, i, 1)
           two = substr(s, i, 2)
           three = substr(s, i, 3)
-          if (mode == "block") {
+          if (depth > 0) {
             if (two == "/*") { depth++; i += 2; continue }
-            if (two == "*/") { depth--; i += 2; if (depth == 0) mode = ""; continue }
+            if (two == "*/") { depth--; i += 2; continue }
             i++
             continue
           }
-          if (mode == "str") {
-            if (!raw && c == "\\") { i += 2; continue }
-            if ((length(delim) == 3 && three == delim) || (length(delim) == 1 && c == delim)) {
-              i += length(delim)
-              mode = ""
+          if (kind[top] == "str") {
+            d = delim[top]
+            if (!raw[top] && c == "\\") { i += 2; continue }
+            if (!raw[top] && two == "${") {
+              top++; kind[top] = "code"; brace[top] = 0
+              i += 2
+              continue
+            }
+            if ((length(d) == 3 && three == d) || (length(d) == 1 && c == d)) {
+              top--
+              i += length(d)
               continue
             }
             i++
             continue
           }
+          # 코드 문맥
           if (two == "//") break
-          if (two == "/*") { mode = "block"; depth = 1; i += 2; continue }
+          if (two == "/*") { depth = 1; i += 2; continue }
+          if (c == "{") brace[top]++
+          if (c == "}") {
+            # 보간 안 코드에서 짝이 없는 } 는 보간의 끝입니다.
+            if (top > 0 && brace[top] == 0) { top--; i++; continue }
+            brace[top]--
+          }
           if (c == q || c == "\"") {
-            raw = (i > 1 && substr(s, i - 1, 1) == "r")
-            delim = (three == c c c) ? three : c
-            i += length(delim)
-            mode = "str"
+            top++; kind[top] = "str"
+            raw[top] = (i > 1 && substr(s, i - 1, 1) == "r")
+            delim[top] = (three == c c c) ? three : c
+            i += length(delim[top])
             # 문자열도 코드이므로 자리를 남깁니다.
             code = code "s"
             continue
@@ -205,22 +219,27 @@ missing_doc_comments() {
           code = code c
           i++
         }
-        # 따옴표 하나로 연 문자열은 줄을 넘지 못하므로 줄 끝에서 닫습니다.
-        if (mode == "str" && length(delim) == 1) mode = ""
+        # 따옴표 하나로 연 문자열(과 그 안의 보간)은 줄을 넘지 못하므로 줄 끝에서 닫습니다.
+        while (top > 0) {
+          if (kind[top] == "str" && length(delim[top]) == 1) { top--; continue }
+          if (kind[top] == "code" && kind[top - 1] == "str" && length(delim[top - 1]) == 1) { top--; continue }
+          break
+        }
         return code
       }
-      # 줄이 문자열·블록 주석 안에서 시작하면 선언 검사를 하지 않습니다(mode는 줄 시작 상태).
-      mode == "" && /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
+      BEGIN { top = 0; kind[0] = "code"; brace[0] = 0; depth = 0 }
+      # 줄이 문자열·블록 주석 안에서 시작하면 선언 검사를 하지 않습니다(줄 시작 상태 기준).
+      top == 0 && depth == 0 && /^(abstract |final |sealed |base |interface )*(class|enum|mixin|extension) / {
         in_class = 1
         # private 클래스의 멤버는 밖에서 쓰지 않으므로 문서 주석을 요구하지 않습니다.
         in_private = ($0 ~ /(class|enum|mixin|extension) _/)
         if ($0 !~ / _[A-Za-z]/ && prev !~ /^\/\/\//) print file ":" NR ": " $0
       }
-      mode == "" && /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
-      mode == "" && in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
+      top == 0 && depth == 0 && /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
+      top == 0 && depth == 0 && in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
         && prev !~ /\/\/\// && prev_code !~ /@override/ { print file ":" NR ": " $0 }
-      mode == "" && /^}/ { in_class = 0 }
+      top == 0 && depth == 0 && /^}/ { in_class = 0 }
       # 주석·빈 줄·문자열 안 줄은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
       # 주석 뒤에 같은 줄로 코드가 이어지면 코드 줄입니다.
       {
