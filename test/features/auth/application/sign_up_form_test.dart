@@ -31,8 +31,11 @@ void main() {
       expect(form.hasAgreedToAll, isFalse);
     });
 
-    test('필수 약관 하나라도 빠지면 가입을 마칠 수 없다', () {
+    test('인증을 마쳤어도 필수 약관 하나라도 빠지면 가입을 마칠 수 없다', () {
+      // 인증을 마친 상태로 두어, 약관 조건만으로 막히는지 봅니다.
       final form = validForm.copyWith(
+        codeSentTo: () => '01011111111',
+        verificationToken: () => 'token',
         agreedTerms: {Term.service, Term.marketing},
       );
 
