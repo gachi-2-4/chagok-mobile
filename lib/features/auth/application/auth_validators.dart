@@ -4,7 +4,8 @@ abstract final class AuthValidators {
   static const minPasswordLength = 8;
 
   static final _digit = RegExp(r'\d');
-  static final _specialCharacter = RegExp(r'[^A-Za-z0-9\s]');
+  // 한글 같은 영숫자 밖 글자를 특수문자로 세지 않도록 ASCII 문장부호·기호만 셉니다.
+  static final _specialCharacter = RegExp(r'[!-/:-@\[-`{-~]');
   static final _nonDigit = RegExp(r'\D');
   static final _mobileNumber = RegExp(r'^01\d{8,9}$');
 

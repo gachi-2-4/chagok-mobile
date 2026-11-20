@@ -18,6 +18,14 @@ void main() {
     test('특수문자가 없으면 통과하지 못한다', () {
       expect(AuthValidators.isValidPassword('chagok123'), isFalse);
     });
+
+    test('한글과 숫자만 넣으면 한글을 특수문자로 보지 않아 통과하지 못한다', () {
+      expect(AuthValidators.isValidPassword('가나다라마바12'), isFalse);
+    });
+
+    test('한글이 섞여 있어도 특수문자가 있으면 통과한다', () {
+      expect(AuthValidators.isValidPassword('차곡chagok12!'), isTrue);
+    });
   });
 
   group('AuthValidators.isValidPhoneNumber', () {
