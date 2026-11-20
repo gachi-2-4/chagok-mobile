@@ -32,6 +32,9 @@ class NewBoxNotifier extends Notifier<NewBoxForm> {
     final form = state;
     if (!form.canSubmit) return false;
     state = form.copyWith(isSaving: true, hasSaveFailed: false);
+    // 만드는 사이 시트를 닫아도 끝까지 저장하고 목록을 다시 불러오도록,
+    // 저장이 끝날 때까지 이 Notifier를 버리지 않습니다.
+    final keepAlive = ref.keepAlive();
     try {
       await ref
           .read(archiveRepositoryProvider)
@@ -40,18 +43,15 @@ class NewBoxNotifier extends Notifier<NewBoxForm> {
             color: form.color,
             icon: form.icon,
           );
+      ref.invalidate(boxListProvider);
+      state = state.copyWith(isSaving: false);
+      return true;
     } catch (error, stackTrace) {
       debugPrint('보관함을 만들지 못했습니다: $error\n$stackTrace');
-      if (ref.mounted) {
-        state = state.copyWith(isSaving: false, hasSaveFailed: true);
-      }
+      state = state.copyWith(isSaving: false, hasSaveFailed: true);
       return false;
+    } finally {
+      keepAlive.close();
     }
-    // 만드는 사이 시트를 닫아 이 Notifier가 버려졌으면 ref를 쓸 수 없습니다.
-    // 시트는 결과를 기다리는 동안 열려 있으므로 보통은 여기까지 옵니다.
-    if (!ref.mounted) return true;
-    ref.invalidate(boxListProvider);
-    state = state.copyWith(isSaving: false);
-    return true;
   }
 }

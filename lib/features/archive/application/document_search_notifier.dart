@@ -1,5 +1,5 @@
-import 'package:chagok_mobile/features/archive/application/archive_clock.dart';
 import 'package:chagok_mobile/features/archive/application/archive_dates.dart';
+import 'package:chagok_mobile/features/archive/application/archive_today_notifier.dart';
 import 'package:chagok_mobile/features/archive/application/box_document_item.dart';
 import 'package:chagok_mobile/features/archive/application/document_search_query_notifier.dart';
 import 'package:chagok_mobile/features/archive/data/archive_repository.dart';
@@ -21,15 +21,16 @@ class DocumentSearchNotifier extends AsyncNotifier<List<BoxDocumentItem>> {
     final query = ref.watch(documentSearchQueryProvider).trim();
     if (query.isEmpty) return const [];
     // TODO: 서버 검색을 붙이면 글자마다 요청하지 않도록 잠시 기다렸다가 찾습니다.
-    final now = ref.watch(archiveClockProvider)();
+    // 날짜가 바뀌면 D-n 기준이 달라지므로 다시 찾습니다.
+    final today = ref.watch(archiveTodayProvider);
     final results = await ref
         .watch(archiveRepositoryProvider)
-        .searchDocuments(query, now);
+        .searchDocuments(query, today);
     return [
       for (final result in results)
         BoxDocumentItem(
           document: result.document,
-          daysLeft: ArchiveDates.daysLeft(result.document.dueDate, now),
+          daysLeft: ArchiveDates.daysLeft(result.document.dueDate, today),
           boxName: result.boxName,
         ),
     ];

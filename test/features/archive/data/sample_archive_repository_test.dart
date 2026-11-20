@@ -3,6 +3,7 @@ import 'package:chagok_mobile/features/archive/data/box_document_not_found_excep
 import 'package:chagok_mobile/features/archive/data/box_icon.dart';
 import 'package:chagok_mobile/features/archive/data/box_not_found_exception.dart';
 import 'package:chagok_mobile/features/archive/data/sample_archive_repository.dart';
+import 'package:chagok_mobile/features/document/data/in_memory_document_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -88,6 +89,25 @@ void main() {
         repository.translateToPlainLanguage('missing'),
         throwsA(isA<BoxDocumentNotFoundException>()),
       );
+    });
+
+    // 서류를 누르면 서류 화면이 서류 저장소에서 같은 id로 불러오므로,
+    // 두 예시 저장소의 서류가 어긋나면 오류 화면이 뜹니다.
+    test('예시 서류를 서류 저장소에서 열면 모두 같은 보관함·고를 수 있는 종류로 열린다', () async {
+      final documentRepository = InMemoryDocumentRepository();
+      final boxes = await repository.fetchBoxes(today);
+
+      for (final box in boxes) {
+        for (final document in await repository.fetchDocuments(box.id, today)) {
+          final detail = await documentRepository.fetchDetail(document.id);
+          expect(detail.boxName, box.name, reason: document.id);
+          expect(
+            documentRepository.documentTypes,
+            contains(detail.documentType),
+            reason: document.id,
+          );
+        }
+      }
     });
 
     test('보관함을 만들면 서류 없이 목록 끝에 더한다', () async {

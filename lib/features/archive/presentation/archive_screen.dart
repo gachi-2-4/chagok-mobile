@@ -5,8 +5,10 @@ import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/core/widgets/app_resume_listener.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/archive/application/archive_box_item.dart';
+import 'package:chagok_mobile/features/archive/application/archive_today_notifier.dart';
 import 'package:chagok_mobile/features/archive/application/box_list_notifier.dart';
 import 'package:chagok_mobile/features/archive/application/unread_notification_provider.dart';
 import 'package:chagok_mobile/features/archive/presentation/archive_strings.dart';
@@ -29,38 +31,43 @@ class ArchiveScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hasUnreadAlert = ref.watch(hasUnreadNotificationProvider);
 
-    return Scaffold(
-      appBar: AppTopBar.logo(
-        action: AppTopBarAction(
-          icon: AppIcons.bell,
-          // 점은 화면 읽기 프로그램이 읽지 못하므로 이름에 상태를 담습니다.
-          semanticLabel: hasUnreadAlert
-              ? ArchiveStrings.notificationsUnread
-              : ArchiveStrings.notifications,
-          onTap: () => unawaited(context.push(AppRoute.notifications)),
-          hasBadge: hasUnreadAlert,
-        ),
-      ),
-      floatingActionButton: const UploadButton(),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenHorizontal,
-          AppSpacing.pageTop,
-          AppSpacing.screenHorizontal,
-          AppSpacing.floatingButtonClearance,
-        ),
-        children: [
-          const Text(ArchiveStrings.title, style: AppTypography.pageTitle),
-          const SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ArchiveSearchButton(
-              onTap: () => unawaited(context.push(AppRoute.archiveSearch)),
-            ),
+    // 앱이 멈춰 있는 동안 자정이 지났을 수 있어 돌아오면 D-n 기준 날짜를 다시 확인합니다.
+    // 보관함 탭은 다른 탭에 있어도 살아 있으므로 박스 상세·검색의 D-n도 함께 맞춰집니다.
+    return AppResumeListener(
+      onResume: () => ref.read(archiveTodayProvider.notifier).refresh(),
+      child: Scaffold(
+        appBar: AppTopBar.logo(
+          action: AppTopBarAction(
+            icon: AppIcons.bell,
+            // 점은 화면 읽기 프로그램이 읽지 못하므로 이름에 상태를 담습니다.
+            semanticLabel: hasUnreadAlert
+                ? ArchiveStrings.notificationsUnread
+                : ArchiveStrings.notifications,
+            onTap: () => unawaited(context.push(AppRoute.notifications)),
+            hasBadge: hasUnreadAlert,
           ),
-          const SizedBox(height: AppSpacing.sectionGapLarge),
-          const _BoxListSection(),
-        ],
+        ),
+        floatingActionButton: const UploadButton(),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenHorizontal,
+            AppSpacing.pageTop,
+            AppSpacing.screenHorizontal,
+            AppSpacing.floatingButtonClearance,
+          ),
+          children: [
+            const Text(ArchiveStrings.title, style: AppTypography.pageTitle),
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ArchiveSearchButton(
+                onTap: () => unawaited(context.push(AppRoute.archiveSearch)),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sectionGapLarge),
+            const _BoxListSection(),
+          ],
+        ),
       ),
     );
   }

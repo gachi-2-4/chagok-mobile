@@ -74,6 +74,8 @@ class FakeArchiveRepository implements ArchiveRepository {
   }
 
   /// 서류 이름에 [query]가 들어간 서류를 보관함 순서대로 돌려줍니다.
+  ///
+  /// 실제 저장소처럼 띄어쓰기·대소문자를 가리지 않고, 검색어가 비면 빈 목록입니다.
   @override
   Future<List<DocumentSearchResult>> searchDocuments(
     String query,
@@ -81,13 +83,18 @@ class FakeArchiveRepository implements ArchiveRepository {
   ) async {
     searchQueries.add(query);
     if (searchError case final error?) throw error;
+    final keyword = _normalize(query);
+    if (keyword.isEmpty) return [];
     return [
       for (final box in boxes)
         for (final document in documents[box.id] ?? const <BoxDocument>[])
-          if (document.title.contains(query))
+          if (_normalize(document.title).contains(keyword))
             DocumentSearchResult(document: document, boxName: box.name),
     ];
   }
+
+  static String _normalize(String text) =>
+      text.replaceAll(RegExp(r'\s+'), '').toLowerCase();
 
   @override
   Future<String> translateToPlainLanguage(String documentId) async {

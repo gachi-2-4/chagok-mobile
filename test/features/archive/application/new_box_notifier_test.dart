@@ -15,6 +15,9 @@ void main() {
   late FakeArchiveRepository repository;
   late ProviderContainer container;
 
+  /// 시트가 열려 있는 동안처럼 입력값을 듣는 구독. 닫으면 시트를 닫은 것과 같습니다.
+  late ProviderSubscription<Object?> sheetSubscription;
+
   setUp(() {
     repository = FakeArchiveRepository();
     container = ProviderContainer(
@@ -25,9 +28,8 @@ void main() {
       retry: (_, _) => null,
     );
     addTearDown(container.dispose);
-    // 시트가 열려 있는 동안처럼 입력값을 계속 듣습니다.
-    final subscription = container.listen(newBoxProvider, (_, _) {});
-    addTearDown(subscription.close);
+    sheetSubscription = container.listen(newBoxProvider, (_, _) {});
+    addTearDown(sheetSubscription.close);
   });
 
   NewBoxNotifier notifier() => container.read(newBoxProvider.notifier);
@@ -69,6 +71,24 @@ void main() {
 
       await notifier().submit();
 
+      final items = await container.read(boxListProvider.future);
+      expect(items.map((item) => item.box.name), ['반려동물']);
+    });
+
+    test('만드는 사이 시트를 닫아도 저장이 끝나면 목록을 다시 불러온다', () async {
+      final listSubscription = container.listen(boxListProvider, (_, _) {});
+      addTearDown(listSubscription.close);
+      await container.read(boxListProvider.future);
+      final gate = Completer<void>();
+      repository.createGate = gate;
+      notifier().updateName('반려동물');
+
+      final submitting = notifier().submit();
+      sheetSubscription.close();
+      await container.pump();
+      gate.complete();
+
+      expect(await submitting, isTrue);
       final items = await container.read(boxListProvider.future);
       expect(items.map((item) => item.box.name), ['반려동물']);
     });
