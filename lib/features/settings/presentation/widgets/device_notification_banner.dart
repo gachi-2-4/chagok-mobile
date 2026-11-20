@@ -70,6 +70,8 @@ class _BannerText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      // 높이 제한이 있는 부모 안에서도 배너가 내용 높이만큼만 차지하게 합니다.
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [

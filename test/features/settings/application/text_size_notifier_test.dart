@@ -81,5 +81,32 @@ void main() {
       expect(isSaved, isTrue);
       expect(slow.stored.textSize, TextSize.large);
     });
+
+    test('저장이 한 번 실패한 뒤 원인이 풀려 다시 저장하면 실제로 저장한다', () async {
+      final flaky = FakeSettingsRepository()..error = Exception('network');
+      final container = ProviderContainer(
+        overrides: [settingsRepositoryProvider.overrideWithValue(flaky)],
+        retry: (_, _) => null,
+      );
+      addTearDown(container.dispose);
+      container
+        ..listen(settingsProvider, (_, _) {})
+        ..listen(textSizeDraftProvider, (_, _) {});
+      await container.read(settingsProvider.future);
+      container.read(textSizeDraftProvider.notifier).select(TextSize.large);
+      final isFirstSaved = await container
+          .read(textSizeDraftProvider.notifier)
+          .save();
+
+      flaky.error = null;
+      final isSaved = await container
+          .read(textSizeDraftProvider.notifier)
+          .save();
+
+      expect(isFirstSaved, isFalse);
+      expect(isSaved, isTrue);
+      expect(flaky.saveCount, 2);
+      expect(flaky.stored.textSize, TextSize.large);
+    });
   });
 }

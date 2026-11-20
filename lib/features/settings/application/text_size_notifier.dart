@@ -26,12 +26,16 @@ class TextSizeDraftNotifier extends Notifier<TextSize> {
   ///
   /// 설정을 아직 불러오는 중이면 다 불러온 뒤 저장합니다. 불러오면 초안이 저장된
   /// 크기로 다시 시작하므로, 기다리기 전에 고른 크기를 붙잡아 둡니다.
+  /// 앞선 저장이 실패했어도 불러온 설정이 있으면 기다리지 않고 다시 저장합니다.
+  /// 그때 future는 실패한 채로 남아 있어, 기다리면 다시 시도하지 못하기 때문입니다.
   Future<bool> save() async {
     final chosen = state;
-    try {
-      await ref.read(settingsProvider.future);
-    } catch (error) {
-      return false;
+    if (!ref.read(settingsProvider).hasValue) {
+      try {
+        await ref.read(settingsProvider.future);
+      } catch (error) {
+        return false;
+      }
     }
     if (!ref.mounted) return false;
     return ref.read(settingsProvider.notifier).setTextSize(chosen);

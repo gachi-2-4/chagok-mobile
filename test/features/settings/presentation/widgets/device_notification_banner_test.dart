@@ -23,5 +23,19 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('높이 제한이 있는 부모 안에 두면 내용 높이만큼만 차지한다', (tester) async {
+      await tester.pumpApp(
+        Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 338,
+            child: DeviceNotificationBanner(onTap: () {}),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(DeviceNotificationBanner)).height, 92);
+    });
   });
 }
