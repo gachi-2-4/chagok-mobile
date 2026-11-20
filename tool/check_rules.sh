@@ -219,12 +219,9 @@ missing_doc_comments() {
           code = code c
           i++
         }
-        # 따옴표 하나로 연 문자열(과 그 안의 보간)은 줄을 넘지 못하므로 줄 끝에서 닫습니다.
-        while (top > 0) {
-          if (kind[top] == "str" && length(delim[top]) == 1) { top--; continue }
-          if (kind[top] == "code" && kind[top - 1] == "str" && length(delim[top - 1]) == 1) { top--; continue }
-          break
-        }
+        # 따옴표 하나로 연 문자열은 줄을 넘지 못하므로 줄 끝에서 닫습니다. 다만 보간
+        # ${...} 안에서는 줄을 바꿀 수 있으므로, 열린 보간과 그 바깥 문자열은 둡니다.
+        while (top > 0 && kind[top] == "str" && length(delim[top]) == 1) top--
         return code
       }
       BEGIN { top = 0; kind[0] = "code"; brace[0] = 0; depth = 0 }
