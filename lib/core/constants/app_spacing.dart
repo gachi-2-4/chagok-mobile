@@ -164,4 +164,10 @@ abstract final class AppSpacing {
 
   /// 안내 카드에서 첫 문장과 도움말 사이 간격.
   static const noticeHelpGap = 9.0;
+
+  /// 첫 설문 선택지 안쪽 좌우 여백.
+  static const choicePaddingHorizontal = 17.0;
+
+  /// 설문 진행 막대 칸 사이 간격.
+  static const progressSegmentGap = 6.0;
 }

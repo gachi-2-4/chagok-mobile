@@ -154,6 +154,16 @@ abstract final class AppTypography {
     color: AppColors.textPrimary,
   );
 
+  /// 첫 설문처럼 큰 선택지 안의 글자. [option]보다 줄 높이가 낮습니다.
+  static const choice = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    height: 18 / 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
   /// 버튼 글자.
   static const button = TextStyle(
     fontFamily: fontFamily,
