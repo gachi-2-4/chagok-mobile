@@ -35,6 +35,7 @@
 - 이름은 줄이지 않고 뜻이 드러나게 씁니다. (`btn` ✗ → `button` ✓)
 - bool은 `is`, `has`, `can` 등으로 시작합니다. 예: `isLoading`, `hasError`
 - 한 파일에는 public 클래스 하나를 원칙으로 합니다. 그 클래스만 쓰는 작은 private 위젯은 같은 파일에 둘 수 있습니다.
+  - `sealed` 클래스와 그 하위 클래스는 언어 규칙상 같은 파일에 있어야 하므로 한 묶음으로 봅니다.
 
 ## import
 
@@ -61,7 +62,8 @@ import 'package:go_router/go_router.dart';
 - 상태가 필요 없으면 `StatelessWidget`, Riverpod 상태를 읽으면 `ConsumerWidget`을 씁니다.
   - `StatefulWidget`은 `TextEditingController`, `AnimationController`처럼 위젯 생명주기에 묶인 객체가 있을 때만 씁니다.
 - 생성자의 매개변수는 named parameter로 받고, 필수 값은 `required`를 붙입니다.
-- 색상·글자 크기·간격은 하드코딩하지 않고 `Theme.of(context)`나 `core/constants`의 값을 씁니다.
+- 색상·글자 크기·간격·모서리는 하드코딩하지 않고 `Theme.of(context)`나 `core/constants`의 값(`AppColors`·`AppTypography`·`AppSpacing`·`AppRadius`)을 씁니다.
+  - 너비·높이·아이콘 크기처럼 부품 자체의 크기(모서리 제외)는 위젯 안에 이름을 붙인 private 상수로 둘 수 있습니다. (예: `static const _iconSize = 22.0;`) 이름 없는 숫자를 바로 쓰지는 않습니다.
 - 화면에 보이는 문자열은 한 곳에 모아 관리할 수 있게 작성합니다. (다국어 도입 시 옮기기 쉽도록)
 
 ## Dart 문법
