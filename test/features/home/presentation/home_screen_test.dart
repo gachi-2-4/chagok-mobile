@@ -84,5 +84,30 @@ void main() {
       expect(find.text(HomeStrings.recentBoxes), findsOneWidget);
       expect(find.text('관리비 납부일이 다가와요'), findsOneWidget);
     });
+
+    testWidgets('읽지 않은 알림이 있으면 종 버튼이 화면 읽기에 그 상태를 알린다', (tester) async {
+      repository.alerts = [alert(isRead: false)];
+
+      await pumpHomeScreen(tester);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.bySemanticsLabel(HomeStrings.notificationsUnread),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('알림을 모두 읽었으면 종 버튼은 읽지 않은 알림을 알리지 않는다', (tester) async {
+      repository.alerts = [alert(isRead: true)];
+
+      await pumpHomeScreen(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel(HomeStrings.notifications), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(HomeStrings.notificationsUnread),
+        findsNothing,
+      );
+    });
   });
 }

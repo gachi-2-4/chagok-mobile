@@ -6,6 +6,7 @@ import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
 import 'package:chagok_mobile/features/home/application/home_notifier.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:chagok_mobile/features/home/data/home_summary.dart';
 import 'package:chagok_mobile/features/home/presentation/home_strings.dart';
 import 'package:chagok_mobile/features/home/presentation/widgets/home_section.dart';
@@ -37,38 +38,43 @@ class HomeScreen extends ConsumerWidget {
           .showSnackBar(const SnackBar(content: Text(HomeStrings.comingSoon)));
     }
 
-    return Scaffold(
-      appBar: AppTopBar.logo(
-        action: AppTopBarAction(
-          icon: AppIcons.bell,
-          semanticLabel: HomeStrings.notifications,
-          onTap: showComingSoon,
-          hasBadge: hasUnreadAlert,
-        ),
-      ),
-      body: summary.when(
-        data: (summary) => RefreshIndicator(
-          onRefresh: () => ref.read(homeProvider.notifier).refresh(),
-          child: _HomeContent(
-            summary: summary,
-            now: ref.watch(homeClockProvider)(),
-            onAlertTap: showComingSoon,
+    return _RefreshTodayOnResume(
+      child: Scaffold(
+        appBar: AppTopBar.logo(
+          action: AppTopBarAction(
+            icon: AppIcons.bell,
+            // 점은 화면 읽기 프로그램이 읽지 못하므로 이름에 상태를 담습니다.
+            semanticLabel: hasUnreadAlert
+                ? HomeStrings.notificationsUnread
+                : HomeStrings.notifications,
+            onTap: showComingSoon,
+            hasBadge: hasUnreadAlert,
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(HomeStrings.loadFailed, style: AppTypography.body),
-                const SizedBox(height: AppSpacing.lg),
-                AppButton.secondary(
-                  label: HomeStrings.retry,
-                  onPressed: () => ref.invalidate(homeProvider),
-                ),
-              ],
+        body: summary.when(
+          data: (summary) => RefreshIndicator(
+            onRefresh: () => ref.read(homeProvider.notifier).refresh(),
+            child: _HomeContent(
+              summary: summary,
+              now: ref.watch(homeClockProvider)(),
+              onAlertTap: showComingSoon,
+            ),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.screenHorizontal),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(HomeStrings.loadFailed, style: AppTypography.body),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppButton.secondary(
+                    label: HomeStrings.retry,
+                    onPressed: () => ref.invalidate(homeProvider),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -150,4 +156,39 @@ class _HomeContent extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 앱으로 돌아오면 홈의 기준 날짜를 다시 확인합니다.
+///
+/// 앱이 백그라운드에 있는 동안 자정이 지났을 수 있어서입니다.
+/// [AppLifecycleListener]를 위젯 생명주기에 묶어 두려고 StatefulWidget으로 둡니다.
+class _RefreshTodayOnResume extends ConsumerStatefulWidget {
+  const _RefreshTodayOnResume({required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_RefreshTodayOnResume> createState() =>
+      _RefreshTodayOnResumeState();
+}
+
+class _RefreshTodayOnResumeState extends ConsumerState<_RefreshTodayOnResume> {
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(
+      onResume: () => ref.read(homeTodayProvider.notifier).refresh(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

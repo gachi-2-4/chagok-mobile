@@ -5,6 +5,9 @@ import 'package:chagok_mobile/features/home/application/schedule_calendar.dart';
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
 abstract final class HomeStrings {
   static const notifications = '알림';
+
+  /// 읽지 않은 알림이 있을 때 종 버튼을 화면 읽기 프로그램이 읽는 이름.
+  static const notificationsUnread = '알림, 읽지 않은 알림 있음';
   static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '홈 내용을 불러오지 못했어요.';
   static const retry = '다시 시도';

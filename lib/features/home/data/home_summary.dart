@@ -4,11 +4,15 @@ import 'package:chagok_mobile/features/home/data/schedule_item.dart';
 
 /// 홈 화면에 모아 보여 줄 내용.
 class HomeSummary {
-  const HomeSummary({
-    required this.schedules,
-    required this.recentBoxes,
-    required this.recentAlerts,
-  });
+  /// 세 목록은 복사해서 바꿀 수 없는 목록으로 보관합니다.
+  /// 넘긴 목록을 나중에 고쳐도 이 요약(과 [hasUnreadAlert])은 바뀌지 않습니다.
+  HomeSummary({
+    required List<ScheduleItem> schedules,
+    required List<RecentBox> recentBoxes,
+    required List<RecentAlert> recentAlerts,
+  }) : schedules = List.unmodifiable(schedules),
+       recentBoxes = List.unmodifiable(recentBoxes),
+       recentAlerts = List.unmodifiable(recentAlerts);
 
   /// 이번 주와 그 뒤의 일정.
   final List<ScheduleItem> schedules;

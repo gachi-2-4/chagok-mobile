@@ -4,6 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ScheduleCalendar.weekOf', () {
+    // 서머타임이 있는 시간대(예: TZ=America/New_York)에서 돌리면 하루 어긋남을 잡습니다.
+    test('서머타임이 시작되는 주를 넘기면 일요일 0시부터 돌려준다', () {
+      final week = ScheduleCalendar.weekOf(DateTime(2026, 3, 11));
+
+      expect(week.first, DateTime(2026, 3, 8));
+    });
+
     test('수요일을 넘기면 그 주를 일요일부터 토요일까지 돌려준다', () {
       final week = ScheduleCalendar.weekOf(DateTime(2026, 11, 18, 15, 30));
 

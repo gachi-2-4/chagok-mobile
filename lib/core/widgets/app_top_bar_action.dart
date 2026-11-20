@@ -20,5 +20,8 @@ class AppTopBarAction {
   final VoidCallback onTap;
 
   /// 아이콘 오른쪽 위에 작은 점을 찍을지 여부. 예: 읽지 않은 알림이 있을 때
+  ///
+  /// 점은 화면 읽기 프로그램이 읽지 않으므로, 점을 찍을 때는 [semanticLabel]에도
+  /// 그 상태를 담아 주세요. 예: "알림, 읽지 않은 알림 있음"
   final bool hasBadge;
 }

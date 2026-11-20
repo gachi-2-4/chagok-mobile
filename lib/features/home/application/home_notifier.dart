@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
+import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:chagok_mobile/features/home/data/home_repository.dart';
 import 'package:chagok_mobile/features/home/data/home_summary.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,10 +9,12 @@ final homeProvider = AsyncNotifierProvider<HomeNotifier, HomeSummary>(
   HomeNotifier.new,
 );
 
-/// 홈 화면 내용을 불러오고, 당겨서 새로 고칠 때 다시 불러옵니다.
+/// 홈 화면 내용을 불러오고, 당겨서 새로 고치거나 날짜가 바뀌면 다시 불러옵니다.
 class HomeNotifier extends AsyncNotifier<HomeSummary> {
   @override
   Future<HomeSummary> build() {
+    // 날짜가 바뀌면 일정·D-n 기준이 달라지므로 다시 불러옵니다.
+    ref.watch(homeTodayProvider);
     final now = ref.watch(homeClockProvider)();
     return ref.watch(homeRepositoryProvider).fetchSummary(now);
   }

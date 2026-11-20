@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/home/application/schedule_calendar.dart';
@@ -141,8 +142,6 @@ class _UpcomingRow extends StatelessWidget {
   final int days;
   final String label;
 
-  static const _pillRadius = 12.0;
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -150,7 +149,7 @@ class _UpcomingRow extends StatelessWidget {
         DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.peach,
-            borderRadius: BorderRadius.circular(_pillRadius),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(

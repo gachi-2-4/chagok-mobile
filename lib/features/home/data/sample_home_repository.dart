@@ -11,22 +11,15 @@ import 'package:chagok_mobile/features/home/data/schedule_item.dart';
 class SampleHomeRepository implements HomeRepository {
   @override
   Future<HomeSummary> fetchSummary(DateTime now) async {
-    final today = DateTime(now.year, now.month, now.day);
+    // 일정 날짜는 달력 날짜로 셉니다. Duration으로 더하면 서머타임 경계에서
+    // 하루 어긋납니다. 실제로 흐른 시간인 열어 본 시각·알림 시각은 그대로 둡니다.
+    DateTime day(int offset) => DateTime(now.year, now.month, now.day + offset);
 
     return HomeSummary(
       schedules: [
-        ScheduleItem(
-          date: today.add(const Duration(days: 2)),
-          title: '통신 서비스 요금 납부일',
-        ),
-        ScheduleItem(
-          date: today.add(const Duration(days: 13)),
-          title: '관리비 납부일',
-        ),
-        ScheduleItem(
-          date: today.subtract(const Duration(days: 3)),
-          title: '자동차 보험료 납부일',
-        ),
+        ScheduleItem(date: day(2), title: '통신 서비스 요금 납부일'),
+        ScheduleItem(date: day(13), title: '관리비 납부일'),
+        ScheduleItem(date: day(-3), title: '자동차 보험료 납부일'),
       ],
       recentBoxes: [
         RecentBox(
@@ -35,7 +28,7 @@ class SampleHomeRepository implements HomeRepository {
           category: BoxCategory.housing,
           documentCount: 3,
           lastOpenedAt: now.subtract(const Duration(hours: 1)),
-          nextDueDate: today.add(const Duration(days: 13)),
+          nextDueDate: day(13),
         ),
         RecentBox(
           id: 'telecom',

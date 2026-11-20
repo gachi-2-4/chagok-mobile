@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/home/application/schedule_calendar.dart';
@@ -102,7 +103,7 @@ class _BoxIllustration extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: AppColors.boxLid,
-                borderRadius: BorderRadius.circular(_lidHeight / 2),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
             ),
           ),
@@ -150,7 +151,7 @@ class _BoxBody extends StatelessWidget {
               height: _handleHeight,
               decoration: BoxDecoration(
                 color: AppColors.boxLid,
-                borderRadius: BorderRadius.circular(_handleHeight),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
             ),
             const Spacer(),
@@ -161,8 +162,17 @@ class _BoxBody extends StatelessWidget {
                   size: _iconSize,
                   color: AppColors.boxIcon,
                 ),
-                const Spacer(),
-                if (dueDays != null) _DueTag(days: dueDays),
+                if (dueDays != null)
+                  // 글자를 크게 키워 몸통이 좁아지면 표를 줄여 몸통 안에 맞춥니다.
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: _DueTag(days: dueDays),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],
@@ -178,15 +188,12 @@ class _DueTag extends StatelessWidget {
 
   final int days;
 
-  /// 양 끝을 완전히 둥글게 만드는 큰 반지름.
-  static const _pillRadius = 999.0;
-
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.boxTag,
-        borderRadius: BorderRadius.circular(_pillRadius),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
