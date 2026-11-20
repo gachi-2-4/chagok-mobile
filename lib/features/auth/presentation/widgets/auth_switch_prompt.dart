@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 /// 회원가입과 로그인 화면을 오가는 안내 한 줄.
 ///
 /// 예: "이미 계정이 있나요?  로그인"
+///
+/// 글자를 키우거나 화면이 좁으면 버튼을 다음 줄로 넘겨, 넘치지 않고 누를 수 있게 합니다.
 class AuthSwitchPrompt extends StatelessWidget {
   const AuthSwitchPrompt({
     required this.message,
@@ -20,11 +22,16 @@ class AuthSwitchPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: AppSpacing.xs,
       children: [
-        Text(message, style: AppTypography.caption),
-        const SizedBox(width: AppSpacing.xs),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTypography.caption,
+        ),
         TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(

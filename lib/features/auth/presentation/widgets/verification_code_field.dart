@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,9 +41,9 @@ class VerificationCodeField extends StatefulWidget {
 }
 
 class _VerificationCodeFieldState extends State<VerificationCodeField> {
+  /// 칸의 기본 너비. 폭이 모자라면 칸 사이를 [AppSpacing.xs]만 남기고 줄입니다.
   static const _cellWidth = 46.0;
   static const _cellHeight = 56.0;
-  static const _cellRadius = 14.0;
 
   late final _controller = TextEditingController(text: widget.code);
   final _focusNode = FocusNode();
@@ -82,16 +86,26 @@ class _VerificationCodeFieldState extends State<VerificationCodeField> {
       height: _cellHeight,
       child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var index = 0; index < widget.length; index++)
-                _CodeCell(
-                  digit: index < code.length ? code[index] : '',
-                  isActive: index == activeIndex,
-                  hasError: widget.hasError,
-                ),
-            ],
+          // 320pt처럼 좁은 화면에서는 칸을 줄여 넘치지 않게 합니다.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final fitWidth =
+                  (constraints.maxWidth - AppSpacing.xs * (widget.length - 1)) /
+                  widget.length;
+              final cellWidth = min(_cellWidth, fitWidth);
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  for (var index = 0; index < widget.length; index++)
+                    _CodeCell(
+                      width: cellWidth,
+                      digit: index < code.length ? code[index] : '',
+                      isActive: index == activeIndex,
+                      hasError: widget.hasError,
+                    ),
+                ],
+              );
+            },
           ),
           Positioned.fill(
             child: Semantics(
@@ -107,7 +121,6 @@ class _VerificationCodeFieldState extends State<VerificationCodeField> {
                   LengthLimitingTextInputFormatter(widget.length),
                 ],
                 showCursor: false,
-                enableInteractiveSelection: false,
                 style: const TextStyle(color: AppColors.transparent),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
@@ -124,11 +137,13 @@ class _VerificationCodeFieldState extends State<VerificationCodeField> {
 
 class _CodeCell extends StatelessWidget {
   const _CodeCell({
+    required this.width,
     required this.digit,
     required this.isActive,
     required this.hasError,
   });
 
+  final double width;
   final String digit;
   final bool isActive;
   final bool hasError;
@@ -142,14 +157,12 @@ class _CodeCell extends StatelessWidget {
     };
 
     return Container(
-      width: _VerificationCodeFieldState._cellWidth,
+      width: width,
       height: _VerificationCodeFieldState._cellHeight,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(
-          _VerificationCodeFieldState._cellRadius,
-        ),
+        borderRadius: BorderRadius.circular(AppRadius.codeCell),
         border: Border.all(color: borderColor),
       ),
       child: Text(digit, style: AppTypography.verificationDigit),

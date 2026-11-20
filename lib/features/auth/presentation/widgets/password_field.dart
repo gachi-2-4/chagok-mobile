@@ -42,21 +42,23 @@ class _PasswordFieldState extends State<PasswordField> {
       obscureText: _isObscured,
       keyboardType: TextInputType.visiblePassword,
       textInputAction: widget.textInputAction,
-      suffix: Semantics(
-        button: true,
-        label: _isObscured
-            ? AuthStrings.showPassword
-            : AuthStrings.hidePassword,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _isObscured = !_isObscured),
-          child: Icon(
-            _isObscured
-                ? Icons.visibility_outlined
-                : Icons.visibility_off_outlined,
-            size: _iconSize,
-            color: AppColors.textSecondary,
-          ),
+      // IconButton이라 Tab으로 포커스를 옮기고 Enter·Space로 누를 수도 있습니다.
+      suffix: IconButton(
+        onPressed: () => setState(() => _isObscured = !_isObscured),
+        icon: Icon(
+          _isObscured
+              ? Icons.visibility_outlined
+              : Icons.visibility_off_outlined,
+          semanticLabel: _isObscured
+              ? AuthStrings.showPassword
+              : AuthStrings.hidePassword,
+        ),
+        iconSize: _iconSize,
+        color: AppColors.textSecondary,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
     );
