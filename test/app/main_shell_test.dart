@@ -10,10 +10,15 @@ import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:chagok_mobile/features/settings/presentation/settings_strings.dart';
+import 'package:chagok_mobile/features/settings/presentation/text_size_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_chat_repository.dart';
+import '../helpers/fake_settings_repository.dart';
 
 void main() {
   const question = '월세는 언제 내나요?';
@@ -30,7 +35,12 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [chatRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          chatRepositoryProvider.overrideWithValue(repository),
+          settingsRepositoryProvider.overrideWithValue(
+            FakeSettingsRepository(),
+          ),
+        ],
         child: const ChagokApp(),
       ),
     );
@@ -121,7 +131,6 @@ void main() {
     for (final (index, label) in [
       (0, AppStrings.archiveTab),
       (3, AppStrings.calendarTab),
-      (4, AppStrings.settingsTab),
     ]) {
       testWidgets('$label 탭을 누르면 준비 중 화면으로 바뀐다', (tester) async {
         await pumpChagokApp(tester);
@@ -136,6 +145,27 @@ void main() {
         expect(currentTab(tester), index);
       });
     }
+
+    testWidgets('설정 탭을 누르면 설정 화면과 바텀바가 보인다', (tester) async {
+      await pumpChagokApp(tester);
+
+      await tapTab(tester, AppStrings.settingsTab);
+
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      expect(currentTab(tester), 4);
+    });
+
+    testWidgets('설정에서 글자 크기 화면으로 가면 바텀바가 그대로 남아 있다', (tester) async {
+      await pumpChagokApp(tester);
+      await tapTab(tester, AppStrings.settingsTab);
+
+      await tester.tap(find.text(SettingsStrings.textSize));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextSizeScreen), findsOneWidget);
+      expect(find.byType(AppBottomNavBar), findsOneWidget);
+      expect(currentTab(tester), 4);
+    });
 
     testWidgets('새 대화를 만드는 중에 다른 탭으로 가면 다 만들어져도 대화방으로 이동하지 않는다', (
       tester,
