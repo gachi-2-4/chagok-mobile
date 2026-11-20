@@ -343,4 +343,24 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textTertiary,
   );
+
+  /// 알림 상세 제목. 예: "[납부] 내일은 월세 납부일이에요"
+  static const noticeTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 16,
+    height: 19.2 / 16,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 알림의 보낸 날짜·보관함 한 줄. 예: "2026-11-18 · 오전 9:00"
+  static const noticeMeta = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 13,
+    height: 15.6 / 13,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+  );
 }
