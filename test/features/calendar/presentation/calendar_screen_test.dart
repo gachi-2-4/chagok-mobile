@@ -5,7 +5,6 @@ import 'package:chagok_mobile/features/calendar/data/deadline.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_strings.dart';
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
-import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -232,13 +231,14 @@ void main() {
     });
 
     testWidgets('화면을 연 채로 자정이 지나면 오늘 표시와 D-n을 다음 날 기준으로 바꾼다', (tester) async {
+      now = DateTime(2026, 11, 12, 23, 59);
       await pumpCalendar(tester);
       expect(find.text('D-8'), findsOneWidget);
 
+      // refresh()를 직접 부르지 않고, 시계와 테스트 시간을 함께 자정 너머로 보내
+      // 예약해 둔 자정 Timer가 날짜를 바꾸는지 확인합니다.
       now = DateTime(2026, 11, 13, 0, 1);
-      ProviderScope.containerOf(tester.element(find.byType(CalendarScreen)))
-          .read(homeTodayProvider.notifier)
-          .refresh();
+      await tester.pump(const Duration(minutes: 2));
       await tester.pumpAndSettle();
 
       expect(find.text('D-7'), findsOneWidget);
