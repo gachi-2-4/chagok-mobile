@@ -93,4 +93,13 @@ abstract final class AppColors {
 
   /// 알림 상세 본문 바탕.
   static const noticeBody = Color(0xFFFAF5ED);
+
+  /// 캘린더 달력 카드 바탕.
+  static const calendarSurface = Color(0xFFF9F4ED);
+
+  /// 캘린더의 이전·다음 달 버튼과 여유 있는 D-n 표 바탕.
+  static const calendarControl = Color(0xFFEEE7DB);
+
+  /// 기기 캘린더에 아직 등록하지 않은 기한을 가리키는 점.
+  static const calendarDotMuted = Color(0xFFC0B6A5);
 }

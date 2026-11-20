@@ -8,6 +8,7 @@ import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_card.dart';
 import 'package:chagok_mobile/core/widgets/app_chip.dart';
 import 'package:chagok_mobile/core/widgets/app_document_layout.dart';
+import 'package:chagok_mobile/core/widgets/app_option_sheet.dart';
 import 'package:chagok_mobile/core/widgets/app_toggle.dart';
 import 'package:chagok_mobile/features/document/application/document_clock.dart';
 import 'package:chagok_mobile/features/document/application/reminder_edit_notifier.dart';
@@ -16,7 +17,6 @@ import 'package:chagok_mobile/features/document/application/reminder_schedule.da
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
 import 'package:chagok_mobile/features/document/data/payment_reminder.dart';
 import 'package:chagok_mobile/features/document/presentation/document_strings.dart';
-import 'package:chagok_mobile/features/document/presentation/widgets/option_sheet.dart';
 import 'package:chagok_mobile/features/document/presentation/widgets/picker_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -157,7 +157,7 @@ class _ReminderPickers extends ConsumerWidget {
         ref.read(reminderEditProvider(documentId).notifier);
 
     Future<void> pickPaymentDay() async {
-      final day = await showOptionSheet(
+      final day = await showAppOptionSheet(
         context,
         options: [for (var day = 1; day <= 31; day++) day],
         labelOf: DocumentStrings.monthlyDay,

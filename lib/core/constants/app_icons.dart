@@ -31,4 +31,10 @@ abstract final class AppIcons {
 
   static const logoKakao = '$_base/logo_kakao.svg';
   static const logoGoogle = '$_base/logo_google.svg';
+
+  /// 기기 캘린더에 기한을 등록하는 버튼.
+  static const calendarAdd = '$_base/calendar_add.svg';
+
+  /// 기기 캘린더에 기한을 등록한 상태의 버튼.
+  static const calendarAdded = '$_base/calendar_added.svg';
 }

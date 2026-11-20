@@ -363,4 +363,63 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
   );
+
+  /// 캘린더 달력 카드 위의 연·월. 예: "2026년 11월"
+  static const calendarMonth = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 20,
+    height: 31 / 20,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 캘린더 달력의 요일 이름.
+  static const calendarWeekday = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 11.5,
+    height: 17.8 / 11.5,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textDisabled,
+  );
+
+  /// 캘린더 달력의 날짜 숫자. 기한이 있거나 오늘이면 굵게 바꿔 씁니다.
+  static const calendarDate = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 14,
+    height: 16.8 / 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+
+  /// 화면 안 구역 제목. 예: "다가오는 기한"
+  static const sectionTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 16,
+    height: 24.8 / 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 기한 목록의 기한 이름.
+  static const deadlineTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 14.5,
+    height: 17.4 / 14.5,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
+  /// 기한 목록의 D-n 표. 색은 남은 날에 따라 정합니다.
+  static const dueTag = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 12.5,
+    height: 19.4 / 12.5,
+    fontWeight: FontWeight.w700,
+  );
 }

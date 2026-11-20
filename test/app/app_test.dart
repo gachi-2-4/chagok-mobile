@@ -21,12 +21,12 @@ void main() {
       await tester.pumpWidget(const ProviderScope(child: ChagokApp()));
       await tester.pump();
 
-      // 아직 준비 중인 캘린더 탭으로 확인합니다. 설정 탭은 실제 화면이 붙어 있습니다.
-      final calendarTab = MainShell.tabs[3].label;
-      await tester.tap(find.text(calendarTab));
+      // 아직 준비 중인 보관함 탭으로 확인합니다. 다른 탭은 실제 화면이 붙어 있습니다.
+      final archiveTab = MainShell.tabs[0].label;
+      await tester.tap(find.text(archiveTab));
       await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(AppTopBar, calendarTab), findsOneWidget);
+      expect(find.widgetWithText(AppTopBar, archiveTab), findsOneWidget);
     });
   });
 }
