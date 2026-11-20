@@ -137,8 +137,11 @@ void main() {
       await tester.tap(find.byTooltip(ChatStrings.send));
       await tester.pump();
 
-      final addButton = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, ChatStrings.addDocument),
+      final addButton = tester.widget<IconButton>(
+        find.ancestor(
+          of: find.byTooltip(ChatStrings.addDocument),
+          matching: find.byType(IconButton),
+        ),
       );
       final banner = tester.widget<GestureDetector>(
         find

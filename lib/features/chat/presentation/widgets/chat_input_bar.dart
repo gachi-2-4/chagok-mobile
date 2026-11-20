@@ -5,6 +5,7 @@ import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// 대화 화면 아래 입력줄. "서류 추가" 버튼, 질문 입력칸, 보내기(↑) 버튼.
 class ChatInputBar extends StatefulWidget {
@@ -54,18 +55,23 @@ class _ChatInputBarState extends State<ChatInputBar> {
       ),
       child: Row(
         children: [
-          TextButton(
+          IconButton(
             onPressed: widget.isEnabled ? widget.onAddDocument : null,
-            style: TextButton.styleFrom(
+            // 아이콘만 보이므로 화면 읽기 프로그램과 길게 누르기에서는 이 이름을 씁니다.
+            tooltip: ChatStrings.addDocument,
+            style: IconButton.styleFrom(
               foregroundColor: AppColors.textPrimary,
-              textStyle: AppTypography.fieldInput,
               padding: const EdgeInsets.only(
                 left: AppSpacing.fieldPaddingHorizontal,
                 right: AppSpacing.sm,
               ),
               minimumSize: const Size(0, kMinInteractiveDimension),
             ),
-            child: const Text(ChatStrings.addDocument),
+            icon: SvgPicture.asset(
+              AppIcons.arrowBack,
+              width: AppIcons.mediumSize,
+              height: AppIcons.mediumSize,
+            ),
           ),
           Expanded(
             child: TextField(
