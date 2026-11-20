@@ -93,6 +93,25 @@ void main() {
       expect(items.map((item) => item.box.name), ['반려동물']);
     });
 
+    test('만드는 사이 시트를 닫고 다시 열면 빈 입력값으로 시작하고 이전 저장이 바꾸지 않는다', () async {
+      final gate = Completer<void>();
+      repository.createGate = gate;
+      notifier().updateName('반려동물');
+      final submitting = notifier().submit();
+      sheetSubscription.close();
+      await container.pump();
+
+      final reopened = container.listen(newBoxProvider, (_, _) {});
+      addTearDown(reopened.close);
+      gate.complete();
+      await submitting;
+
+      final form = container.read(newBoxProvider);
+      expect(form.name, isEmpty);
+      expect(form.isSaving, isFalse);
+      expect(form.canSubmit, isFalse);
+    });
+
     test('이름이 비어 있으면 만들지 않고 false를 돌려준다', () async {
       final isCreated = await notifier().submit();
 

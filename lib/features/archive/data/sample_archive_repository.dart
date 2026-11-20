@@ -12,8 +12,10 @@ import 'package:chagok_mobile/features/archive/data/document_search_result.dart'
 ///
 /// 검색은 메모리에 둔 본문에서 찾고, 쉬운 말 번역은 미리 적어 둔 설명을 돌려줍니다.
 ///
-/// 기한은 오늘부터 며칠 뒤로 적어 두고 가져올 때 날짜로 바꿔, 언제 열어도
-/// 비슷하게 보입니다. 새로 만든 보관함은 앱을 끄기 전까지 메모리에 남습니다.
+/// 기한은 "처음 가져온 날부터 며칠 뒤"로 적어 두어, 언제 앱을 열어도 비슷하게
+/// 보입니다. 기준 날은 처음 가져올 때 한 번만 정해, 앱을 켜 둔 채 날짜가 바뀌면
+/// 실제 기한처럼 D-n이 하루씩 줄어듭니다. 새로 만든 보관함은 앱을 끄기 전까지
+/// 메모리에 남습니다.
 class SampleArchiveRepository implements ArchiveRepository {
   final _boxes = <_SampleBox>[
     const _SampleBox(
@@ -144,21 +146,28 @@ class SampleArchiveRepository implements ArchiveRepository {
 
   var _createdCount = 0;
 
+  /// 예시 기한을 셀 기준 날. 처음 가져올 때 그날 0시로 정하고 바꾸지 않습니다.
+  DateTime? _anchor;
+
+  DateTime _anchorFor(DateTime today) =>
+      _anchor ??= DateTime(today.year, today.month, today.day);
+
   @override
   Future<List<ArchiveBox>> fetchBoxes(DateTime today) async {
-    return [for (final box in _boxes) box.toArchiveBox(today)];
+    final anchor = _anchorFor(today);
+    return [for (final box in _boxes) box.toArchiveBox(anchor, today)];
   }
 
   @override
   Future<ArchiveBox> fetchBox(String boxId, DateTime today) async {
-    return _find(boxId).toArchiveBox(today);
+    return _find(boxId).toArchiveBox(_anchorFor(today), today);
   }
 
   @override
   Future<List<BoxDocument>> fetchDocuments(String boxId, DateTime today) async {
     return [
       for (final document in _find(boxId).documents)
-        document.toBoxDocument(today),
+        document.toBoxDocument(_anchorFor(today)),
     ];
   }
 
@@ -175,7 +184,7 @@ class SampleArchiveRepository implements ArchiveRepository {
           if (_normalize(document.title).contains(keyword) ||
               _normalize(document.content).contains(keyword))
             DocumentSearchResult(
-              document: document.toBoxDocument(today),
+              document: document.toBoxDocument(_anchorFor(today)),
               boxName: box.name,
             ),
     ];
@@ -207,7 +216,7 @@ class SampleArchiveRepository implements ArchiveRepository {
     );
     _boxes.add(box);
     // 빈 보관함이라 기한이 없으므로 기준 날짜는 결과에 영향을 주지 않습니다.
-    return box.toArchiveBox(DateTime(0));
+    return box.toArchiveBox(DateTime(0), DateTime(0));
   }
 
   /// "임대차계약서"로 "임대차 계약서"도 찾도록 공백을 빼고 소문자로 바꿉니다.
@@ -237,11 +246,12 @@ class _SampleBox {
   final BoxIcon icon;
   final List<_SampleDocument> documents;
 
-  ArchiveBox toArchiveBox(DateTime today) {
+  /// [anchor]부터 센 기한 중 [today] 이후 가장 가까운 것을 담아 돌려줍니다.
+  ArchiveBox toArchiveBox(DateTime anchor, DateTime today) {
     final todayDate = DateTime(today.year, today.month, today.day);
     final upcoming = [
       for (final document in documents)
-        if (document.dueDateFrom(today) case final dueDate?
+        if (document.dueDateFrom(anchor) case final dueDate?
             when !dueDate.isBefore(todayDate))
           dueDate,
     ]..sort();
@@ -279,21 +289,21 @@ class _SampleDocument {
   final DocumentImportance importance;
   final int pageCount;
 
-  /// 오늘부터 기한까지 남은 날. 기한이 없으면 null.
+  /// 기준 날부터 기한까지의 날 수. 기한이 없으면 null.
   final int? dueInDays;
 
   /// 기한 날짜. 서머타임 경계에서 어긋나지 않도록 달력 날짜로 셉니다.
-  DateTime? dueDateFrom(DateTime today) {
+  DateTime? dueDateFrom(DateTime anchor) {
     final dueInDays = this.dueInDays;
     if (dueInDays == null) return null;
-    return DateTime(today.year, today.month, today.day + dueInDays);
+    return DateTime(anchor.year, anchor.month, anchor.day + dueInDays);
   }
 
-  BoxDocument toBoxDocument(DateTime today) => BoxDocument(
+  BoxDocument toBoxDocument(DateTime anchor) => BoxDocument(
     id: id,
     title: title,
     importance: importance,
     pageCount: pageCount,
-    dueDate: dueDateFrom(today),
+    dueDate: dueDateFrom(anchor),
   );
 }

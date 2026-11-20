@@ -21,6 +21,20 @@ void main() {
       expect(housing.nextDueDate, DateTime(2026, 12, 3));
     });
 
+    test('다음 날 다시 가져오면 기한 날짜는 처음 가져온 날 기준 그대로다', () async {
+      await repository.fetchBoxes(today);
+
+      final boxes = await repository.fetchBoxes(DateTime(2026, 11, 21, 9));
+      final documents = await repository.fetchDocuments(
+        'housing',
+        DateTime(2026, 11, 21, 9),
+      );
+
+      final housing = boxes.firstWhere((box) => box.id == 'housing');
+      expect(housing.nextDueDate, DateTime(2026, 12, 3));
+      expect(documents.first.dueDate, DateTime(2027, 1, 5));
+    });
+
     test('기한이 있는 서류가 없으면 가장 가까운 기한은 null이다', () async {
       final boxes = await repository.fetchBoxes(today);
 
