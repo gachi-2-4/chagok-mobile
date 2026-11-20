@@ -1,6 +1,9 @@
 import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/app/main_shell.dart';
 import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +20,10 @@ abstract final class AppRoute {
   static const home = '/';
   static const calendar = '/calendar';
   static const settings = '/settings';
+
+  // 채팅 (H01~H02). 채팅 탭 안에 쌓여 바텀바가 계속 보입니다.
+  static String chatRoom(String id) => '/chat/$id';
+  static String chatAttach(String id) => '/chat/$id/documents';
 }
 
 /// 앱 전역 [GoRouter].
@@ -38,7 +45,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           _tab(
             AppRoute.chat,
-            (_) => const TabPlaceholderScreen(title: AppStrings.chatTab),
+            (_) => const ChatListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    ChatRoomScreen(threadId: state.pathParameters['id'] ?? ''),
+                routes: [
+                  GoRoute(
+                    path: 'documents',
+                    builder: (context, state) => ChatAttachScreen(
+                      threadId: state.pathParameters['id'] ?? '',
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           _tab(AppRoute.home, (_) => const HomeScreen()),
           _tab(
@@ -57,12 +79,19 @@ final routerProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-/// 첫 화면이 [builder]인 탭 하나.
+/// 첫 화면이 [builder]인 탭 하나. 탭 안에 쌓일 화면은 [routes]에 둡니다.
 StatefulShellBranch _tab(
   String path,
-  Widget Function(GoRouterState state) builder,
-) {
+  Widget Function(GoRouterState state) builder, {
+  List<RouteBase> routes = const [],
+}) {
   return StatefulShellBranch(
-    routes: [GoRoute(path: path, builder: (context, state) => builder(state))],
+    routes: [
+      GoRoute(
+        path: path,
+        builder: (context, state) => builder(state),
+        routes: routes,
+      ),
+    ],
   );
 }
