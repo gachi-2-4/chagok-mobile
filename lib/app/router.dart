@@ -17,6 +17,8 @@ import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
 import 'package:chagok_mobile/features/document/presentation/payment_reminder_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
+import 'package:chagok_mobile/features/notification/presentation/notification_detail_screen.dart';
+import 'package:chagok_mobile/features/notification/presentation/notification_list_screen.dart';
 import 'package:chagok_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:chagok_mobile/features/settings/presentation/settings_screen.dart';
@@ -46,6 +48,10 @@ abstract final class AppRoute {
   // 채팅 (H01~H02). 채팅 탭 안에 쌓여 바텀바가 계속 보입니다.
   static String chatRoom(String id) => '/chat/$id';
   static String chatAttach(String id) => '/chat/$id/documents';
+
+  // 알림 (N01~N02). 목록은 홈 탭 안에 쌓이고, 상세는 바텀바 없이 전체 화면으로 엽니다.
+  static const notifications = '/notifications';
+  static String notificationDetail(String id) => '/notifications/$id';
 
   /// 첫 설문 (O01~O04)
   static const onboarding = '/onboarding';
@@ -84,7 +90,10 @@ abstract final class AppRoute {
 /// Provider로 두어 나중에 로그인 상태 등에 따른 redirect를
 /// 다른 Provider를 읽어서 처리할 수 있게 합니다.
 final routerProvider = Provider<GoRouter>((ref) {
+  // 탭 바깥(바텀바 없이) 전체 화면으로 쌓을 때 쓰는 가장 바깥 Navigator.
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoute.home,
     routes: [
       StatefulShellRoute.indexedStack(
@@ -115,7 +124,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          _tab(AppRoute.home, (_) => const HomeScreen()),
+          _tab(
+            AppRoute.home,
+            (_) => const HomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'notifications',
+                builder: (context, state) => const NotificationListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => NotificationDetailScreen(
+                      notificationId: state.pathParameters['id'] ?? '',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
           _tab(AppRoute.calendar, (_) => const CalendarScreen()),
           _tab(
             AppRoute.settings,

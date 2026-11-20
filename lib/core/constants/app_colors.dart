@@ -82,6 +82,18 @@ abstract final class AppColors {
   /// 보이지 않게 그릴 때 쓰는 투명 색. 예: 칸 뒤에 겹쳐 둔 입력창 글자
   static const transparent = Color(0x00000000);
 
+  /// 요일 이름처럼 흐리게 보이는 글자.
+  static const textDisabled = Color(0xFFAAA091);
+
+  /// 알림 목록에서 고르지 않은 탭 바탕. 본문 글자색을 아주 옅게 깐 색입니다.
+  static const tabInactiveFill = Color(0x0F383329);
+
+  /// 알림 목록·상세의 구분선.
+  static const noticeDivider = Color(0x1F383329);
+
+  /// 알림 상세 본문 바탕.
+  static const noticeBody = Color(0xFFFAF5ED);
+
   /// 캘린더 달력 카드 바탕.
   static const calendarSurface = Color(0xFFF9F4ED);
 
@@ -90,7 +102,4 @@ abstract final class AppColors {
 
   /// 기기 캘린더에 아직 등록하지 않은 기한을 가리키는 점.
   static const calendarDotMuted = Color(0xFFC0B6A5);
-
-  /// 요일 이름처럼 흐리게 보이는 글자.
-  static const textDisabled = Color(0xFFAAA091);
 }
