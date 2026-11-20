@@ -179,4 +179,19 @@ abstract final class AppSpacing {
 
   /// 알림 상세 본문의 정보 묶음 사이 간격.
   static const noticeBlockGap = 26.0;
+
+  /// 보관함·서류를 두 줄로 늘어놓을 때 칸 사이 가로 간격.
+  static const gridColumnGap = 16.0;
+
+  /// 보관함·서류를 두 줄로 늘어놓을 때 줄 사이 세로 간격.
+  static const gridRowGap = 22.0;
+
+  /// 떠 있는 버튼(서류 올리기)에 마지막 줄이 가리지 않도록 목록 끝에 두는 여백.
+  static const floatingButtonClearance = 88.0;
+
+  /// 고른 색 칸의 바깥 테두리와 색 사이 간격.
+  static const selectionRingGap = 3.0;
+
+  /// 아래에서 올라오는 시트의 안쪽 위 여백(손잡이 위).
+  static const sheetHandleTop = 10.0;
 }

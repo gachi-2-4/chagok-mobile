@@ -35,4 +35,7 @@ abstract final class AppRadius {
 
   /// 보관함 탭의 상자 몸통 아래 모서리.
   static const boxBody = 14.0;
+
+  /// 새 박스 만들기의 아이콘 칸, 보관함 상세의 종류 아이콘 칸.
+  static const iconTile = 14.0;
 }

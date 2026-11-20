@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/app_strings.dart';
-import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
+import 'package:chagok_mobile/features/archive/presentation/archive_screen.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
@@ -129,20 +129,14 @@ void main() {
       expect(find.byType(ChatListScreen), findsOneWidget);
     });
 
-    for (final (index, label) in [(0, AppStrings.archiveTab)]) {
-      testWidgets('$label 탭을 누르면 준비 중 화면으로 바뀐다', (tester) async {
-        await pumpChagokApp(tester);
+    testWidgets('보관함 탭을 누르면 보관함 화면과 바텀바가 보인다', (tester) async {
+      await pumpChagokApp(tester);
 
-        await tapTab(tester, label);
+      await tapTab(tester, AppStrings.archiveTab);
 
-        expect(
-          find.widgetWithText(TabPlaceholderScreen, label),
-          findsOneWidget,
-        );
-        expect(find.text(AppStrings.comingSoon), findsOneWidget);
-        expect(currentTab(tester), index);
-      });
-    }
+      expect(find.byType(ArchiveScreen), findsOneWidget);
+      expect(currentTab(tester), 0);
+    });
 
     testWidgets('캘린더 탭을 누르면 캘린더 화면과 바텀바가 보인다', (tester) async {
       await pumpChagokApp(tester);

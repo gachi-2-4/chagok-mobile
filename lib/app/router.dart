@@ -1,6 +1,7 @@
-import 'package:chagok_mobile/app/app_strings.dart';
 import 'package:chagok_mobile/app/main_shell.dart';
-import 'package:chagok_mobile/app/tab_placeholder_screen.dart';
+import 'package:chagok_mobile/features/archive/presentation/archive_screen.dart';
+import 'package:chagok_mobile/features/archive/presentation/box_detail_screen.dart';
+import 'package:chagok_mobile/features/archive/presentation/document_search_screen.dart';
 import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
 import 'package:chagok_mobile/features/auth/presentation/forgot_password_screen.dart';
@@ -44,6 +45,10 @@ abstract final class AppRoute {
   static const home = '/';
   static const calendar = '/calendar';
   static const settings = '/settings';
+
+  // 보관함 상세 (06)·서류 검색. 보관함 탭 안에 쌓여 바텀바가 계속 보입니다.
+  static const archiveSearch = '/archive/search';
+  static String archiveBox(String id) => '/archive/$id';
 
   // 채팅 (H01~H02). 채팅 탭 안에 쌓여 바텀바가 계속 보입니다.
   static String chatRoom(String id) => '/chat/$id';
@@ -103,7 +108,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           _tab(
             AppRoute.archive,
-            (_) => const TabPlaceholderScreen(title: AppStrings.archiveTab),
+            (_) => const ArchiveScreen(),
+            routes: [
+              // ':id'보다 먼저 두어야 'search'를 보관함 id로 읽지 않습니다.
+              GoRoute(
+                path: 'search',
+                builder: (context, state) => const DocumentSearchScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    BoxDetailScreen(boxId: state.pathParameters['id'] ?? ''),
+              ),
+            ],
           ),
           _tab(
             AppRoute.chat,
