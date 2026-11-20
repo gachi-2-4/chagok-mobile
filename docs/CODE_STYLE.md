@@ -61,6 +61,8 @@ import 'package:go_router/go_router.dart';
   - `Widget _buildXxx()` private 메서드보다 **위젯 클래스**로 분리합니다. (리빌드 범위, `const` 활용, 테스트에 유리)
 - 상태가 필요 없으면 `StatelessWidget`, Riverpod 상태를 읽으면 `ConsumerWidget`을 씁니다.
   - `StatefulWidget`은 `TextEditingController`, `AnimationController`처럼 위젯 생명주기에 묶인 객체가 있을 때만 씁니다.
+    - 예외: 비밀번호 보이기·숨기기처럼 그 위젯 안에서만 쓰고 다른 위젯·화면·저장소와 나누지 않는 작은 화면 상태는 `State`에 둘 수 있습니다. 이때는 왜 Notifier에 두지 않는지 주석으로 적습니다.
+    - 다른 위젯과 나누거나, 화면을 벗어나도 남거나, 저장해야 하는 상태는 Notifier에 둡니다.
 - 생성자의 매개변수는 named parameter로 받고, 필수 값은 `required`를 붙입니다.
 - 색상·글자 크기·간격·모서리는 하드코딩하지 않고 `Theme.of(context)`나 `core/constants`의 값(`AppColors`·`AppTypography`·`AppSpacing`·`AppRadius`)을 씁니다.
   - 너비·높이·아이콘 크기처럼 부품 자체의 크기(모서리 제외)는 위젯 안에 이름을 붙인 private 상수로 둘 수 있습니다. (예: `static const _iconSize = 22.0;`) 이름 없는 숫자를 바로 쓰지는 않습니다.
