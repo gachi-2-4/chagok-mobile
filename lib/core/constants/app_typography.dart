@@ -223,4 +223,44 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
   );
+
+  /// 요일, 알림 시각처럼 가장 작은 글자.
+  static const small = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 11,
+    height: 13.2 / 11,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+  );
+
+  /// "D-2"처럼 작은 표 안의 굵은 글자. 색은 표마다 바꿔 씁니다.
+  static const tag = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 11,
+    height: 13.2 / 11,
+    fontWeight: FontWeight.w700,
+    color: AppColors.brand,
+  );
+
+  /// 미니 캘린더의 날짜 숫자.
+  static const calendarDay = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 15,
+    height: 18 / 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 홈의 보관함 이름.
+  static const boxName = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 16,
+    height: 19.2 / 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
 }
