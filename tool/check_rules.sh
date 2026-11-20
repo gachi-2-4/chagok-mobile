@@ -172,9 +172,10 @@ missing_doc_comments() {
       /^final [a-zA-Z]+Provider/ && prev !~ /^\/\/\// { print file ":" NR ": " $0 }
       in_class && !in_private && /^  ([A-Z][A-Za-z<>?, ]*|void|bool|String|int|double) (get )?[a-z][A-Za-z]*( =>|\(| \{)/ \
         && $0 !~ /build\(|createState\(|dispose\(|toString\(/ \
-        && prev !~ /\/\/\// && prev !~ /@override/ { print file ":" NR ": " $0 }
+        && prev !~ /\/\/\// && prev_code !~ /@override/ { print file ":" NR ": " $0 }
       /^}/ { in_class = 0 }
-      { prev = $0 }' "${file}"
+      # `// ignore:` 같은 일반 주석은 건너뛰고 바로 앞 코드 줄(@override 등)을 봅니다.
+      { prev = $0; if ($0 !~ /^[[:space:]]*\/\/[^\/]/) prev_code = $0 }' "${file}"
   done | grep -vE '^\S+: class _|State<' || true
 }
 
