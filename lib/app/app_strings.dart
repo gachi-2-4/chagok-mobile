@@ -7,7 +7,9 @@ abstract final class AppStrings {
   static const chatTab = '채팅';
   static const homeTab = '홈';
   static const calendarTab = '캘린더';
-  static const settingsTab = '설정';
+
+  /// 설정 화면으로 가는 탭. Figma 바텀바 이름을 따릅니다.
+  static const myPageTab = '마이페이지';
 
   /// 아직 만들지 않은 탭 화면에 보이는 안내.
   static const comingSoon = '준비 중인 화면이에요.';
