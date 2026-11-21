@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 차곡 API 서버와 통신합니다. debug·profile에만 있으면 release APK에서 서버에 닿지 못합니다. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="차곡"
         android:name="${applicationName}"

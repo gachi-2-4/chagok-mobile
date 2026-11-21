@@ -137,7 +137,9 @@ class _OpenSummaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 원본 자리 전체와 합쳐지지 않고 따로 고르고 누를 수 있게 노드를 나눕니다.
     return Semantics(
+      container: true,
       button: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
