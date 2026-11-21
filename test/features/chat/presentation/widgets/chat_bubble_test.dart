@@ -74,6 +74,31 @@ void main() {
       expect(find.text(ChatStrings.viewOriginal), findsNothing);
     });
 
+    testWidgets('원본을 열 수 있으면 원본 확인을 누르는 영역을 손가락 크기 이상으로 둔다', (tester) async {
+      await tester.pumpApp(
+        ChatBubble(
+          message: ChatMessage(
+            role: ChatRole.assistant,
+            text: '매월 25일까지 내면 돼요.',
+            sentAt: at,
+            source: '계약서 1페이지',
+          ),
+          onViewOriginal: () {},
+        ),
+      );
+
+      final area = tester.getSize(
+        find
+            .ancestor(
+              of: find.text(ChatStrings.viewOriginal),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+      );
+      expect(area.height, greaterThanOrEqualTo(kMinInteractiveDimension));
+      expect(area.width, greaterThanOrEqualTo(kMinInteractiveDimension));
+    });
+
     testWidgets('원본을 열 수 있으면 원본 보기를 누를 때 알린다', (tester) async {
       var openCount = 0;
       await tester.pumpApp(
@@ -88,7 +113,8 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text(ChatStrings.viewOriginal));
+      // 화면 읽기 프로그램이 고르는 노드를 눌러, 말풍선 전체가 아닌 링크가 눌리는지 봅니다.
+      await tester.tap(find.bySemanticsLabel(RegExp(ChatStrings.viewOriginal)));
 
       expect(openCount, 1);
     });

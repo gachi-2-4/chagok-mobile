@@ -89,15 +89,28 @@ class _SourceFooter extends StatelessWidget {
       children: [
         Text(ChatStrings.source(source), style: AppTypography.caption),
         if (onViewOriginal case final onViewOriginal?)
+          // 말풍선 글과 합쳐지지 않고 따로 고르고 누를 수 있게 노드를 나눕니다.
           Semantics(
+            container: true,
             button: true,
+            // 글자만 누를 수 있으면 손가락으로 맞히기 어려워, 누르는 영역을
+            // 손가락 크기(48)까지 넓힙니다.
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onViewOriginal,
-              child: const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.xs),
-                child: Text(
-                  ChatStrings.viewOriginal,
-                  style: AppTypography.caption,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: kMinInteractiveDimension,
+                  minWidth: kMinInteractiveDimension,
+                ),
+                child: const Align(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: Text(
+                    ChatStrings.viewOriginal,
+                    style: AppTypography.caption,
+                  ),
                 ),
               ),
             ),

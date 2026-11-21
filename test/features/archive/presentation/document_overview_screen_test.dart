@@ -181,6 +181,16 @@ void main() {
       expect(find.byType(PageView), findsOneWidget);
     });
 
+    testWidgets('AI 정리본 열기 버튼 노드만 누르면 원본 자리와 따로 눌려 탭이 바뀐다', (tester) async {
+      await pumpRouter(tester);
+
+      // 화면 읽기 프로그램이 고르는 노드를 눌러, 원본 자리 전체가 아닌 버튼이 눌리는지 봅니다.
+      await tester.tap(find.bySemanticsLabel(ArchiveStrings.openSummaryAction));
+      await tester.pumpAndSettle();
+
+      expect(find.text(ArchiveStrings.oneLineSummary), findsOneWidget);
+    });
+
     testWidgets('AI 정리본 탭으로 열면 처음부터 AI 정리본을 보여 준다', (tester) async {
       await pumpRouter(tester, initialLocation: '/documents/lease?tab=summary');
 
