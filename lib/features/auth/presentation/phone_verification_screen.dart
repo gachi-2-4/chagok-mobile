@@ -13,8 +13,8 @@ import 'package:chagok_mobile/features/auth/application/password_reset_notifier.
 import 'package:chagok_mobile/features/auth/application/phone_verification_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_state.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
-import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/form_message.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/verification_code_field.dart';
@@ -42,7 +42,8 @@ class PhoneVerificationScreen extends ConsumerWidget {
           ),
         } ??
         '';
-    final provider = phoneVerificationProvider(phoneNumber);
+    final target = (phoneNumber: phoneNumber, purpose: purpose);
+    final provider = phoneVerificationProvider(target);
     final verification = ref.watch(provider);
 
     Future<void> verify() async {
@@ -69,7 +70,7 @@ class PhoneVerificationScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sectionGapLarge),
-        _CodeInput(phoneNumber: phoneNumber, verification: verification),
+        _CodeInput(target: target, verification: verification),
         const SizedBox(height: AppSpacing.sectionGapLarge),
         switch (purpose) {
           VerificationPurpose.signUp => const FormMessage(
@@ -92,14 +93,15 @@ class PhoneVerificationScreen extends ConsumerWidget {
 
 /// 인증번호 칸, 남은 시간·다시 받기 줄, 만료·실패 안내.
 class _CodeInput extends ConsumerWidget {
-  const _CodeInput({required this.phoneNumber, required this.verification});
+  const _CodeInput({required this.target, required this.verification});
 
-  final String phoneNumber;
+  /// 인증하는 전화번호와 목적.
+  final PhoneVerificationTarget target;
   final PhoneVerificationState verification;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = phoneVerificationProvider(phoneNumber);
+    final provider = phoneVerificationProvider(target);
     final failure = verification.failure;
     final message = verification.isExpired
         ? AuthStrings.codeExpired

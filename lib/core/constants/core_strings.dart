@@ -19,4 +19,10 @@ abstract final class CoreStrings {
 
   /// 상단 바의 뒤로 가기 버튼을 화면 읽기 프로그램이 읽는 이름.
   static const back = '뒤로 가기';
+
+  /// 서버에 닿지 못했을 때(네트워크 끊김·시간 초과) 보여 주는 안내.
+  static const networkError = '인터넷 연결을 확인하고 다시 시도해 주세요.';
+
+  /// 서버가 이유를 알려 주지 않은 오류의 안내.
+  static const unknownError = '잠시 후 다시 시도해 주세요.';
 }

@@ -1,6 +1,11 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/token_storage.dart';
+import 'package:chagok_mobile/features/auth/data/api_auth_repository.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/in_memory_auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 계정 관련 요청(인증번호, 가입, 로그인, 비밀번호 재설정)을 처리하는 창구.
@@ -8,15 +13,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// 백엔드가 정해지면 이 인터페이스의 구현만 바꿉니다.
 abstract interface class AuthRepository {
   /// [phoneNumber]로 6자리 인증번호를 보냅니다.
-  Future<void> sendVerificationCode(String phoneNumber);
+  ///
+  /// 회원가입과 비밀번호 재설정은 서버에서 보내는 곳이 달라 [purpose]로 고릅니다.
+  /// 회원가입인데 이미 가입한 번호면 [AuthFailure.alreadyRegistered]로
+  /// [AuthException]을 던집니다.
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required VerificationPurpose purpose,
+  });
 
   /// [phoneNumber]로 보낸 인증번호가 [code]와 같으면 인증 증명 값을 돌려줍니다.
   ///
-  /// 증명 값은 [phoneNumber]에 묶인 일회용 값이고, [signUp]·[resetPassword]에
+  /// 증명 값은 [phoneNumber]·[purpose]에 묶인 일회용 값이고, [signUp]·[resetPassword]에
   /// 넘겨 인증을 마쳤음을 보입니다. 인증번호가 틀리면 null입니다.
   Future<String?> verifyCode({
     required String phoneNumber,
     required String code,
+    required VerificationPurpose purpose,
   });
 
   /// 새 계정을 만듭니다.
@@ -55,7 +68,12 @@ abstract interface class AuthRepository {
 }
 
 /// 앱 전역 [AuthRepository].
+///
+/// API 서버 주소가 있으면 서버에, 없으면 메모리에 계정을 둡니다.
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  // TODO: 백엔드가 정해지면 실제 구현으로 바꿉니다.
-  return InMemoryAuthRepository();
+  if (!ref.watch(isApiEnabledProvider)) return InMemoryAuthRepository();
+  return ApiAuthRepository(
+    client: ref.watch(apiClientProvider),
+    tokenStorage: ref.watch(tokenStorageProvider),
+  );
 });

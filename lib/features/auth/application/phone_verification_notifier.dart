@@ -5,28 +5,48 @@ import 'package:chagok_mobile/features/auth/application/auth_clock.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_state.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// 인증할 전화번호(숫자만)와 인증 목적.
+///
+/// 회원가입과 비밀번호 재설정은 서버에서 인증번호를 보내고 확인하는 방식이 달라,
+/// 같은 번호라도 목적마다 따로 인증합니다.
+typedef PhoneVerificationTarget = ({
+  String phoneNumber,
+  VerificationPurpose purpose,
+});
+
 /// 전화번호 하나에 대한 인증 상태. 화면을 벗어나면 타이머와 함께 정리합니다.
 final phoneVerificationProvider = NotifierProvider.autoDispose
-    .family<PhoneVerificationNotifier, PhoneVerificationState, String>(
-      PhoneVerificationNotifier.new,
-    );
+    .family<
+      PhoneVerificationNotifier,
+      PhoneVerificationState,
+      PhoneVerificationTarget
+    >(PhoneVerificationNotifier.new);
 
 /// 인증번호 입력, 남은 시간, 다시 받기, 확인을 처리합니다.
 ///
 /// 인증번호는 이 화면에 오기 전에 이미 보냈다고 보고 타이머만 시작합니다.
 class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
-  PhoneVerificationNotifier(this.phoneNumber);
+  PhoneVerificationNotifier(this.target);
+
+  /// 인증할 전화번호와 목적.
+  final PhoneVerificationTarget target;
 
   /// 숫자만 남긴 전화번호.
-  final String phoneNumber;
+  String get phoneNumber => target.phoneNumber;
 
   /// 인증번호가 유효한 시간(초).
   static const codeLifetimeSeconds = 180;
 
   Timer? _timer;
+
+  /// 인증번호를 다시 보내는 중이면 true.
+  ///
+  /// 화면에 보여 줄 값이 아니라 두 요청이 겹치지 않게 막는 표시라 상태에 두지 않습니다.
+  bool _isResending = false;
 
   /// 지금 인증번호가 만료되는 시각.
   late DateTime _expiresAt;
@@ -54,17 +74,23 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   /// 인증번호를 다시 보내고 남은 시간을 처음으로 돌립니다. 보냈으면 true.
   ///
   /// 보내지 못하면 남은 시간은 그대로 두고 [AuthFailure.unknown]을 남깁니다.
-  /// 확인하는 중이면 보내지 않습니다. 확인 결과가 새 타이머·상태를 덮지 않게 하기 위해서입니다.
+  /// 확인하는 중이거나 이미 다시 보내는 중이면 보내지 않습니다. 확인 결과가 새 타이머·상태를
+  /// 덮지 않게 하기 위해서입니다. 다시 보내는 동안에는 [verify]도 막습니다.
   Future<bool> resend() async {
-    if (state.isSubmitting) return false;
+    if (state.isSubmitting || _isResending) return false;
+    _isResending = true;
     try {
-      await ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber);
+      await ref
+          .read(authRepositoryProvider)
+          .sendVerificationCode(phoneNumber, purpose: target.purpose);
     } catch (error, stackTrace) {
       debugPrint('인증번호를 다시 보내지 못했습니다: $error\n$stackTrace');
       if (ref.mounted) {
         state = state.copyWith(failure: () => AuthFailure.unknown);
       }
       return false;
+    } finally {
+      _isResending = false;
     }
     if (!ref.mounted) return true;
     state = const PhoneVerificationState(remainingSeconds: codeLifetimeSeconds);
@@ -79,14 +105,19 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   Future<String?> verify() async {
     // Timer 콜백이 밀렸어도 만료된 인증번호를 보내지 않도록 먼저 시각을 맞춥니다.
     _syncRemaining();
-    if (!state.canVerify) return null;
+    // 다시 보내는 중이면, 곧 무효가 될 이전 인증번호로 확인하지 않습니다.
+    if (!state.canVerify || _isResending) return null;
     state = state.copyWith(isSubmitting: true, failure: () => null);
     String? token;
     AuthFailure? failure;
     try {
       token = await ref
           .read(authRepositoryProvider)
-          .verifyCode(phoneNumber: phoneNumber, code: state.code);
+          .verifyCode(
+            phoneNumber: phoneNumber,
+            code: state.code,
+            purpose: target.purpose,
+          );
       if (token == null) failure = AuthFailure.codeMismatch;
     } catch (error, stackTrace) {
       debugPrint('인증번호를 확인하지 못했습니다: $error\n$stackTrace');

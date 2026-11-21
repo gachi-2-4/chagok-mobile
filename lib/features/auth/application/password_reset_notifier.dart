@@ -3,6 +3,7 @@ import 'package:chagok_mobile/features/auth/application/password_reset_form.dart
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -50,7 +51,12 @@ class PasswordResetNotifier extends Notifier<PasswordResetForm> {
     final phoneNumber = state.normalizedPhoneNumber;
     state = state.copyWith(verificationToken: () => null);
     final isSent = await _run(
-      () => ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber),
+      () => ref
+          .read(authRepositoryProvider)
+          .sendVerificationCode(
+            phoneNumber,
+            purpose: VerificationPurpose.passwordReset,
+          ),
     );
     if (isSent && ref.mounted) {
       state = state.copyWith(codeSentTo: () => phoneNumber);

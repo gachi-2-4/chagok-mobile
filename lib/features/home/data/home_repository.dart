@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/home/data/api_home_repository.dart';
 import 'package:chagok_mobile/features/home/data/home_summary.dart';
 import 'package:chagok_mobile/features/home/data/sample_home_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +12,9 @@ abstract interface class HomeRepository {
 }
 
 /// 앱 전역 [HomeRepository].
+///
+/// API 서버 주소가 있으면 서버의 메인 화면 조회를, 없으면 예시 내용을 씁니다.
 final homeRepositoryProvider = Provider<HomeRepository>((ref) {
-  // TODO: 보관함·알림·캘린더 기능이 생기면 그 Provider를 모아 만듭니다.
-  return SampleHomeRepository();
+  if (!ref.watch(isApiEnabledProvider)) return SampleHomeRepository();
+  return ApiHomeRepository(client: ref.watch(apiClientProvider));
 });

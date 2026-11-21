@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/in_memory_auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -9,12 +10,16 @@ void main() {
 
   setUp(() => repository = InMemoryAuthRepository());
 
-  /// [number]로 인증번호를 보내고 확인해 인증 증명 값을 받습니다.
-  Future<String> verify([String number = phoneNumber]) async {
-    await repository.sendVerificationCode(number);
+  /// [number]로 [purpose] 인증번호를 보내고 확인해 인증 증명 값을 받습니다.
+  Future<String> verify([
+    String number = phoneNumber,
+    VerificationPurpose purpose = VerificationPurpose.signUp,
+  ]) async {
+    await repository.sendVerificationCode(number, purpose: purpose);
     final token = await repository.verifyCode(
       phoneNumber: number,
       code: '123456',
+      purpose: purpose,
     );
     return token ?? fail('인증하지 못했습니다');
   }
@@ -36,22 +41,30 @@ void main() {
 
   group('InMemoryAuthRepository', () {
     test('보낸 번호에 숫자 6자리 인증번호를 넣으면 인증 증명 값을 돌려준다', () async {
-      await repository.sendVerificationCode(phoneNumber);
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
 
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '123456',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNotNull);
     });
 
     test('6자리가 아닌 인증번호를 넣으면 통과시키지 않는다', () async {
-      await repository.sendVerificationCode(phoneNumber);
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
 
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '1234',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNull);
@@ -61,6 +74,7 @@ void main() {
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '123456',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNull);
@@ -118,7 +132,10 @@ void main() {
       await repository.resetPassword(
         phoneNumber: phoneNumber,
         newPassword: 'newpass1!',
-        verificationToken: await verify(),
+        verificationToken: await verify(
+          phoneNumber,
+          VerificationPurpose.passwordReset,
+        ),
       );
 
       await expectLater(
@@ -154,7 +171,10 @@ void main() {
 
     test('다른 번호로 받은 인증 증명 값으로 재설정하면 notVerified를 던진다', () async {
       await signUp();
-      final otherToken = await verify('01022222222');
+      final otherToken = await verify(
+        '01022222222',
+        VerificationPurpose.passwordReset,
+      );
 
       await expectLater(
         repository.resetPassword(
@@ -168,7 +188,10 @@ void main() {
 
     test('한 번 쓴 인증 증명 값으로 다시 재설정하면 notVerified를 던진다', () async {
       await signUp();
-      final token = await verify();
+      final token = await verify(
+        phoneNumber,
+        VerificationPurpose.passwordReset,
+      );
       await repository.resetPassword(
         phoneNumber: phoneNumber,
         newPassword: 'newpass1!',
@@ -185,6 +208,35 @@ void main() {
       );
     });
 
+    test('가입용 인증 증명 값으로 재설정하면 notVerified를 던진다', () async {
+      await signUp();
+      final signUpToken = await verify();
+
+      await expectLater(
+        repository.resetPassword(
+          phoneNumber: phoneNumber,
+          newPassword: 'hacked12!',
+          verificationToken: signUpToken,
+        ),
+        throwsFailure(AuthFailure.notVerified),
+      );
+    });
+
+    test('가입용으로 보낸 인증번호를 재설정 목적으로 확인하면 null을 돌려준다', () async {
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
+
+      final token = await repository.verifyCode(
+        phoneNumber: phoneNumber,
+        code: '123456',
+        purpose: VerificationPurpose.passwordReset,
+      );
+
+      expect(token, isNull);
+    });
+
     test('가입하지 않은 번호의 비밀번호를 재설정하면 notRegistered를 던진다', () async {
       const unknown = '01099999999';
 
@@ -192,7 +244,10 @@ void main() {
         repository.resetPassword(
           phoneNumber: unknown,
           newPassword: 'newpass1!',
-          verificationToken: await verify(unknown),
+          verificationToken: await verify(
+            unknown,
+            VerificationPurpose.passwordReset,
+          ),
         ),
         throwsFailure(AuthFailure.notRegistered),
       );

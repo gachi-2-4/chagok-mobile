@@ -16,7 +16,11 @@ class AnalysisSucceeded extends AnalysisResult {
     required this.documentType,
     required this.pageCount,
     required List<ExtractedField> fields,
+    this.documentId,
   }) : fields = List.unmodifiable(fields);
+
+  /// 서버에 올려 분석한 서류 ID. 보관을 마칠 때 씁니다. 서버 없이 분석했으면 null.
+  final String? documentId;
 
   /// 예: "임대차계약서"
   final String documentType;

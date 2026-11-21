@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/onboarding/data/api_onboarding_repository.dart';
 import 'package:chagok_mobile/features/onboarding/data/in_memory_onboarding_repository.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +15,9 @@ abstract interface class OnboardingRepository {
 }
 
 /// 앱 전역 [OnboardingRepository].
+///
+/// API 서버 주소가 있으면 서버에, 없으면 메모리에 답을 둡니다.
 final onboardingRepositoryProvider = Provider<OnboardingRepository>((ref) {
-  // TODO: 백엔드가 정해지면 실제 구현으로 바꿉니다.
-  return InMemoryOnboardingRepository();
+  if (!ref.watch(isApiEnabledProvider)) return InMemoryOnboardingRepository();
+  return ApiOnboardingRepository(client: ref.watch(apiClientProvider));
 });

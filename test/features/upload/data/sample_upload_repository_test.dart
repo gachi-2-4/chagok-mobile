@@ -19,8 +19,8 @@ void main() {
       final repository = SampleUploadRepository();
       final photo = await repository.pick(UploadSource.camera);
 
-      final first = await repository.analyze(photo!);
-      final second = await repository.analyze(photo);
+      final first = await repository.analyze(photo!, boxId: 'housing');
+      final second = await repository.analyze(photo, boxId: 'housing');
 
       expect(first, isA<AnalysisUnclear>());
       expect(second, isA<AnalysisSucceeded>());

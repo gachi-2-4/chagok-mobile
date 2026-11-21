@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/archive/data/api_archive_repository.dart';
 import 'package:chagok_mobile/features/archive/data/archive_box.dart';
 import 'package:chagok_mobile/features/archive/data/box_color.dart';
 import 'package:chagok_mobile/features/archive/data/box_document.dart';
@@ -48,7 +51,9 @@ abstract interface class ArchiveRepository {
 }
 
 /// 앱 전역 [ArchiveRepository].
+///
+/// API 서버 주소가 있으면 서버의 박스·서류를, 없으면 예시 보관함을 씁니다.
 final archiveRepositoryProvider = Provider<ArchiveRepository>((ref) {
-  // TODO: 백엔드가 정해지면 실제 구현으로 바꿉니다.
-  return SampleArchiveRepository();
+  if (!ref.watch(isApiEnabledProvider)) return SampleArchiveRepository();
+  return ApiArchiveRepository(client: ref.watch(apiClientProvider));
 });

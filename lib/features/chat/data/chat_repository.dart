@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/chat/data/api_chat_repository.dart';
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
@@ -35,7 +38,14 @@ abstract interface class ChatRepository {
 }
 
 /// 앱 전역 [ChatRepository].
+///
+/// API 서버 주소가 있으면 서버의 AI 채팅을, 없으면 예시 답을 씁니다.
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  // TODO: 답변 API가 정해지면 실제 구현으로 바꿉니다.
-  return SampleChatRepository(DateTime.now);
+  if (!ref.watch(isApiEnabledProvider)) {
+    return SampleChatRepository(DateTime.now);
+  }
+  return ApiChatRepository(
+    client: ref.watch(apiClientProvider),
+    now: DateTime.now,
+  );
 });
