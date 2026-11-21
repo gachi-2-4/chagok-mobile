@@ -6,11 +6,17 @@ import 'package:chagok_mobile/features/upload/data/picked_document.dart';
 import 'package:chagok_mobile/features/upload/data/upload_repository.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 
-/// 플러그인과 분석 API가 정해지기 전까지 화면 흐름을 확인하려고 쓰는 저장소.
+/// 서버 없이 화면 흐름을 확인하려고 쓰는 저장소. 분석 결과는 늘 예시 임대차계약서입니다.
 ///
-/// 어느 방법으로 골라도 같은 임대차계약서를 돌려줍니다. 카메라로 찍은
-/// 사진은 첫 번째 분석에서 흐리다고 알려, 다시 찍기 흐름도 볼 수 있습니다.
+/// [pick]을 넘기면(앱 실행) 기기의 문서 스캐너·앨범·PDF로 실제 서류를 고르고,
+/// 넘기지 않으면(테스트, 카메라 없는 시뮬레이터) 예시 서류를 바로 돌려줍니다.
+/// 예시 서류로 카메라를 고르면 첫 분석에서 흐리다고 알려, 다시 찍기 흐름도 볼 수 있습니다.
 class SampleUploadRepository implements UploadRepository {
+  SampleUploadRepository({this._pick});
+
+  /// 기기에서 서류를 고르는 함수. null이면 예시 서류를 돌려줍니다.
+  final Future<PickedDocument?> Function(UploadSource source)? _pick;
+
   var _cameraAnalysisCount = 0;
   final savedFileNames = <String>[];
 
@@ -22,6 +28,7 @@ class SampleUploadRepository implements UploadRepository {
 
   @override
   Future<PickedDocument?> pick(UploadSource source) async {
+    if (_pick case final pick?) return pick(source);
     return PickedDocument(
       fileName: switch (source) {
         UploadSource.camera => '촬영한 서류.jpg',
@@ -48,7 +55,10 @@ class SampleUploadRepository implements UploadRepository {
     PickedDocument document, {
     required String boxId,
   }) async {
-    if (document.source == UploadSource.camera && _cameraAnalysisCount++ == 0) {
+    // 실제로 찍은 사진(파일이 있음)은 흐림 안내 없이 바로 결과를 보여 줍니다.
+    if (document.files.isEmpty &&
+        document.source == UploadSource.camera &&
+        _cameraAnalysisCount++ == 0) {
       return const AnalysisUnclear();
     }
     return AnalysisSucceeded(
