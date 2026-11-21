@@ -189,6 +189,18 @@ abstract final class AppSpacing {
   /// 떠 있는 버튼(서류 올리기)에 마지막 줄이 가리지 않도록 목록 끝에 두는 여백.
   static const floatingButtonClearance = 88.0;
 
+  /// 원본 / AI 정리본 탭 바탕과 고른 탭 사이 간격.
+  static const segmentInset = 4.0;
+
+  /// 중요도 막대 칸 사이 간격.
+  static const meterGap = 3.0;
+
+  /// 여러 줄 목록에서 점을 글자 첫 줄 가운데에 맞추는 위 여백.
+  static const bulletTop = 7.0;
+
+  /// AI 정리본 표에서 이름 칸의 너비.
+  static const summaryLabelWidth = 72.0;
+
   /// 고른 색 칸의 바깥 테두리와 색 사이 간격.
   static const selectionRingGap = 3.0;
 

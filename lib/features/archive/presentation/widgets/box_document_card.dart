@@ -5,17 +5,18 @@ import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/features/archive/application/box_document_item.dart';
 import 'package:chagok_mobile/features/archive/data/document_importance.dart';
 import 'package:chagok_mobile/features/archive/presentation/archive_strings.dart';
+import 'package:chagok_mobile/features/archive/presentation/widgets/document_stripe_painter.dart';
 import 'package:flutter/material.dart';
 
 /// 보관함 상세(06)·서류 검색의 서류 하나.
 ///
 /// 원본 자리 아래에 이름과 중요도·D-n 표를 둡니다. 원본 자리 오른쪽 아래의
-/// 초록 버튼을 누르면 AI가 서류를 쉬운 말로 바꿔 줍니다.
+/// 초록 버튼을 누르면 서류 상세의 AI 정리본 탭을 엽니다.
 class BoxDocumentCard extends StatelessWidget {
   const BoxDocumentCard({
     required this.item,
     required this.onTap,
-    required this.onTranslate,
+    required this.onOpenSummary,
     super.key,
   });
 
@@ -24,8 +25,8 @@ class BoxDocumentCard extends StatelessWidget {
   /// 서류를 눌렀을 때 동작.
   final VoidCallback onTap;
 
-  /// 쉬운 말로 번역 버튼을 눌렀을 때 동작.
-  final VoidCallback onTranslate;
+  /// AI 정리본 보기 버튼을 눌렀을 때 동작.
+  final VoidCallback onOpenSummary;
 
   /// 서류 원본 자리의 너비 대 높이. A4 세로에 가깝게 그립니다.
   static const _thumbnailAspectRatio = 3 / 4;
@@ -48,7 +49,7 @@ class BoxDocumentCard extends StatelessWidget {
               aspectRatio: _thumbnailAspectRatio,
               child: _Thumbnail(
                 pageCount: document.pageCount,
-                onTranslate: onTranslate,
+                onOpenSummary: onOpenSummary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -92,17 +93,17 @@ class BoxDocumentCard extends StatelessWidget {
 
 /// 빗금을 그은 서류 원본 자리. 여러 장이면 왼쪽 위에 쪽수를 둡니다.
 class _Thumbnail extends StatelessWidget {
-  const _Thumbnail({required this.pageCount, required this.onTranslate});
+  const _Thumbnail({required this.pageCount, required this.onOpenSummary});
 
   final int pageCount;
-  final VoidCallback onTranslate;
+  final VoidCallback onOpenSummary;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.paper),
       child: CustomPaint(
-        painter: const _StripePainter(),
+        painter: const DocumentStripePainter(),
         child: Stack(
           children: [
             Center(
@@ -126,7 +127,7 @@ class _Thumbnail extends StatelessWidget {
             Positioned(
               right: 0,
               bottom: 0,
-              child: _TranslateButton(onTap: onTranslate),
+              child: _SummaryButton(onTap: onOpenSummary),
             ),
           ],
         ),
@@ -135,11 +136,11 @@ class _Thumbnail extends StatelessWidget {
   }
 }
 
-/// AI로 서류를 쉬운 말로 바꿔 주는 초록 동그라미 버튼.
+/// 서류 상세의 AI 정리본 탭을 여는 초록 동그라미 버튼.
 ///
 /// 그림은 작게 그리고, 손가락으로 누르기 쉽도록 누르는 영역은 넓게 둡니다.
-class _TranslateButton extends StatelessWidget {
-  const _TranslateButton({required this.onTap});
+class _SummaryButton extends StatelessWidget {
+  const _SummaryButton({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -153,9 +154,9 @@ class _TranslateButton extends StatelessWidget {
       // 서류 카드 전체도 버튼이라, 따로 읽히고 눌리도록 노드를 나눕니다.
       container: true,
       button: true,
-      label: ArchiveStrings.translate,
+      label: ArchiveStrings.openSummary,
       child: Tooltip(
-        message: ArchiveStrings.translate,
+        message: ArchiveStrings.openSummary,
         excludeFromSemantics: true,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -183,35 +184,6 @@ class _TranslateButton extends StatelessWidget {
       ),
     );
   }
-}
-
-/// 서류 원본 자리 바탕의 비스듬한 빗금.
-class _StripePainter extends CustomPainter {
-  const _StripePainter();
-
-  static const _stripeWidth = 9.0;
-
-  /// 한 빗금의 시작에서 다음 빗금의 시작까지 거리. 빗금과 바탕이 같은 너비입니다.
-  static const _stripePeriod = 18.0;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = AppColors.softFill);
-    final paint = Paint()
-      ..color = AppColors.documentStripe
-      ..strokeWidth = _stripeWidth;
-    // 왼쪽 아래에서 오른쪽 위로 긋습니다. 모서리까지 덮도록 높이만큼 더 긋습니다.
-    for (var x = -size.height; x < size.width; x += _stripePeriod) {
-      canvas.drawLine(
-        Offset(x, size.height),
-        Offset(x + size.height, 0),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_StripePainter oldDelegate) => false;
 }
 
 /// 중요도 표. 높을수록 눈에 띄는 색을 씁니다.

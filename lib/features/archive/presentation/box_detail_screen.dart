@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:chagok_mobile/core/constants/app_colors.dart';
-import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
-import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/core/widgets/app_circle_back_button.dart';
 import 'package:chagok_mobile/features/archive/application/box_detail.dart';
 import 'package:chagok_mobile/features/archive/application/box_detail_notifier.dart';
 import 'package:chagok_mobile/features/archive/data/archive_box.dart';
@@ -17,7 +14,6 @@ import 'package:chagok_mobile/features/archive/presentation/widgets/document_gri
 import 'package:chagok_mobile/features/archive/presentation/widgets/upload_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 /// 06 · 보관함 하나를 열어 담긴 서류를 두 줄씩 보여 주는 화면.
 class BoxDetailScreen extends ConsumerWidget {
@@ -42,7 +38,7 @@ class BoxDetailScreen extends ConsumerWidget {
           children: [
             const Align(
               alignment: Alignment.centerLeft,
-              child: _CircleBackButton(),
+              child: AppCircleBackButton(),
             ),
             const SizedBox(height: AppSpacing.block),
             ref
@@ -143,41 +139,6 @@ class _BoxHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// 동그란 바탕 위의 뒤로 가기(‹) 버튼.
-class _CircleBackButton extends StatelessWidget {
-  const _CircleBackButton();
-
-  static const _size = 40.0;
-  static const _iconSize = 24.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: CoreStrings.back,
-      child: Material(
-        color: AppColors.softFill,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () => unawaited(Navigator.maybePop(context)),
-          child: SizedBox.square(
-            dimension: _size,
-            child: Center(
-              child: SvgPicture.asset(
-                AppIcons.back,
-                width: _iconSize,
-                height: _iconSize,
-                excludeFromSemantics: true,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
