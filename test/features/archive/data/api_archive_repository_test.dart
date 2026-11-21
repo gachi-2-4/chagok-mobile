@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/archive/data/box_document_not_found_excep
 import 'package:chagok_mobile/features/archive/data/box_icon.dart';
 import 'package:chagok_mobile/features/archive/data/box_not_found_exception.dart';
 import 'package:chagok_mobile/features/archive/data/document_importance.dart';
+import 'package:chagok_mobile/features/archive/data/summary_section.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_api_server.dart';
@@ -106,27 +107,71 @@ void main() {
     });
   });
 
-  group('ApiArchiveRepository.translateToPlainLanguage', () {
-    test('쉬운말 요약 카드가 있으면 한 줄 요약을 돌려준다', () async {
-      server.onJson('GET', '/documents/520', {
-        'summary': '분석 요약',
-        'summaryCard': {'oneLineSummary': '보증금 2억 원, 2년 계약이에요.'},
-      });
+  group('ApiArchiveRepository.fetchDocumentOverview', () {
+    Map<String, Object?> detail({Map<String, Object?>? summaryCard}) => {
+      ...document,
+      'summary': '분석 요약',
+      'summaryCard': summaryCard,
+      'fields': [
+        {'key': 'deposit', 'value': 230000000, 'valueType': 'AMOUNT'},
+        {'key': 'contractEndDate', 'value': '2027-02-28', 'valueType': 'DATE'},
+        {'key': 'note', 'label': '특약', 'value': '반려동물 가능', 'valueType': 'TEXT'},
+      ],
+      'deadlines': [
+        {'type': 'EXPIRY', 'date': '2027-02-28'},
+        {'type': 'PAYMENT', 'date': '2026-11-25'},
+        {'type': 'PAYMENT', 'date': '2026-10-25'},
+      ],
+    };
 
-      final text = await repository.translateToPlainLanguage('520');
+    setUp(() => server.onJson('GET', '/boxes/1', box));
 
-      expect(text, '보증금 2억 원, 2년 계약이에요.');
+    test('서류를 가져오면 비용·가장 가까운 기한·만기와 박스 아이콘을 함께 돌려준다', () async {
+      server.onJson('GET', '/documents/520', detail());
+
+      final overview = await repository.fetchDocumentOverview('520', today);
+
+      expect(overview.document.title, '전세 임대차 계약서');
+      expect(overview.document.importance, DocumentImportance.high);
+      expect(overview.cost?.label, '보증금');
+      expect(overview.cost?.amount, 230000000);
+      expect(overview.document.dueDate, DateTime(2026, 11, 25));
+      expect(overview.dueLabel, '납부');
+      expect(overview.periodEnd, DateTime(2027, 2, 28));
+      expect(overview.box.icon, BoxIcon.tax);
     });
 
-    test('요약 카드가 아직 없으면 분석 요약을 돌려준다', () async {
-      server.onJson('GET', '/documents/520', {
-        'summary': '분석 요약',
-        'summaryCard': null,
-      });
+    test('항목이 있으면 금액·날짜를 보기 좋게 바꿔 정리본 표로 돌려준다', () async {
+      server.onJson('GET', '/documents/520', detail());
 
-      final text = await repository.translateToPlainLanguage('520');
+      final overview = await repository.fetchDocumentOverview('520', today);
 
-      expect(text, '분석 요약');
+      final table = overview.summary.sections.single as SummaryTable;
+      expect(table.rows.map((row) => (row.label, row.value)), [
+        ('보증금', '230,000,000원'),
+        ('계약 종료일', '2027.02.28'),
+        ('특약', '반려동물 가능'),
+      ]);
+    });
+
+    test('쉬운말 요약 카드가 있으면 한 줄 요약으로 쓴다', () async {
+      server.onJson(
+        'GET',
+        '/documents/520',
+        detail(summaryCard: {'oneLineSummary': '보증금 2억 3천만 원, 2년 계약이에요.'}),
+      );
+
+      final overview = await repository.fetchDocumentOverview('520', today);
+
+      expect(overview.summary.oneLine, '보증금 2억 3천만 원, 2년 계약이에요.');
+    });
+
+    test('요약 카드가 아직 없으면 분석 요약을 한 줄 요약으로 쓴다', () async {
+      server.onJson('GET', '/documents/520', detail());
+
+      final overview = await repository.fetchDocumentOverview('520', today);
+
+      expect(overview.summary.oneLine, '분석 요약');
     });
 
     test('없는 서류면 BoxDocumentNotFoundException을 던진다', () async {
@@ -136,7 +181,7 @@ void main() {
         (_) => errorResponse(404, 'DOCUMENT_NOT_FOUND'),
       );
 
-      final request = repository.translateToPlainLanguage('1');
+      final request = repository.fetchDocumentOverview('1', today);
 
       await expectLater(request, throwsA(isA<BoxDocumentNotFoundException>()));
     });
