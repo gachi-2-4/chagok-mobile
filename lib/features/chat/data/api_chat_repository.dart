@@ -23,8 +23,11 @@ class ApiChatRepository implements ChatRepository {
   /// 첫 안내 말풍선의 시각을 정할 때 쓰는 시계. 대화에 메시지가 없을 때 씁니다.
   final DateTime Function() _now;
 
-  /// 한 번에 받을 메시지 수. 서버 기본값(30)보다 넉넉히 받아 이전 대화를 덜 끊습니다.
+  /// 한 번에 받을 메시지 수. 서버 기본값(30)보다 넉넉히 받아 요청 수를 줄입니다.
   static const _messagePageSize = 50;
+
+  /// 한 대화에서 받을 최대 쪽수. 서버가 `hasMore`를 계속 true로 줘도 멈추게 합니다.
+  static const _maxMessagePages = 20;
 
   List<String> _suggestions = const [];
 
@@ -50,14 +53,15 @@ class ApiChatRepository implements ChatRepository {
     ];
   }
 
+  /// 대화를 메시지 전부와 함께 불러옵니다.
+  ///
+  /// 서버는 최신 메시지부터 쪽으로 나눠 주므로, 더 오래된 메시지가 남아 있으면
+  /// 받은 것 중 가장 오래된 메시지 ID를 `beforeMessageId`로 보내 앞쪽을 이어 받습니다.
   @override
   Future<ChatThread> fetchThread(String id) async {
     final JsonMap json;
     try {
-      json = await _client.get(
-        '/chats/${apiId(id)}/messages',
-        query: {'size': _messagePageSize},
-      );
+      json = await _fetchMessages(id);
     } on ApiException catch (error) {
       if (error.isNotFound) throw ChatThreadNotFoundException(id);
       rethrow;
@@ -65,15 +69,31 @@ class ApiChatRepository implements ChatRepository {
       throw ChatThreadNotFoundException(id);
     }
     _suggestions = _suggestionsOf(json);
-    final messages = [
-      for (final message in json.maps('messages')) _messageOf(message),
-    ];
+    var pages = json.maps('messages');
+    var page = json;
+    for (var count = 1; page.boolean('hasMore'); count++) {
+      final oldest = pages.firstOrNull?.integerOrNull('messageId');
+      if (oldest == null) break;
+      if (count >= _maxMessagePages) {
+        throw StateError('대화 $id: $_maxMessagePages쪽을 넘는 메시지는 받지 않습니다');
+      }
+      page = await _fetchMessages(id, beforeMessageId: oldest);
+      pages = [...page.maps('messages'), ...pages];
+    }
+    final messages = [for (final message in pages) _messageOf(message)];
     final greetingAt = messages.firstOrNull?.sentAt ?? _now();
     return ChatThread(
       id: json.id('chatId'),
       messages: [?_greetingOf(json, greetingAt), ...messages],
       updatedAt: messages.lastOrNull?.sentAt ?? greetingAt,
       document: _documentOf(json.maps('documents').firstOrNull),
+    );
+  }
+
+  Future<JsonMap> _fetchMessages(String id, {int? beforeMessageId}) {
+    return _client.get(
+      '/chats/${apiId(id)}/messages',
+      query: {'size': _messagePageSize, 'beforeMessageId': beforeMessageId},
     );
   }
 

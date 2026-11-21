@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_exception.dart';
 import 'package:chagok_mobile/core/network/api_formats.dart';
 import 'package:chagok_mobile/core/network/json_map.dart';
 import 'package:chagok_mobile/core/network/token_storage.dart';
@@ -6,6 +7,7 @@ import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
 import 'package:chagok_mobile/features/settings/data/text_size.dart';
 import 'package:chagok_mobile/features/settings/data/user_profile.dart';
+import 'package:flutter/foundation.dart';
 
 /// 차곡 API 서버의 USER·NOTIFICATION API로 설정과 계정을 다루는 [SettingsRepository].
 ///
@@ -55,8 +57,22 @@ class ApiSettingsRepository implements SettingsRepository {
     return settings;
   }
 
+  /// 바뀐 곳만 서버에 보냅니다.
+  ///
+  /// 일부만 저장하고 실패하면 서버에 무엇이 남았는지 알 수 없으므로, 다음 저장 때
+  /// 모두 다시 보내도록 기준을 비웁니다.
   @override
   Future<void> saveSettings(AppSettings settings) async {
+    try {
+      await _sendChanges(settings);
+    } catch (_) {
+      _synced = null;
+      rethrow;
+    }
+    _synced = settings;
+  }
+
+  Future<void> _sendChanges(AppSettings settings) async {
     final synced = _synced;
     if (synced == null || synced.textSize != settings.textSize) {
       await _client.patch(
@@ -81,7 +97,6 @@ class ApiSettingsRepository implements SettingsRepository {
         body: {'marketing': settings.isMarketingOn},
       );
     }
-    _synced = settings;
   }
 
   @override
@@ -94,6 +109,11 @@ class ApiSettingsRepository implements SettingsRepository {
     );
   }
 
+  /// 이 기기에서 로그아웃합니다.
+  ///
+  /// 서버에 알리지 못해도 이 기기의 토큰은 지우고 로그아웃을 마친 것으로 봅니다.
+  /// 토큰이 없으면 이 기기로는 계정에 들어갈 수 없고, 화면도 로그아웃한 상태와
+  /// 맞아야 하기 때문입니다. 서버의 Refresh Token은 기한이 지나면 사라집니다.
   @override
   Future<void> logOut() async {
     final tokens = await _tokenStorage.read();
@@ -106,8 +126,9 @@ class ApiSettingsRepository implements SettingsRepository {
           isAuthenticated: false,
         );
       }
+    } on ApiException catch (error) {
+      debugPrint('서버에 로그아웃을 알리지 못했습니다: $error');
     } finally {
-      // 서버에 닿지 못해도 이 기기에서는 로그아웃한 상태로 만듭니다.
       await _clearSession();
     }
   }

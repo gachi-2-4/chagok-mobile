@@ -131,6 +131,34 @@ void main() {
       expect(container.read(provider).failure, isNull);
     });
 
+    test('인증번호를 다시 보내는 중이면 확인을 보내지 않는다', () async {
+      keepAlive();
+      repository.sendGate = Completer<void>();
+      final notifier = container.read(provider.notifier)..updateCode('123456');
+
+      final resending = notifier.resend();
+      final token = await notifier.verify();
+      repository.sendGate?.complete();
+      await resending;
+
+      expect(token, isNull);
+      expect(repository.verifiedPurposes, isEmpty);
+    });
+
+    test('인증번호를 다시 보내는 중에 또 다시 보내면 무시하고 false를 돌려준다', () async {
+      keepAlive();
+      repository.sendGate = Completer<void>();
+      final notifier = container.read(provider.notifier);
+
+      final first = notifier.resend();
+      final second = await notifier.resend();
+      repository.sendGate?.complete();
+      await first;
+
+      expect(second, isFalse);
+      expect(repository.sentCodes, hasLength(1));
+    });
+
     test('비밀번호 재설정 인증이면 다시 보내기와 확인을 재설정 목적으로 한다', () async {
       final resetProvider = phoneVerificationProvider((
         phoneNumber: phoneNumber,

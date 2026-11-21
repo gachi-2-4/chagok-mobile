@@ -113,7 +113,11 @@ class ApiDocumentRepository implements DocumentRepository {
           parseApiDate(deadline.string('date')).day,
       minuteOfDay: parseApiTime(reminder.string('alertTime')),
       advanceDays: reminder.integers('advanceDays').toSet(),
-      isMonthly: deadline.stringOrNull('recurrence') == 'MONTHLY',
+      // 기한이 매월 반복이어도 알림은 다음 한 번만 받게 할 수 있어 알림의 설정을 읽습니다.
+      // 서버가 알림 설정을 주지 않으면 기한의 반복을 따릅니다.
+      isMonthly:
+          deadline.stringOrNull('recurrence') == 'MONTHLY' &&
+          reminder.boolean('repeatMonthly', fallback: true),
     );
   }
 
@@ -129,7 +133,7 @@ class ApiDocumentRepository implements DocumentRepository {
     final schedule = _monthlySchedule(json);
     if (schedule != null &&
         schedule.integerOrNull('dayOfMonth') != reminder.paymentDay) {
-      json = await _client.patch(
+      await _client.patch(
         '/documents/${apiId(reminder.documentId)}/fields',
         body: {
           'paymentSchedules': [
@@ -137,6 +141,8 @@ class ApiDocumentRepository implements DocumentRepository {
           ],
         },
       );
+      // 납부일을 바꾸면 기한 날짜가 다시 계산되므로, 바뀐 기한을 서류 상세에서 다시 읽습니다.
+      json = await _fetchDocument(reminder.documentId);
     }
     final deadline =
         _paymentDeadline(json) ??

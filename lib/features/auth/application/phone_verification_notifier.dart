@@ -43,6 +43,11 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
 
   Timer? _timer;
 
+  /// 인증번호를 다시 보내는 중이면 true.
+  ///
+  /// 화면에 보여 줄 값이 아니라 두 요청이 겹치지 않게 막는 표시라 상태에 두지 않습니다.
+  bool _isResending = false;
+
   /// 지금 인증번호가 만료되는 시각.
   late DateTime _expiresAt;
 
@@ -69,9 +74,11 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   /// 인증번호를 다시 보내고 남은 시간을 처음으로 돌립니다. 보냈으면 true.
   ///
   /// 보내지 못하면 남은 시간은 그대로 두고 [AuthFailure.unknown]을 남깁니다.
-  /// 확인하는 중이면 보내지 않습니다. 확인 결과가 새 타이머·상태를 덮지 않게 하기 위해서입니다.
+  /// 확인하는 중이거나 이미 다시 보내는 중이면 보내지 않습니다. 확인 결과가 새 타이머·상태를
+  /// 덮지 않게 하기 위해서입니다. 다시 보내는 동안에는 [verify]도 막습니다.
   Future<bool> resend() async {
-    if (state.isSubmitting) return false;
+    if (state.isSubmitting || _isResending) return false;
+    _isResending = true;
     try {
       await ref
           .read(authRepositoryProvider)
@@ -82,6 +89,8 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
         state = state.copyWith(failure: () => AuthFailure.unknown);
       }
       return false;
+    } finally {
+      _isResending = false;
     }
     if (!ref.mounted) return true;
     state = const PhoneVerificationState(remainingSeconds: codeLifetimeSeconds);
@@ -96,7 +105,8 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   Future<String?> verify() async {
     // Timer 콜백이 밀렸어도 만료된 인증번호를 보내지 않도록 먼저 시각을 맞춥니다.
     _syncRemaining();
-    if (!state.canVerify) return null;
+    // 다시 보내는 중이면, 곧 무효가 될 이전 인증번호로 확인하지 않습니다.
+    if (!state.canVerify || _isResending) return null;
     state = state.copyWith(isSubmitting: true, failure: () => null);
     String? token;
     AuthFailure? failure;

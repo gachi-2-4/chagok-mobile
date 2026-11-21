@@ -82,6 +82,31 @@ void main() {
     });
   });
 
+  group('ApiSettingsRepository.saveSettings 실패', () {
+    test('일부만 저장하고 실패하면 다음 저장 때 모두 다시 보낸다', () async {
+      final settings = await repository.fetchSettings();
+      server.on(
+        'PATCH',
+        '/notifications/settings',
+        (_) => errorResponse(500, 'INTERNAL_SERVER_ERROR'),
+      );
+      final changed = settings.copyWith(
+        textSize: TextSize.normal,
+        isPaymentReminderOn: true,
+      );
+      await expectLater(
+        repository.saveSettings(changed),
+        throwsA(isA<ApiException>()),
+      );
+      server.onJson('PATCH', '/notifications/settings', {});
+
+      await repository.saveSettings(settings);
+
+      expect(server.requestsTo('PATCH', '/user/me/preferences'), hasLength(2));
+      expect(server.requestsTo('POST', '/user/me/consents'), hasLength(1));
+    });
+  });
+
   group('ApiSettingsRepository.fetchProfile', () {
     test('전화번호가 없는 소셜 계정이면 빈 전화번호로 돌려준다', () async {
       server.onJson('GET', '/user/me', {'name': '구글 사용자', 'phoneNumber': null});
@@ -105,14 +130,14 @@ void main() {
       expect(await server.tokenStorage.read(), isNull);
     });
 
-    test('로그아웃 요청이 실패하면 그래도 이 기기의 토큰은 지운다', () async {
+    test('서버에 로그아웃을 알리지 못하면 이 기기의 토큰을 지우고 로그아웃을 마친다', () async {
       server.on(
         'POST',
         '/auth/logout',
         (_) => errorResponse(500, 'INTERNAL_SERVER_ERROR'),
       );
 
-      await expectLater(repository.logOut(), throwsA(isA<ApiException>()));
+      await expectLater(repository.logOut(), completes);
       expect(await server.tokenStorage.read(), isNull);
     });
   });

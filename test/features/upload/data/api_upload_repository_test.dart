@@ -57,14 +57,22 @@ void main() {
   late ApiUploadRepository repository;
   late List<Duration> waits;
 
+  /// 가짜 시계. 기다리면 그만큼 흐릅니다.
+  late DateTime clock;
+
   setUp(() {
     server = FakeApiServer();
     waits = [];
+    clock = DateTime(2026, 11, 18, 9);
     repository = ApiUploadRepository(
       client: server.client,
       pick: (_) async => document,
       pollTimeout: const Duration(seconds: 6),
-      wait: (duration) async => waits.add(duration),
+      wait: (duration) async {
+        waits.add(duration);
+        clock = clock.add(duration);
+      },
+      now: () => clock,
     );
     server.onJson('POST', '/documents', {
       'documentId': 520,
@@ -129,6 +137,44 @@ void main() {
       await expectLater(request, throwsA(isA<TimeoutException>()));
     });
 
+    test('조회가 느리면 조회에 걸린 시간도 제한 시간에 넣어 TimeoutException을 던진다', () async {
+      server.on('GET', '/documents/520', (_) {
+        clock = clock.add(const Duration(seconds: 10));
+        return jsonResponse({'status': 'ANALYZING'});
+      });
+
+      final request = repository.analyze(document, boxId: '1');
+
+      await expectLater(request, throwsA(isA<TimeoutException>()));
+      expect(server.requestsTo('GET', '/documents/520'), hasLength(1));
+    });
+
+    test('기다리다 실패한 뒤 같은 파일로 다시 분석하면 다시 올리지 않고 이어서 기다린다', () async {
+      analyzeAfter(100, analyzed);
+      await expectLater(
+        repository.analyze(document, boxId: '1'),
+        throwsA(isA<TimeoutException>()),
+      );
+      analyzeAfter(0, analyzed);
+
+      final result = await repository.analyze(document, boxId: '1');
+
+      expect(result, isA<AnalysisSucceeded>());
+      expect(server.requestsTo('POST', '/documents'), hasLength(1));
+    });
+
+    test('분석 결과를 받은 뒤 같은 파일로 다시 분석하면 새로 올린다', () async {
+      analyzeAfter(0, {
+        'status': 'FAILED',
+        'failReason': 'TEXT_NOT_RECOGNIZED',
+      });
+      await repository.analyze(document, boxId: '1');
+
+      await repository.analyze(document, boxId: '1');
+
+      expect(server.requestsTo('POST', '/documents'), hasLength(2));
+    });
+
     test('올릴 파일 내용이 없으면 StateError를 던진다', () async {
       final empty = PickedDocument(
         fileName: '예시.pdf',
@@ -151,6 +197,28 @@ void main() {
         ..onJson('POST', '/documents/520/confirm', {'status': 'CONFIRMED'})
         ..onJson('PATCH', '/documents/520', {});
       analyzeAfter(0, analyzed);
+    });
+
+    test('옮긴 뒤 확인이 실패하고 처음 보관함으로 다시 저장하면 다시 옮긴다', () async {
+      final result = await repository.analyze(document, boxId: '1');
+      server.on(
+        'POST',
+        '/documents/520/confirm',
+        (_) => errorResponse(500, 'INTERNAL_SERVER_ERROR'),
+      );
+      await expectLater(
+        repository.save(
+          document: document,
+          result: result as AnalysisSucceeded,
+          boxId: '3',
+        ),
+        throwsA(isA<Exception>()),
+      );
+      server.onJson('POST', '/documents/520/confirm', {'status': 'CONFIRMED'});
+
+      await repository.save(document: document, result: result, boxId: '1');
+
+      expect(server.lastBody('PATCH', '/documents/520'), {'boxId': 1});
     });
 
     test('같은 보관함이면 확인만 보낸다', () async {

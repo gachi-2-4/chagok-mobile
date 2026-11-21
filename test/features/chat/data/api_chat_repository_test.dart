@@ -69,6 +69,35 @@ void main() {
       expect(repository.suggestedQuestions(thread.document), ['보증금 언제 돌려받아?']);
     });
 
+    test('더 오래된 메시지가 남아 있으면 앞쪽을 이어 받아 시간순으로 합친다', () async {
+      Map<String, Object?> message(int id) => {
+        'messageId': id,
+        'role': 'USER',
+        'content': '질문 $id',
+        'createdAt': '2026-11-18T09:4$id:00+09:00',
+      };
+      server.on('GET', '/chats/12/messages', (request) {
+        final before = request.url.queryParameters['beforeMessageId'];
+        return jsonResponse({
+          ...room,
+          'messages': before == null
+              ? [message(3), message(4)]
+              : [message(1), message(2)],
+          'hasMore': before == null,
+        });
+      });
+
+      final thread = await repository.fetchThread('12');
+
+      expect(thread.messages.skip(1).map((message) => message.text), [
+        '질문 1',
+        '질문 2',
+        '질문 3',
+        '질문 4',
+      ]);
+      expect(server.requests.last.url.queryParameters['beforeMessageId'], '3');
+    });
+
     test('없는 대화면 ChatThreadNotFoundException을 던진다', () async {
       server.on(
         'GET',

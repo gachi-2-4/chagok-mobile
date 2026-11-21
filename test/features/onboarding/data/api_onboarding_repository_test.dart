@@ -64,6 +64,20 @@ void main() {
       });
     });
 
+    test('주소를 비워 두면 ArgumentError를 던진다', () async {
+      final request = repository.save(
+        const OnboardingAnswers(
+          nationality: Nationality.korean,
+          address: '  ',
+          housingType: HousingType.owned,
+          welfareStatus: WelfareStatus.none,
+        ),
+      );
+
+      await expectLater(request, throwsArgumentError);
+      expect(server.requests, isEmpty);
+    });
+
     test('답하지 않은 질문이 있으면 ArgumentError를 던진다', () async {
       final request = repository.save(
         const OnboardingAnswers(nationality: Nationality.korean),

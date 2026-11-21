@@ -136,6 +136,25 @@ void main() {
       expect(reminder?.isMonthly, isTrue);
     });
 
+    test('알림을 다음 한 번만 받게 저장했으면 매월 반복을 끈 알림으로 돌려준다', () async {
+      server.onJson(
+        'GET',
+        '/documents/501',
+        lease(
+          reminder: {
+            'reminderId': 33,
+            'alertTime': '09:00',
+            'advanceDays': [1],
+            'repeatMonthly': false,
+          },
+        ),
+      );
+
+      final reminder = await repository.fetchReminder('501');
+
+      expect(reminder?.isMonthly, isFalse);
+    });
+
     test('납부 기한에 알림이 없으면 null을 돌려준다', () async {
       expect(await repository.fetchReminder('501'), isNull);
     });
@@ -188,6 +207,15 @@ void main() {
           {'key': 'monthlyRent', 'dayOfMonth': 5},
         ],
       });
+    });
+
+    test('납부일을 고친 응답에 기한이 없으면 서류를 다시 불러와 알림을 저장한다', () async {
+      server.onJson('PATCH', '/documents/501/fields', {'documentId': 501});
+
+      await repository.saveReminder(reminder.copyWith(paymentDay: 5));
+
+      expect(server.requestsTo('GET', '/documents/501'), hasLength(2));
+      expect(server.requestsTo('POST', '/reminders'), hasLength(1));
     });
 
     test('납부 기한이 없는 서류면 StateError를 던진다', () async {

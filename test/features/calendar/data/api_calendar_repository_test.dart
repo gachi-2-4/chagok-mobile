@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/features/calendar/data/api_calendar_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -79,6 +81,26 @@ void main() {
       await repository.setRegistered(id: '71', isRegistered: false);
 
       expect(server.requestsTo('DELETE', '/reminders/31'), hasLength(1));
+    });
+
+    test('빼는 사이 다시 등록하면 빼기가 끝나도 새 알림은 남겨 둔다', () async {
+      final deleteGate = Completer<void>();
+      server
+        ..on('DELETE', '/reminders/31', (_) async {
+          await deleteGate.future;
+          return emptyResponse();
+        })
+        ..onJson('POST', '/reminders', {'reminderId': 40}, status: 201)
+        ..on('DELETE', '/reminders/40', (_) => emptyResponse());
+      await repository.fetchDeadlines(DateTime(2026, 11, 18));
+
+      final removing = repository.setRegistered(id: '71', isRegistered: false);
+      await repository.setRegistered(id: '71', isRegistered: true);
+      deleteGate.complete();
+      await removing;
+      await repository.setRegistered(id: '71', isRegistered: false);
+
+      expect(server.requestsTo('DELETE', '/reminders/40'), hasLength(1));
     });
 
     test('알림을 모르는 기한의 등록을 빼면 StateError를 던진다', () async {

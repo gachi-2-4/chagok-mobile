@@ -28,6 +28,7 @@ class ApiUploadRepository implements UploadRepository {
     this._pollInterval = const Duration(seconds: 2),
     this._pollTimeout = const Duration(seconds: 120),
     this._wait = _delay,
+    this._now = DateTime.now,
   });
 
   final ApiClient _client;
@@ -43,6 +44,15 @@ class ApiUploadRepository implements UploadRepository {
 
   /// [_pollInterval]만큼 기다리는 함수. 테스트에서 시간을 건너뛰려고 받습니다.
   final Future<void> Function(Duration duration) _wait;
+
+  /// 분석 마감 시각을 재는 시계. 조회에 걸린 시간도 [_pollTimeout]에 넣으려고 씁니다.
+  final DateTime Function() _now;
+
+  /// 올렸지만 분석 결과를 아직 받지 못한 서류.
+  ///
+  /// 분석을 기다리다 실패한 뒤 같은 파일로 다시 분석하면, 서버에 서류를 또 만들지 않고
+  /// 이 서류의 분석을 이어서 기다립니다.
+  ({PickedDocument document, String documentId})? _pending;
 
   /// 서류 ID별로 올릴 때 고른 보관함. 확인하기 전에 보관함을 바꾸면 옮깁니다.
   final _uploadedBoxIds = <String, String>{};
@@ -63,8 +73,42 @@ class ApiUploadRepository implements UploadRepository {
   ///
   /// 글자를 읽지 못했으면 [AnalysisUnclear]를, 서버가 분석하지 못했으면
   /// [ApiException]을 돌려줍니다. 올릴 파일 내용이 없으면 [StateError]를 던집니다.
+  /// 앞서 같은 [document]를 올리고 기다리다 실패했으면 다시 올리지 않고 이어서 기다립니다.
   @override
   Future<AnalysisResult> analyze(
+    PickedDocument document, {
+    required String boxId,
+  }) async {
+    final pending = _pending;
+    final documentId = pending != null && identical(pending.document, document)
+        ? pending.documentId
+        : await _upload(document, boxId: boxId);
+
+    final json = await _waitForAnalysis(documentId);
+    // 결과를 받았으면(실패 포함) 다음 분석은 새로 올립니다.
+    _pending = null;
+    if (json.stringOrNull('status') == 'FAILED') {
+      if (json.stringOrNull('failReason') == 'TEXT_NOT_RECOGNIZED') {
+        return const AnalysisUnclear();
+      }
+      throw const ApiException(
+        statusCode: 502,
+        code: 'ANALYSIS_ERROR',
+        message: CoreStrings.unknownError,
+      );
+    }
+    return AnalysisSucceeded(
+      documentId: documentId,
+      documentType: documentTypeNameOf(json.stringOrNull('docType')),
+      pageCount: json.integerOrNull('pageCount') ?? document.pageCount,
+      fields: [for (final field in json.maps('fields')) _fieldOf(field)],
+    );
+  }
+
+  /// [document]를 [boxId] 보관함에 올리고 서류 ID를 돌려줍니다.
+  ///
+  /// 파일 내용이 없으면 [StateError]를 던집니다.
+  Future<String> _upload(
     PickedDocument document, {
     required String boxId,
   }) async {
@@ -86,24 +130,8 @@ class ApiUploadRepository implements UploadRepository {
     );
     final documentId = uploaded.id('documentId');
     _uploadedBoxIds[documentId] = boxId;
-
-    final json = await _waitForAnalysis(documentId);
-    if (json.stringOrNull('status') == 'FAILED') {
-      if (json.stringOrNull('failReason') == 'TEXT_NOT_RECOGNIZED') {
-        return const AnalysisUnclear();
-      }
-      throw const ApiException(
-        statusCode: 502,
-        code: 'ANALYSIS_ERROR',
-        message: CoreStrings.unknownError,
-      );
-    }
-    return AnalysisSucceeded(
-      documentId: documentId,
-      documentType: documentTypeNameOf(json.stringOrNull('docType')),
-      pageCount: json.integerOrNull('pageCount') ?? document.pageCount,
-      fields: [for (final field in json.maps('fields')) _fieldOf(field)],
-    );
+    _pending = (document: document, documentId: documentId);
+    return documentId;
   }
 
   /// 분석 결과를 확인하고 보관을 마칩니다(`POST /documents/{id}/confirm`).
@@ -122,22 +150,37 @@ class ApiUploadRepository implements UploadRepository {
     final path = '/documents/${apiId(documentId)}';
     if (_uploadedBoxIds[documentId] != boxId) {
       await _client.patch(path, body: {'boxId': apiId(boxId)});
+      // 확인이 실패해 다시 저장할 때 실제로 옮겨 간 보관함을 기준으로 비교합니다.
+      _uploadedBoxIds[documentId] = boxId;
     }
     await _client.post('$path/confirm');
     _uploadedBoxIds.remove(documentId);
   }
 
+  /// 분석이 끝날 때까지 서류 상세를 조회합니다.
+  ///
+  /// 조회에 걸린 시간도 [_pollTimeout]에 넣어, 조회가 느려도 그 안에 끝냅니다.
   Future<JsonMap> _waitForAnalysis(String documentId) async {
     final path = '/documents/${apiId(documentId)}';
-    var waited = Duration.zero;
+    final deadline = _now().add(_pollTimeout);
+    TimeoutException timedOut() =>
+        TimeoutException('서류 $documentId 분석이 끝나지 않았습니다', _pollTimeout);
+
     while (true) {
-      final json = await _client.get(path);
+      final left = deadline.difference(_now());
+      if (left <= Duration.zero) throw timedOut();
+      final json = await _client
+          .get(path)
+          .timeout(
+            left,
+            onTimeout: () {
+              throw timedOut();
+            },
+          );
       if (json.stringOrNull('status') != 'ANALYZING') return json;
-      if (waited >= _pollTimeout) {
-        throw TimeoutException('서류 $documentId 분석이 끝나지 않았습니다', _pollTimeout);
-      }
-      await _wait(_pollInterval);
-      waited += _pollInterval;
+      final remaining = deadline.difference(_now());
+      if (remaining <= Duration.zero) throw timedOut();
+      await _wait(remaining < _pollInterval ? remaining : _pollInterval);
     }
   }
 

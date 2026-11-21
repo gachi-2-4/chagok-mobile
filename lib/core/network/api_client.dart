@@ -106,6 +106,9 @@ class ApiClient {
   }
 
   /// 페이지로 나뉜 목록 API의 모든 쪽을 차례로 받아 `content`를 이어 붙입니다.
+  ///
+  /// [maxPageCount]쪽을 받아도 다음 쪽이 남아 있으면 잘린 목록을 전체로 오해하지
+  /// 않도록 [StateError]를 던집니다.
   Future<List<JsonMap>> getAllPages(
     String path, {
     Map<String, Object?> query = const {},
@@ -117,9 +120,9 @@ class ApiClient {
         query: {...query, 'page': page, 'size': maxPageSize},
       );
       items.addAll(json.maps('content'));
-      if (!json.boolean('hasNext')) break;
+      if (!json.boolean('hasNext')) return items;
     }
-    return items;
+    throw StateError('$path: $maxPageCount쪽을 넘는 목록은 받지 않습니다');
   }
 
   Future<JsonMap> _send(
@@ -155,6 +158,12 @@ class ApiClient {
       _jsonRequest('POST', _refreshPath, {'refreshToken': stored.refreshToken}),
       null,
     );
+    // 재발급을 기다리는 사이 로그아웃하거나 다른 계정으로 로그인했으면, 그 세션의
+    // 토큰을 덮어쓰거나 지우지 않고 이 재발급을 세션 만료로 끝냅니다.
+    final current = await _tokenStorage.read();
+    if (current?.refreshToken != stored.refreshToken) {
+      throw _sessionExpired(CoreStrings.unknownError);
+    }
     if (_isSuccess(response)) {
       final tokens = AuthTokens.fromJson(_decode(response));
       await _tokenStorage.save(tokens);
@@ -171,7 +180,15 @@ class ApiClient {
     http.BaseRequest request,
     AuthTokens? tokens,
   ) async {
-    request.headers['Accept'] = 'application/json';
+    // 토큰·비밀번호가 평문으로 오가지 않도록 HTTPS로만 보냅니다. 기기 안 개발 서버만 예외입니다.
+    if (!_isSecure(request.url)) {
+      throw StateError('HTTPS가 아닌 주소로는 보내지 않습니다: ${request.url.origin}');
+    }
+    // 리디렉션을 따라가면 HTTP 주소로 Authorization이 넘어갈 수 있어 따라가지 않습니다.
+    // 서버는 리디렉션을 쓰지 않으므로 3xx는 실패 응답으로 다룹니다.
+    request
+      ..followRedirects = false
+      ..headers['Accept'] = 'application/json';
     if (tokens != null) {
       request.headers['Authorization'] = 'Bearer ${tokens.accessToken}';
     }
@@ -184,6 +201,19 @@ class ApiClient {
       throw _networkError(error);
     }
   }
+
+  /// [url]이 HTTPS이거나, 이 기기·에뮬레이터 안의 개발 서버(localhost 등)이면 true.
+  static bool _isSecure(Uri url) =>
+      url.scheme == 'https' ||
+      (url.scheme == 'http' && _developmentHosts.contains(url.host));
+
+  /// HTTP를 허용하는 개발용 주소. `10.0.2.2`는 안드로이드 에뮬레이터에서 본 컴퓨터입니다.
+  static const _developmentHosts = {
+    'localhost',
+    '127.0.0.1',
+    '::1',
+    '10.0.2.2',
+  };
 
   http.Request _jsonRequest(String method, String path, Object? body) {
     final request = http.Request(method, _uri(path));

@@ -36,12 +36,16 @@ class ApiOnboardingRepository implements OnboardingRepository {
     );
   }
 
-  /// 네 질문의 답을 한 번에 저장합니다. 답하지 않은 질문이 있으면 [ArgumentError]를 던집니다.
+  /// 네 질문의 답을 한 번에 저장합니다. 답하지 않은 질문(빈 주소 포함)이 있으면
+  /// [ArgumentError]를 던집니다.
   @override
   Future<void> save(OnboardingAnswers answers) async {
     final OnboardingAnswers(:nationality, :housingType, :welfareStatus) =
         answers;
-    if (nationality == null || housingType == null || welfareStatus == null) {
+    if (nationality == null ||
+        housingType == null ||
+        welfareStatus == null ||
+        answers.address.trim().isEmpty) {
       throw ArgumentError.value(answers, 'answers', '모든 질문에 답해야 저장할 수 있습니다');
     }
     final region = regionOf(answers.address);

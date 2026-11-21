@@ -105,6 +105,39 @@ void main() {
       expect(requests.single.url.toString(), 'https://api.test/v1/home');
     });
 
+    test('HTTPS가 아닌 주소면 보내지 않고 StateError를 던진다', () async {
+      final requests = <http.Request>[];
+      final client = ApiClient(
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          return jsonResponse({});
+        }),
+        baseUrl: Uri.parse('http://api.test'),
+        tokenStorage: InMemoryTokenStorage(),
+      );
+
+      await expectLater(client.get('/home'), throwsStateError);
+      expect(requests, isEmpty);
+    });
+
+    test('기기 안 개발 서버 주소면 HTTP로도 보낸다', () async {
+      final client = ApiClient(
+        httpClient: MockClient((_) async => jsonResponse({'ok': true})),
+        baseUrl: Uri.parse('http://localhost:8080'),
+        tokenStorage: InMemoryTokenStorage(),
+      );
+
+      expect(await client.get('/home'), {'ok': true});
+    });
+
+    test('요청을 보내면 리디렉션을 따라가지 않게 한다', () async {
+      server.onJson('GET', '/home', {});
+
+      await server.client.get('/home');
+
+      expect(server.requests.single.followRedirects, isFalse);
+    });
+
     test('본문이 없는 응답이면 빈 객체를 돌려준다', () async {
       server.on('DELETE', '/documents/1', (_) => emptyResponse());
 
@@ -252,6 +285,53 @@ void main() {
       expect(await server.tokenStorage.read(), isA<AuthTokens>());
     });
 
+    test('재발급을 기다리는 사이 로그아웃하면 이전 세션의 토큰을 다시 저장하지 않는다', () async {
+      final refreshGate = Completer<void>();
+      server.on('POST', '/auth/token/refresh', (_) async {
+        await refreshGate.future;
+        return jsonResponse({
+          'accessToken': 'access-2',
+          'refreshToken': 'refresh-2',
+        });
+      });
+      expireFirstToken();
+
+      final request = server.client.get('/boxes');
+      await pumpEventQueue();
+      await server.tokenStorage.clear();
+      refreshGate.complete();
+
+      await expectLater(
+        request,
+        throwsA(
+          isA<ApiException>().having(
+            (error) => error.code,
+            'code',
+            ApiException.sessionExpiredCode,
+          ),
+        ),
+      );
+      expect(await server.tokenStorage.read(), isNull);
+    });
+
+    test('재발급을 기다리는 사이 다른 계정으로 로그인하면 새 토큰을 지우지 않는다', () async {
+      final refreshGate = Completer<void>();
+      server.on('POST', '/auth/token/refresh', (_) async {
+        await refreshGate.future;
+        return errorResponse(401, 'INVALID_REFRESH_TOKEN');
+      });
+      expireFirstToken();
+      const other = AuthTokens(accessToken: 'other', refreshToken: 'other-r');
+
+      final request = server.client.get('/boxes');
+      await pumpEventQueue();
+      await server.tokenStorage.save(other);
+      refreshGate.complete();
+
+      await expectLater(request, throwsA(isA<ApiException>()));
+      expect((await server.tokenStorage.read())?.refreshToken, 'other-r');
+    });
+
     test('만료가 아닌 401이면 재발급하지 않는다', () async {
       server.on('GET', '/boxes', (_) => errorResponse(401, 'UNAUTHORIZED'));
 
@@ -276,6 +356,22 @@ void main() {
       final items = await server.client.getAllPages('/notifications');
 
       expect(items.map((item) => item['id']), [0, 1, 2]);
+    });
+
+    test('최대 쪽수를 받아도 다음 쪽이 남아 있으면 StateError를 던진다', () async {
+      server.onJson('GET', '/documents', {
+        'content': <Object>[],
+        'hasNext': true,
+      });
+
+      await expectLater(
+        server.client.getAllPages('/documents'),
+        throwsStateError,
+      );
+      expect(
+        server.requestsTo('GET', '/documents'),
+        hasLength(ApiClient.maxPageCount),
+      );
     });
 
     test('모든 쪽을 받으면 쪽마다 최대 개수를 요청한다', () async {

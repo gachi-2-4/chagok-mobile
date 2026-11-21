@@ -44,7 +44,8 @@ class ApiCalendarRepository implements CalendarRepository {
     final reminderId =
         _reminderIds[id] ?? (throw StateError('기한 $id에 등록된 알림을 모릅니다'));
     await _client.delete('/reminders/$reminderId');
-    _reminderIds.remove(id);
+    // 지우는 사이 다시 등록했으면 새 알림을 가리키므로, 지운 알림일 때만 뺍니다.
+    if (_reminderIds[id] == reminderId) _reminderIds.remove(id);
   }
 
   Deadline _deadlineOf(JsonMap json) {

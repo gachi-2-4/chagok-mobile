@@ -10,16 +10,16 @@ void main() {
 
   setUp(() => repository = InMemoryAuthRepository());
 
-  /// [number]로 인증번호를 보내고 확인해 인증 증명 값을 받습니다.
-  Future<String> verify([String number = phoneNumber]) async {
-    await repository.sendVerificationCode(
-      number,
-      purpose: VerificationPurpose.signUp,
-    );
+  /// [number]로 [purpose] 인증번호를 보내고 확인해 인증 증명 값을 받습니다.
+  Future<String> verify([
+    String number = phoneNumber,
+    VerificationPurpose purpose = VerificationPurpose.signUp,
+  ]) async {
+    await repository.sendVerificationCode(number, purpose: purpose);
     final token = await repository.verifyCode(
       phoneNumber: number,
       code: '123456',
-      purpose: VerificationPurpose.signUp,
+      purpose: purpose,
     );
     return token ?? fail('인증하지 못했습니다');
   }
@@ -132,7 +132,10 @@ void main() {
       await repository.resetPassword(
         phoneNumber: phoneNumber,
         newPassword: 'newpass1!',
-        verificationToken: await verify(),
+        verificationToken: await verify(
+          phoneNumber,
+          VerificationPurpose.passwordReset,
+        ),
       );
 
       await expectLater(
@@ -168,7 +171,10 @@ void main() {
 
     test('다른 번호로 받은 인증 증명 값으로 재설정하면 notVerified를 던진다', () async {
       await signUp();
-      final otherToken = await verify('01022222222');
+      final otherToken = await verify(
+        '01022222222',
+        VerificationPurpose.passwordReset,
+      );
 
       await expectLater(
         repository.resetPassword(
@@ -182,7 +188,10 @@ void main() {
 
     test('한 번 쓴 인증 증명 값으로 다시 재설정하면 notVerified를 던진다', () async {
       await signUp();
-      final token = await verify();
+      final token = await verify(
+        phoneNumber,
+        VerificationPurpose.passwordReset,
+      );
       await repository.resetPassword(
         phoneNumber: phoneNumber,
         newPassword: 'newpass1!',
@@ -199,6 +208,35 @@ void main() {
       );
     });
 
+    test('가입용 인증 증명 값으로 재설정하면 notVerified를 던진다', () async {
+      await signUp();
+      final signUpToken = await verify();
+
+      await expectLater(
+        repository.resetPassword(
+          phoneNumber: phoneNumber,
+          newPassword: 'hacked12!',
+          verificationToken: signUpToken,
+        ),
+        throwsFailure(AuthFailure.notVerified),
+      );
+    });
+
+    test('가입용으로 보낸 인증번호를 재설정 목적으로 확인하면 null을 돌려준다', () async {
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
+
+      final token = await repository.verifyCode(
+        phoneNumber: phoneNumber,
+        code: '123456',
+        purpose: VerificationPurpose.passwordReset,
+      );
+
+      expect(token, isNull);
+    });
+
     test('가입하지 않은 번호의 비밀번호를 재설정하면 notRegistered를 던진다', () async {
       const unknown = '01099999999';
 
@@ -206,7 +244,10 @@ void main() {
         repository.resetPassword(
           phoneNumber: unknown,
           newPassword: 'newpass1!',
-          verificationToken: await verify(unknown),
+          verificationToken: await verify(
+            unknown,
+            VerificationPurpose.passwordReset,
+          ),
         ),
         throwsFailure(AuthFailure.notRegistered),
       );
