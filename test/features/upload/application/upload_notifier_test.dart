@@ -80,6 +80,15 @@ void main() {
       expect(container.read(uploadProvider).result, isA<AnalysisUnclear>());
     });
 
+    test('분석하면 고른 보관함에 올리도록 보관함 id를 넘긴다', () async {
+      await notifier().pick(UploadSource.pdf);
+      notifier().selectBox('car');
+
+      await notifier().analyze();
+
+      expect(repository.analyzedBoxIds, ['car']);
+    });
+
     test('새 파일을 고르면 이전 분석 결과를 지운다', () async {
       await notifier().pick(UploadSource.pdf);
       await notifier().analyze();

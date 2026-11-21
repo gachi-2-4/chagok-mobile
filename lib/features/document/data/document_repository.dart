@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/document/data/api_document_repository.dart';
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
 import 'package:chagok_mobile/features/document/data/document_not_found_exception.dart';
 import 'package:chagok_mobile/features/document/data/in_memory_document_repository.dart';
@@ -23,7 +26,9 @@ abstract interface class DocumentRepository {
 }
 
 /// 앱 전역 [DocumentRepository].
+///
+/// API 서버 주소가 있으면 서버에, 없으면 메모리에 서류 내용을 둡니다.
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
-  // TODO: 백엔드가 정해지면 실제 구현으로 바꿉니다.
-  return InMemoryDocumentRepository();
+  if (!ref.watch(isApiEnabledProvider)) return InMemoryDocumentRepository();
+  return ApiDocumentRepository(client: ref.watch(apiClientProvider));
 });

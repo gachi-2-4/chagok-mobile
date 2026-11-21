@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/in_memory_auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -11,10 +12,14 @@ void main() {
 
   /// [number]로 인증번호를 보내고 확인해 인증 증명 값을 받습니다.
   Future<String> verify([String number = phoneNumber]) async {
-    await repository.sendVerificationCode(number);
+    await repository.sendVerificationCode(
+      number,
+      purpose: VerificationPurpose.signUp,
+    );
     final token = await repository.verifyCode(
       phoneNumber: number,
       code: '123456',
+      purpose: VerificationPurpose.signUp,
     );
     return token ?? fail('인증하지 못했습니다');
   }
@@ -36,22 +41,30 @@ void main() {
 
   group('InMemoryAuthRepository', () {
     test('보낸 번호에 숫자 6자리 인증번호를 넣으면 인증 증명 값을 돌려준다', () async {
-      await repository.sendVerificationCode(phoneNumber);
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
 
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '123456',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNotNull);
     });
 
     test('6자리가 아닌 인증번호를 넣으면 통과시키지 않는다', () async {
-      await repository.sendVerificationCode(phoneNumber);
+      await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
 
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '1234',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNull);
@@ -61,6 +74,7 @@ void main() {
       final token = await repository.verifyCode(
         phoneNumber: phoneNumber,
         code: '123456',
+        purpose: VerificationPurpose.signUp,
       );
 
       expect(token, isNull);

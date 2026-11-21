@@ -4,13 +4,13 @@ import 'package:chagok_mobile/features/archive/presentation/box_detail_screen.da
 import 'package:chagok_mobile/features/archive/presentation/document_search_screen.dart';
 import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:chagok_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/login_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/phone_verification_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/reset_password_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/terms_agreement_screen.dart';
-import 'package:chagok_mobile/features/auth/presentation/verification_purpose.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_list_screen.dart';

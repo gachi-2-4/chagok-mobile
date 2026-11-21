@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/notification/data/api_notification_repository.dart';
 import 'package:chagok_mobile/features/notification/data/app_notification.dart';
 import 'package:chagok_mobile/features/notification/data/sample_notification_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +18,9 @@ abstract interface class NotificationRepository {
 }
 
 /// 앱 전역 [NotificationRepository].
+///
+/// API 서버 주소가 있으면 서버의 알림을, 없으면 예시 알림을 씁니다.
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
-  // TODO: 알림 서버가 정해지면 실제 구현으로 바꿉니다.
-  return SampleNotificationRepository();
+  if (!ref.watch(isApiEnabledProvider)) return SampleNotificationRepository();
+  return ApiNotificationRepository(client: ref.watch(apiClientProvider));
 });

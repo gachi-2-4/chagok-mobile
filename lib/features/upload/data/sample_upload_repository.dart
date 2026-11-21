@@ -44,7 +44,10 @@ class SampleUploadRepository implements UploadRepository {
   }
 
   @override
-  Future<AnalysisResult> analyze(PickedDocument document) async {
+  Future<AnalysisResult> analyze(
+    PickedDocument document, {
+    required String boxId,
+  }) async {
     if (document.source == UploadSource.camera && _cameraAnalysisCount++ == 0) {
       return const AnalysisUnclear();
     }

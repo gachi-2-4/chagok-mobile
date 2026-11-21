@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/application/password_reset_notifier.
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -43,6 +44,14 @@ void main() {
 
       expect(isSent, isTrue);
       expect(repository.sentCodes, ['01011111111']);
+    });
+
+    test('인증번호를 보내면 비밀번호 재설정 목적으로 보낸다', () async {
+      notifier().updatePhoneNumber('010-1111-1111');
+
+      await notifier().requestVerificationCode();
+
+      expect(repository.sentPurposes, [VerificationPurpose.passwordReset]);
     });
 
     test('전화번호 형식이 틀리면 인증번호를 보내지 않는다', () async {

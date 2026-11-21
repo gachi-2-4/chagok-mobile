@@ -10,6 +10,7 @@
 | 상태 관리 | [Riverpod](https://riverpod.dev) (`flutter_riverpod`) | `Notifier` / `AsyncNotifier` 사용 |
 | 라우팅 | [go_router](https://pub.dev/packages/go_router) | 경로 상수는 한 곳에서 관리 |
 | 폴더 구조 | 기능 단위 (feature-first) | 기능마다 `presentation / application / data` |
+| 서버 통신 | [http](https://pub.dev/packages/http) | `core/network/ApiClient`가 토큰·재발급·에러 응답을 처리 |
 
 > 사용 버전: `flutter_riverpod ^3.5.0`, `go_router ^18.1.4`
 > 코드 생성(`riverpod_generator`, `freezed`, `build_runner`)은 처음엔 쓰지 않고, 보일러플레이트가 부담될 때 도입을 검토합니다.
@@ -122,6 +123,21 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
   - 탭 아래로 쌓이는 화면(예: 대화방)은 바텀바가 계속 보이도록 그 탭의 하위 경로로 둡니다.
   - 바텀바의 탭은 `app/main_shell.dart`의 `MainShell.tabs`에 두고, `router.dart`의 branch 순서와 맞춥니다.
   - 아직 만들지 않은 탭은 `TabPlaceholderScreen`을 두고, 기능을 만들면 실제 화면으로 바꿉니다.
+
+## 서버 API 연동
+
+- 서버 API 명세(APP ↔ BE)는 공유 문서(API명세)를 기준으로 합니다. 요청·응답 값 이름은 명세 그대로 씁니다.
+- 서버와 주고받는 일은 data 계층의 `Api<기능>Repository`가 맡고, 기존 Repository 인터페이스를 구현합니다.
+  application·presentation은 서버가 있는지 모릅니다.
+- 모든 요청은 `core/network/ApiClient`(`apiClientProvider`)로 보냅니다.
+  - Access Token을 붙이고, 401 `TOKEN_EXPIRED`면 재발급(동시에 여러 요청이 만료돼도 한 번만) 뒤 다시 보냅니다.
+  - 실패 응답 `{ code, message }`는 `ApiException`으로 던집니다. Repository는 화면이 아는 예외(예: `BoxNotFoundException`, `AuthException`)로 바꿉니다.
+  - JSON은 `JsonMap`의 `string`·`integerOrNull`·`maps` 등으로 타입을 확인하며 꺼냅니다. 서버 숫자 ID는 앱 모델에서 문자열입니다(`id`, `apiId`).
+  - 날짜·시각 형식은 `core/network/api_formats.dart`로 바꿉니다.
+- 서버 주소는 빌드할 때 `--dart-define=API_BASE_URL=<주소>`로 넘깁니다.
+  - 주소가 있으면 각 `*RepositoryProvider`가 `Api*Repository`를, 없으면 예시·메모리 저장소(`Sample*`·`InMemory*`)를 씁니다.
+  - 서버 없이 화면을 만들고 테스트하기 위해서입니다. 테스트는 주소를 넘기지 않으므로 예시 저장소로 돕니다.
+- `Api*Repository` 테스트는 `test/helpers/fake_api_server.dart`의 가짜 서버로 요청과 응답을 확인합니다.
 
 ## 에러 처리
 

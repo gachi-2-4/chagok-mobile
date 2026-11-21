@@ -52,13 +52,14 @@ class UploadNotifier extends Notifier<UploadState> {
   /// [boxId] 보관함을 고릅니다.
   void selectBox(String boxId) => state = state.copyWith(selectedBoxId: boxId);
 
-  /// 고른 파일을 분석합니다. 분석할 수 없는 상태이거나 실패하면 null.
+  /// 고른 파일을 고른 보관함에 올려 분석합니다. 분석할 수 없는 상태이거나 실패하면 null.
   Future<AnalysisResult?> analyze() async {
     final document = state.document;
-    if (document == null || !state.canAnalyze) return null;
+    final box = state.selectedBox;
+    if (document == null || box == null || !state.canAnalyze) return null;
     state = state.copyWith(isBusy: true, hasFailed: false);
     try {
-      final result = await _repository.analyze(document);
+      final result = await _repository.analyze(document, boxId: box.id);
       state = state.copyWith(result: () => result, isBusy: false);
       return result;
     } catch (error, stackTrace) {

@@ -28,6 +28,9 @@ class FakeUploadRepository implements UploadRepository {
   int pickCount = 0;
   final saved = <String>[];
 
+  /// [analyze]에 넘어온 보관함 id.
+  final analyzedBoxIds = <String>[];
+
   @override
   Future<PickedDocument?> pick(UploadSource source) async {
     pickCount++;
@@ -52,8 +55,12 @@ class FakeUploadRepository implements UploadRepository {
   }
 
   @override
-  Future<AnalysisResult> analyze(PickedDocument document) async {
+  Future<AnalysisResult> analyze(
+    PickedDocument document, {
+    required String boxId,
+  }) async {
     if (error case final error?) throw error;
+    analyzedBoxIds.add(boxId);
     return result;
   }
 

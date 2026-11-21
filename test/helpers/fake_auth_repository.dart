@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 
 /// 호출 내용을 기록하고, 정해 둔 결과를 돌려주는 가짜 [AuthRepository].
 class FakeAuthRepository implements AuthRepository {
@@ -22,6 +23,12 @@ class FakeAuthRepository implements AuthRepository {
   bool isCodeCorrect;
 
   final sentCodes = <String>[];
+
+  /// [sentCodes]와 같은 순서로, 인증번호를 보낸 목적.
+  final sentPurposes = <VerificationPurpose>[];
+
+  /// [verifyCode]에 넘어온 목적.
+  final verifiedPurposes = <VerificationPurpose>[];
   final signUps = <Map<String, Object>>[];
   final logIns = <Map<String, Object>>[];
   final resets = <Map<String, Object>>[];
@@ -30,17 +37,23 @@ class FakeAuthRepository implements AuthRepository {
   static String tokenFor(String phoneNumber) => 'token-$phoneNumber';
 
   @override
-  Future<void> sendVerificationCode(String phoneNumber) async {
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required VerificationPurpose purpose,
+  }) async {
     await sendGate?.future;
     if (sendError case final error?) throw error;
     sentCodes.add(phoneNumber);
+    sentPurposes.add(purpose);
   }
 
   @override
   Future<String?> verifyCode({
     required String phoneNumber,
     required String code,
+    required VerificationPurpose purpose,
   }) async {
+    verifiedPurposes.add(purpose);
     await verifyGate?.future;
     _throwIfNeeded();
     return isCodeCorrect ? tokenFor(phoneNumber) : null;

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 
 /// 백엔드가 정해지기 전까지 화면 흐름을 확인하려고 쓰는 메모리 저장소.
 ///
@@ -22,7 +23,10 @@ class InMemoryAuthRepository implements AuthRepository {
   static final _sixDigits = RegExp(r'^\d{6}$');
 
   @override
-  Future<void> sendVerificationCode(String phoneNumber) async {
+  Future<void> sendVerificationCode(
+    String phoneNumber, {
+    required VerificationPurpose purpose,
+  }) async {
     _codeSentTo.add(phoneNumber);
   }
 
@@ -30,6 +34,7 @@ class InMemoryAuthRepository implements AuthRepository {
   Future<String?> verifyCode({
     required String phoneNumber,
     required String code,
+    required VerificationPurpose purpose,
   }) async {
     if (!_codeSentTo.contains(phoneNumber) || !_sixDigits.hasMatch(code)) {
       return null;

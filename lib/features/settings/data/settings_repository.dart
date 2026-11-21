@@ -1,3 +1,8 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/device_id.dart';
+import 'package:chagok_mobile/core/network/token_storage.dart';
+import 'package:chagok_mobile/features/settings/data/api_settings_repository.dart';
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/in_memory_settings_repository.dart';
 import 'package:chagok_mobile/features/settings/data/user_profile.dart';
@@ -22,7 +27,13 @@ abstract interface class SettingsRepository {
 }
 
 /// 앱 전역 [SettingsRepository].
+///
+/// API 서버 주소가 있으면 서버에, 없으면 메모리에 설정을 둡니다.
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
-  // TODO: 백엔드·로컬 저장소가 정해지면 실제 구현으로 바꿉니다.
-  return InMemorySettingsRepository();
+  if (!ref.watch(isApiEnabledProvider)) return InMemorySettingsRepository();
+  return ApiSettingsRepository(
+    client: ref.watch(apiClientProvider),
+    tokenStorage: ref.watch(tokenStorageProvider),
+    deviceId: ref.watch(deviceIdProvider),
+  );
 });

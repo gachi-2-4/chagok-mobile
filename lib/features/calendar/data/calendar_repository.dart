@@ -1,3 +1,6 @@
+import 'package:chagok_mobile/core/network/api_client.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/calendar/data/api_calendar_repository.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
 import 'package:chagok_mobile/features/calendar/data/sample_calendar_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +15,9 @@ abstract interface class CalendarRepository {
 }
 
 /// 앱 전역 [CalendarRepository].
+///
+/// API 서버 주소가 있으면 서버의 기한·기한 알림을, 없으면 예시 기한을 씁니다.
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
-  // TODO: 보관함 서류와 기기 캘린더 연동이 정해지면 실제 구현으로 바꿉니다.
-  return SampleCalendarRepository();
+  if (!ref.watch(isApiEnabledProvider)) return SampleCalendarRepository();
+  return ApiCalendarRepository(client: ref.watch(apiClientProvider));
 });

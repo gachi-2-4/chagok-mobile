@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/application/auth_clock.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_notifier.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,7 +12,10 @@ import '../../../helpers/fake_auth_repository.dart';
 
 void main() {
   const phoneNumber = '01066453576';
-  final provider = phoneVerificationProvider(phoneNumber);
+  final provider = phoneVerificationProvider((
+    phoneNumber: phoneNumber,
+    purpose: VerificationPurpose.signUp,
+  ));
 
   late FakeAuthRepository repository;
   late ProviderContainer container;
@@ -125,6 +129,22 @@ void main() {
 
       expect(token, FakeAuthRepository.tokenFor(phoneNumber));
       expect(container.read(provider).failure, isNull);
+    });
+
+    test('비밀번호 재설정 인증이면 다시 보내기와 확인을 재설정 목적으로 한다', () async {
+      final resetProvider = phoneVerificationProvider((
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.passwordReset,
+      ));
+      container.listen(resetProvider, (_, _) {});
+      final notifier = container.read(resetProvider.notifier);
+
+      await notifier.resend();
+      notifier.updateCode('123456');
+      await notifier.verify();
+
+      expect(repository.sentPurposes, [VerificationPurpose.passwordReset]);
+      expect(repository.verifiedPurposes, [VerificationPurpose.passwordReset]);
     });
 
     testWidgets('인증에 성공한 뒤 시간이 흐르면 남은 시간이 실제 흐른 만큼 계속 줄어든다', (tester) async {

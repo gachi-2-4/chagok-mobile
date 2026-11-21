@@ -5,23 +5,38 @@ import 'package:chagok_mobile/features/auth/application/auth_clock.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_state.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// 인증할 전화번호(숫자만)와 인증 목적.
+///
+/// 회원가입과 비밀번호 재설정은 서버에서 인증번호를 보내고 확인하는 방식이 달라,
+/// 같은 번호라도 목적마다 따로 인증합니다.
+typedef PhoneVerificationTarget = ({
+  String phoneNumber,
+  VerificationPurpose purpose,
+});
+
 /// 전화번호 하나에 대한 인증 상태. 화면을 벗어나면 타이머와 함께 정리합니다.
 final phoneVerificationProvider = NotifierProvider.autoDispose
-    .family<PhoneVerificationNotifier, PhoneVerificationState, String>(
-      PhoneVerificationNotifier.new,
-    );
+    .family<
+      PhoneVerificationNotifier,
+      PhoneVerificationState,
+      PhoneVerificationTarget
+    >(PhoneVerificationNotifier.new);
 
 /// 인증번호 입력, 남은 시간, 다시 받기, 확인을 처리합니다.
 ///
 /// 인증번호는 이 화면에 오기 전에 이미 보냈다고 보고 타이머만 시작합니다.
 class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
-  PhoneVerificationNotifier(this.phoneNumber);
+  PhoneVerificationNotifier(this.target);
+
+  /// 인증할 전화번호와 목적.
+  final PhoneVerificationTarget target;
 
   /// 숫자만 남긴 전화번호.
-  final String phoneNumber;
+  String get phoneNumber => target.phoneNumber;
 
   /// 인증번호가 유효한 시간(초).
   static const codeLifetimeSeconds = 180;
@@ -58,7 +73,9 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
   Future<bool> resend() async {
     if (state.isSubmitting) return false;
     try {
-      await ref.read(authRepositoryProvider).sendVerificationCode(phoneNumber);
+      await ref
+          .read(authRepositoryProvider)
+          .sendVerificationCode(phoneNumber, purpose: target.purpose);
     } catch (error, stackTrace) {
       debugPrint('인증번호를 다시 보내지 못했습니다: $error\n$stackTrace');
       if (ref.mounted) {
@@ -86,7 +103,11 @@ class PhoneVerificationNotifier extends Notifier<PhoneVerificationState> {
     try {
       token = await ref
           .read(authRepositoryProvider)
-          .verifyCode(phoneNumber: phoneNumber, code: state.code);
+          .verifyCode(
+            phoneNumber: phoneNumber,
+            code: state.code,
+            purpose: target.purpose,
+          );
       if (token == null) failure = AuthFailure.codeMismatch;
     } catch (error, stackTrace) {
       debugPrint('인증번호를 확인하지 못했습니다: $error\n$stackTrace');
