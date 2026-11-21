@@ -137,6 +137,10 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
 - 서버 주소는 빌드할 때 `--dart-define=API_BASE_URL=<주소>`로 넘깁니다.
   - 주소가 있으면 각 `*RepositoryProvider`가 `Api*Repository`를, 없으면 예시·메모리 저장소(`Sample*`·`InMemory*`)를 씁니다.
   - 서버 없이 화면을 만들고 테스트하기 위해서입니다. 테스트는 주소를 넘기지 않으므로 예시 저장소로 돕니다.
+- 로그인 토큰은 `TokenStorage`(`tokenStorageProvider`)에 둡니다.
+  - 서버를 쓰면 기기 보안 저장소(`SecureTokenStorage`, [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage))에 두어 앱을 다시 열어도 로그인이 유지됩니다. 로그인할 때 "자동 로그인"을 끄면 메모리에만 둡니다.
+  - 토큰을 저장·삭제하면 로그인 상태(`sessionProvider`)가 바뀌고, 라우터의 최상위 `redirect`가 시작 화면(확인 중) · 로그인 화면(로그아웃) · 가려던 화면(로그인)으로 보냅니다. 로그아웃·탈퇴·재발급 실패도 같은 길로 로그인 화면에 갑니다.
+  - 서버 없이 돌리면(`requiresLoginProvider`가 false) 로그인 없이 홈부터 엽니다.
 - `Api*Repository` 테스트는 `test/helpers/fake_api_server.dart`의 가짜 서버로 요청과 응답을 확인합니다.
 
 ## 에러 처리

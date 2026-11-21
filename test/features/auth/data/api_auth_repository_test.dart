@@ -1,7 +1,9 @@
+import 'package:chagok_mobile/core/network/secure_token_storage.dart';
 import 'package:chagok_mobile/features/auth/data/api_auth_repository.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_api_server.dart';
@@ -169,6 +171,32 @@ void main() {
   });
 
   group('ApiAuthRepository.logIn', () {
+    for (final (keepSignedIn, isKeptOnDevice) in [
+      (true, true),
+      (false, false),
+    ]) {
+      test(
+        '자동 로그인이 $keepSignedIn이면 앱을 다시 열 때 토큰이 ${isKeptOnDevice ? '남아 있다' : '없다'}',
+        () async {
+          FlutterSecureStorage.setMockInitialValues({});
+          server.onJson('POST', '/auth/login', tokens);
+          final deviceRepository = ApiAuthRepository(
+            client: server.client,
+            tokenStorage: SecureTokenStorage(),
+          );
+
+          await deviceRepository.logIn(
+            phoneNumber: phoneNumber,
+            password: 'chagok1234!',
+            keepSignedIn: keepSignedIn,
+          );
+
+          final reopened = await SecureTokenStorage().read();
+          expect(reopened != null, isKeptOnDevice);
+        },
+      );
+    }
+
     test('로그인하면 자동 로그인 여부를 보내고 받은 토큰을 저장한다', () async {
       server.onJson('POST', '/auth/login', tokens);
 

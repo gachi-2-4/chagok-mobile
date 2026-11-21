@@ -111,7 +111,11 @@ class ApiAuthRepository implements AuthRepository {
         },
         isAuthenticated: false,
       );
-      await _tokenStorage.save(AuthTokens.fromJson(json));
+      // "자동 로그인"을 끄면 앱을 껐다 켰을 때 다시 로그인하도록 기기에 남기지 않습니다.
+      await _tokenStorage.save(
+        AuthTokens.fromJson(json),
+        remember: keepSignedIn,
+      );
     });
   }
 
