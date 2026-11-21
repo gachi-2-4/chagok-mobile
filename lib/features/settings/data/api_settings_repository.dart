@@ -128,6 +128,9 @@ class ApiSettingsRepository implements SettingsRepository {
       }
     } on ApiException catch (error) {
       debugPrint('서버에 로그아웃을 알리지 못했습니다: $error');
+    } on FormatException catch (error) {
+      // 서버가 성공 응답에 잘못된 본문을 줘도 이 기기의 로그아웃은 마칩니다.
+      debugPrint('로그아웃 응답을 읽지 못했습니다: $error');
     } finally {
       await _clearSession();
     }

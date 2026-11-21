@@ -3,6 +3,7 @@ import 'package:chagok_mobile/features/settings/data/api_settings_repository.dar
 import 'package:chagok_mobile/features/settings/data/app_settings.dart';
 import 'package:chagok_mobile/features/settings/data/text_size.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../helpers/fake_api_server.dart';
 
@@ -127,6 +128,13 @@ void main() {
         'refreshToken': 'refresh-1',
         'deviceId': 'device-1',
       });
+      expect(await server.tokenStorage.read(), isNull);
+    });
+
+    test('로그아웃 성공 응답의 본문이 잘못됐으면 이 기기의 토큰을 지우고 로그아웃을 마친다', () async {
+      server.on('POST', '/auth/logout', (_) => http.Response('not json', 200));
+
+      await expectLater(repository.logOut(), completes);
       expect(await server.tokenStorage.read(), isNull);
     });
 
