@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/router.dart';
+import 'package:chagok_mobile/core/utils/device_settings.dart';
 import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/camera_permission_denied_exception.dart';
@@ -18,21 +19,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/fake_device_settings.dart';
 import '../../../helpers/fake_upload_repository.dart';
 
 void main() {
   late FakeUploadRepository repository;
+  late FakeDeviceSettings deviceSettings;
 
   Future<ProviderContainer> pumpUpload(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     repository = FakeUploadRepository();
+    deviceSettings = FakeDeviceSettings();
     // 위젯 트리와 함께 정리되도록 ProviderScope를 씁니다. 홈 화면의 자정
     // Timer 같은 것이 testWidgets의 Timer 검사 전에 함께 취소됩니다.
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [uploadRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          uploadRepositoryProvider.overrideWithValue(repository),
+          deviceSettingsProvider.overrideWithValue(deviceSettings),
+        ],
         child: const ChagokApp(),
       ),
     );
@@ -141,6 +148,19 @@ void main() {
       expect(find.text(UploadStrings.cameraDenied), findsOneWidget);
       expect(find.text(UploadStrings.failed), findsNothing);
       expect(find.text(UploadStrings.sourceTitle), findsOneWidget);
+    });
+
+    testWidgets('카메라 권한 안내에서 설정 열기를 누르면 이 앱의 설정을 연다', (tester) async {
+      await pumpUpload(tester);
+      repository.error = const CameraPermissionDeniedException();
+      await tester.tap(find.text(UploadStrings.cameraTitle));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text(UploadStrings.openSettings));
+      await tester.tap(find.text(UploadStrings.openSettings));
+      await tester.pump();
+
+      expect(deviceSettings.opened, ['app']);
     });
 
     testWidgets('찍은 서류를 고르면 첫 쪽 사진과 쪽수를 미리 보여 준다', (tester) async {

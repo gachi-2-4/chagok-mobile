@@ -1,4 +1,5 @@
 import 'package:chagok_mobile/app/theme.dart';
+import 'package:chagok_mobile/core/utils/device_settings.dart';
 import 'package:chagok_mobile/features/settings/application/settings_notifier.dart';
 import 'package:chagok_mobile/features/settings/data/settings_repository.dart';
 import 'package:chagok_mobile/features/settings/presentation/notification_settings_screen.dart';
@@ -7,10 +8,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../helpers/fake_device_settings.dart';
 import '../../../helpers/fake_settings_repository.dart';
 
 void main() {
   group('NotificationSettingsScreen', () {
+    testWidgets('기기 설정 열기를 누르면 이 앱의 알림 설정을 연다', (tester) async {
+      tester.view.physicalSize = const Size(390, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final deviceSettings = FakeDeviceSettings();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsRepositoryProvider.overrideWithValue(
+              FakeSettingsRepository(),
+            ),
+            deviceSettingsProvider.overrideWithValue(deviceSettings),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const NotificationSettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text(SettingsStrings.openDeviceSettings));
+      await tester.tap(find.text(SettingsStrings.openDeviceSettings));
+      await tester.pump();
+
+      expect(deviceSettings.opened, ['notification']);
+    });
+
     testWidgets('시각 선택 창이 열린 사이 설정 줄이 사라지면 고른 시각을 저장하지 않고 넘어간다', (
       tester,
     ) async {
