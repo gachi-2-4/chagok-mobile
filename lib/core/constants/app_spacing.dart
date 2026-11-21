@@ -189,6 +189,11 @@ abstract final class AppSpacing {
   /// 떠 있는 버튼(서류 올리기)에 마지막 줄이 가리지 않도록 목록 끝에 두는 여백.
   static const floatingButtonClearance = 88.0;
 
+  /// 스크롤 목록의 마지막 항목과 바텀바(또는 화면 끝) 사이에 남기는 여백.
+  ///
+  /// 안전 영역은 `context.scrollEndInset()`이 더하므로 여기에 넣지 않습니다.
+  static const scrollEnd = 40.0;
+
   /// 원본 / AI 정리본 탭 바탕과 고른 탭 사이 간격.
   static const segmentInset = 4.0;
 

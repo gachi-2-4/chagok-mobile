@@ -4,6 +4,7 @@ import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_resume_listener.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
@@ -100,11 +101,11 @@ class _HomeContent extends StatelessWidget {
     final boxes = summary.recentBoxes.take(2).toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
         AppSpacing.pageTopCompact,
         AppSpacing.screenHorizontal,
-        AppSpacing.xl,
+        context.scrollEndInset(),
       ),
       children: [
         HomeSection(

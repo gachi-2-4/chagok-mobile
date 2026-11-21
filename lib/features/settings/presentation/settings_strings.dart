@@ -5,7 +5,6 @@ import 'package:chagok_mobile/features/settings/data/text_size.dart';
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
 abstract final class SettingsStrings {
   static const brand = '차곡';
-  static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '설정을 불러오지 못했어요.';
   static const retry = '다시 시도';
   static const valueUnavailable = '불러오지 못함';
@@ -26,8 +25,6 @@ abstract final class SettingsStrings {
 
   /// 앱 버전을 읽지 못했을 때 값 자리.
   static const appVersionUnknown = '-';
-  static const terms = '이용약관';
-  static const privacyPolicy = '개인정보 처리방침';
   static const accountSection = '계정';
   static const logOut = '로그아웃';
   static const deleteAccount = '회원 탈퇴';

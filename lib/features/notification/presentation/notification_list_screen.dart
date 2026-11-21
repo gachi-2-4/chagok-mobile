@@ -5,6 +5,7 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
@@ -113,6 +114,7 @@ class _NotificationList extends ConsumerWidget {
     }
 
     return ListView(
+      padding: EdgeInsets.only(bottom: context.scrollEndInset()),
       children: [
         _ListHeader(
           unreadCount: NotificationDue.unreadCount(notifications),

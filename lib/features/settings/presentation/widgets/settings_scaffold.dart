@@ -30,8 +30,14 @@ class SettingsScaffold extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
+              // 위의 SafeArea가 홈 인디케이터만큼 이미 띄우므로 여기서는 여백만 둡니다.
+              // 아래 버튼 영역이 있으면 목록이 바텀바가 아닌 버튼 위에서 끝납니다.
               child: ListView(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                padding: EdgeInsets.only(
+                  bottom: actions.isEmpty
+                      ? AppSpacing.scrollEnd
+                      : AppSpacing.xl,
+                ),
                 children: body,
               ),
             ),

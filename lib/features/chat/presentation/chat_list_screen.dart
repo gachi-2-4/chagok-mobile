@@ -5,6 +5,7 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
@@ -32,11 +33,11 @@ class ChatListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: const AppTopBar(title: AppTopBar.logoText, showBackButton: false),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.screenHorizontal,
           AppSpacing.pageTop,
           AppSpacing.screenHorizontal,
-          AppSpacing.xl,
+          context.scrollEndInset(),
         ),
         children: [
           const Text(ChatStrings.listTitle, style: AppTypography.pageTitle),

@@ -57,6 +57,14 @@ void main() {
       expect(find.text(SettingsStrings.appVersionUnknown), findsOneWidget);
     });
 
+    testWidgets('설정 화면을 열면 이용약관과 개인정보 처리방침 메뉴는 보이지 않는다', (tester) async {
+      await pumpSettingsScreen(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('이용약관'), findsNothing);
+      expect(find.text('개인정보 처리방침'), findsNothing);
+    });
+
     testWidgets('설정을 불러오면 프로필과 현재 글자 크기를 보여 준다', (tester) async {
       await pumpSettingsScreen(tester);
 
