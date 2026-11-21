@@ -98,6 +98,43 @@ void main() {
       expect(server.requests.last.url.queryParameters['beforeMessageId'], '3');
     });
 
+    test('메시지가 20쪽을 넘으면 끝까지 이어 받는다', () async {
+      // 메시지 ID 1~30을 한 쪽에 하나씩, 최신부터 줍니다.
+      server.on('GET', '/chats/12/messages', (request) {
+        final before = int.tryParse(
+          request.url.queryParameters['beforeMessageId'] ?? '',
+        );
+        final id = (before ?? 31) - 1;
+        return jsonResponse({
+          ...room,
+          'messages': [
+            {
+              'messageId': id,
+              'role': 'USER',
+              'content': '질문 $id',
+              'createdAt': '2026-11-18T09:00:00+09:00',
+            },
+          ],
+          'hasMore': id > 1,
+        });
+      });
+
+      final thread = await repository.fetchThread('12');
+
+      expect(thread.messages.skip(1).map((message) => message.text), [
+        for (var id = 1; id <= 30; id++) '질문 $id',
+      ]);
+    });
+
+    test('더 오래된 메시지가 오지 않으면 이어 받기를 멈춘다', () async {
+      server.onJson('GET', '/chats/12/messages', {...room, 'hasMore': true});
+
+      final thread = await repository.fetchThread('12');
+
+      expect(server.requestsTo('GET', '/chats/12/messages'), hasLength(2));
+      expect(thread.messages, hasLength(3));
+    });
+
     test('없는 대화면 ChatThreadNotFoundException을 던진다', () async {
       server.on(
         'GET',

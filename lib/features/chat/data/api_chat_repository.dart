@@ -26,9 +26,6 @@ class ApiChatRepository implements ChatRepository {
   /// 한 번에 받을 메시지 수. 서버 기본값(30)보다 넉넉히 받아 요청 수를 줄입니다.
   static const _messagePageSize = 50;
 
-  /// 한 대화에서 받을 최대 쪽수. 서버가 `hasMore`를 계속 true로 줘도 멈추게 합니다.
-  static const _maxMessagePages = 20;
-
   List<String> _suggestions = const [];
 
   /// 지난 대화 목록. 목록 API는 제목(첫 질문)만 주므로 대화마다 그 질문 하나만 담습니다.
@@ -57,6 +54,7 @@ class ApiChatRepository implements ChatRepository {
   ///
   /// 서버는 최신 메시지부터 쪽으로 나눠 주므로, 더 오래된 메시지가 남아 있으면
   /// 받은 것 중 가장 오래된 메시지 ID를 `beforeMessageId`로 보내 앞쪽을 이어 받습니다.
+  /// 대화 길이에는 제한을 두지 않고, 더 오래된 메시지가 오지 않으면 멈춥니다.
   @override
   Future<ChatThread> fetchThread(String id) async {
     final JsonMap json;
@@ -69,18 +67,23 @@ class ApiChatRepository implements ChatRepository {
       throw ChatThreadNotFoundException(id);
     }
     _suggestions = _suggestionsOf(json);
-    var pages = json.maps('messages');
-    var page = json;
-    for (var count = 1; page.boolean('hasMore'); count++) {
-      final oldest = pages.firstOrNull?.integerOrNull('messageId');
+    var received = json.maps('messages');
+    var hasMore = json.boolean('hasMore');
+    while (hasMore) {
+      final oldest = received.firstOrNull?.integerOrNull('messageId');
       if (oldest == null) break;
-      if (count >= _maxMessagePages) {
-        throw StateError('대화 $id: $_maxMessagePages쪽을 넘는 메시지는 받지 않습니다');
-      }
-      page = await _fetchMessages(id, beforeMessageId: oldest);
-      pages = [...page.maps('messages'), ...pages];
+      final page = await _fetchMessages(id, beforeMessageId: oldest);
+      // 받은 것보다 오래된 메시지만 붙입니다. 서버가 같은 쪽을 되풀이해 더 오래된
+      // 메시지가 오지 않으면, 쪽수와 관계없이 끝없이 부르지 않도록 여기서 멈춥니다.
+      final older = [
+        for (final message in page.maps('messages'))
+          if ((message.integerOrNull('messageId') ?? oldest) < oldest) message,
+      ];
+      if (older.isEmpty) break;
+      received = [...older, ...received];
+      hasMore = page.boolean('hasMore');
     }
-    final messages = [for (final message in pages) _messageOf(message)];
+    final messages = [for (final message in received) _messageOf(message)];
     final greetingAt = messages.firstOrNull?.sentAt ?? _now();
     return ChatThread(
       id: json.id('chatId'),
