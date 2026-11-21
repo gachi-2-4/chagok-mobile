@@ -1,4 +1,6 @@
 import 'package:chagok_mobile/app/main_shell.dart';
+import 'package:chagok_mobile/app/splash_screen.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/archive/presentation/archive_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/box_detail_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/document_overview_screen.dart';
@@ -41,6 +43,9 @@ import 'package:go_router/go_router.dart';
 /// 경로 문자열은 직접 쓰지 않고 이 상수를 참조합니다.
 /// 예: `context.go(AppRoute.home)`
 abstract final class AppRoute {
+  /// 앱을 열 때 로그인 정보를 확인하는 동안 보이는 시작 화면(01).
+  static const splash = '/splash';
+
   // 하단 탭
   static const archive = '/archive';
   static const chat = '/chat';
@@ -104,10 +109,21 @@ abstract final class AppRoute {
 final routerProvider = Provider<GoRouter>((ref) {
   // 탭 바깥(바텀바 없이) 전체 화면으로 쌓을 때 쓰는 가장 바깥 Navigator.
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  // 로그인 상태가 바뀌면(로그인·로그아웃·재발급 실패) 갈 곳을 다시 정합니다.
+  final sessionChanges = ValueNotifier(0);
+  ref
+    ..listen(sessionProvider, (_, _) => sessionChanges.value++)
+    ..onDispose(sessionChanges.dispose);
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoute.home,
+    refreshListenable: sessionChanges,
+    redirect: (context, state) => _sessionRedirect(ref, state.uri),
     routes: [
+      GoRoute(
+        path: AppRoute.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             MainShell(navigationShell: navigationShell),
@@ -235,6 +251,56 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(router.dispose);
   return router;
 });
+
+/// 로그인해야 하는데 하지 않았으면 로그인 화면으로, 확인 중이면 시작 화면으로 보냅니다.
+///
+/// GoRoute의 redirect처럼 화면을 이동할 때마다 불리는 콜백이라 [Ref.read]로
+/// 그 순간의 로그인 상태를 봅니다.
+/// - 확인 중: 시작 화면에서 기다립니다. 가려던 곳은 `from`에 담아 두었다가 이어 갑니다.
+/// - 로그아웃: 로그인·가입·비밀번호 찾기 화면만 열 수 있습니다.
+/// - 로그인: 시작·로그인 화면에 머물지 않고 가려던 곳(없으면 홈)으로 갑니다.
+String? _sessionRedirect(Ref ref, Uri uri) {
+  if (!ref.read(requiresLoginProvider)) {
+    return uri.path == AppRoute.splash ? AppRoute.home : null;
+  }
+  final path = uri.path;
+  return switch (ref.read(sessionProvider)) {
+    SessionStatus.checking =>
+      path == AppRoute.splash
+          ? null
+          : Uri(
+              path: AppRoute.splash,
+              queryParameters: {_fromKey: uri.toString()},
+            ).toString(),
+    SessionStatus.signedOut =>
+      _signedOutPaths.contains(path) ? null : AppRoute.login,
+    SessionStatus.signedIn => switch (path) {
+      AppRoute.splash => _safeFrom(uri.queryParameters[_fromKey]),
+      AppRoute.login => AppRoute.home,
+      _ => null,
+    },
+  };
+}
+
+/// 시작 화면이 확인을 마친 뒤 이어 갈 주소를 담는 쿼리 이름.
+const _fromKey = 'from';
+
+/// 앱 안의 주소면 그대로, 비었거나 밖을 가리키면 홈.
+String _safeFrom(String? from) =>
+    from != null && from.startsWith('/') && !from.startsWith(AppRoute.splash)
+    ? from
+    : AppRoute.home;
+
+/// 로그인하지 않아도 열 수 있는 화면. 로그인·가입·비밀번호 찾기 흐름입니다.
+const _signedOutPaths = {
+  AppRoute.login,
+  AppRoute.forgotPassword,
+  AppRoute.passwordResetVerification,
+  AppRoute.resetPassword,
+  AppRoute.signUp,
+  AppRoute.signUpVerification,
+  AppRoute.signUpTerms,
+};
 
 /// 첫 화면이 [builder]인 탭 하나. 탭 안에 쌓일 화면은 [routes]에 둡니다.
 StatefulShellBranch _tab(

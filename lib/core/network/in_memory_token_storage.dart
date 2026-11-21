@@ -8,8 +8,10 @@ class InMemoryTokenStorage implements TokenStorage {
   @override
   Future<AuthTokens?> read() async => _tokens;
 
+  /// 메모리에만 두므로 [remember]와 관계없이 앱을 끄면 사라집니다.
   @override
-  Future<void> save(AuthTokens tokens) async => _tokens = tokens;
+  Future<void> save(AuthTokens tokens, {bool remember = true}) async =>
+      _tokens = tokens;
 
   @override
   Future<void> clear() async => _tokens = null;

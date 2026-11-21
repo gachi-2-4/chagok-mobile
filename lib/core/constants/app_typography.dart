@@ -24,6 +24,16 @@ abstract final class AppTypography {
     color: AppColors.logo,
   );
 
+  /// 앱을 열 때 시작 화면 가운데의 큰 로고 '차곡'.
+  static const splashLogo = TextStyle(
+    fontFamily: 'Jua',
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 44,
+    height: 1.2,
+    fontWeight: FontWeight.w400,
+    color: AppColors.logo,
+  );
+
   /// 화면 상단의 큰 제목. 예: "처음 만나는 차곡"
   static const pageTitle = TextStyle(
     fontFamily: fontFamily,
