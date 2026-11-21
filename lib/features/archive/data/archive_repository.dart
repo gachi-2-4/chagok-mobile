@@ -2,6 +2,7 @@ import 'package:chagok_mobile/features/archive/data/archive_box.dart';
 import 'package:chagok_mobile/features/archive/data/box_color.dart';
 import 'package:chagok_mobile/features/archive/data/box_document.dart';
 import 'package:chagok_mobile/features/archive/data/box_icon.dart';
+import 'package:chagok_mobile/features/archive/data/document_overview.dart';
 import 'package:chagok_mobile/features/archive/data/document_search_result.dart';
 import 'package:chagok_mobile/features/archive/data/sample_archive_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,10 +31,13 @@ abstract interface class ArchiveRepository {
     DateTime today,
   );
 
-  /// 서류 [documentId]의 내용을 AI로 쉬운 말로 바꿔 돌려줍니다.
+  /// 서류 [documentId]의 상세 내용과 AI 정리본을 가져옵니다.
   ///
   /// 서류가 없으면 `BoxDocumentNotFoundException`을 던집니다.
-  Future<String> translateToPlainLanguage(String documentId);
+  Future<DocumentOverview> fetchDocumentOverview(
+    String documentId,
+    DateTime today,
+  );
 
   /// 빈 보관함을 만들고 돌려줍니다.
   Future<ArchiveBox> createBox({

@@ -1,7 +1,9 @@
 import 'package:chagok_mobile/app/main_shell.dart';
 import 'package:chagok_mobile/features/archive/presentation/archive_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/box_detail_screen.dart';
+import 'package:chagok_mobile/features/archive/presentation/document_overview_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/document_search_screen.dart';
+import 'package:chagok_mobile/features/archive/presentation/document_tab.dart';
 import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
 import 'package:chagok_mobile/features/auth/presentation/forgot_password_screen.dart';
@@ -61,7 +63,12 @@ abstract final class AppRoute {
   /// 첫 설문 (O01~O04)
   static const onboarding = '/onboarding';
 
-  // 서류 상세 (D01~D02)
+  // 서류 상세 (07~09 원본·AI 정리본, D01~D02 수정·납부 알림)
+  static const documentPattern = '/documents/:id';
+
+  /// 서류 상세 [id]. [showSummary]면 AI 정리본 탭으로, 아니면 원본 탭으로 엽니다.
+  static String document(String id, {bool showSummary = false}) =>
+      showSummary ? '/documents/$id?tab=summary' : '/documents/$id';
   static const documentEditPattern = '/documents/:id/edit';
   static const paymentReminderPattern = '/documents/:id/reminder';
   static String documentEdit(String id) => '/documents/$id/edit';
@@ -178,6 +185,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       ..._authRoutes(ref),
+      GoRoute(
+        path: AppRoute.documentPattern,
+        builder: (context, state) => DocumentOverviewScreen(
+          documentId: state.pathParameters['id'] ?? '',
+          initialTab: DocumentTab.fromQuery(state.uri.queryParameters['tab']),
+        ),
+      ),
       GoRoute(
         path: AppRoute.documentEditPattern,
         builder: (context, state) =>

@@ -2,7 +2,6 @@
 ///
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
 abstract final class DocumentStrings {
-  static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '서류를 불러오지 못했어요.';
   static const retry = '다시 시도';
 

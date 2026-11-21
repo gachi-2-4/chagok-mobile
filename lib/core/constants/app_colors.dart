@@ -76,6 +76,15 @@ abstract final class AppColors {
   /// 서류 원본 자리에 긋는 빗금.
   static const documentStripe = Color(0xFFEDE7DC);
 
+  /// 서류 상세에서 크게 보여 주는 원본 자리의 바탕. 빗금은 [boxBodyGray]입니다.
+  static const documentOriginal = Color(0xFFE6DFD3);
+
+  /// 원본 / AI 정리본처럼 둘 중 하나를 고르는 탭의 바탕.
+  static const segmentFill = Color(0xFFE5DDD0);
+
+  /// AI 정리본의 한 줄 요약 바탕.
+  static const summaryFill = Color(0xFFF1F7E4);
+
   // 기타
   static const chevron = Color(0xFF998D79);
   static const bullet = Color(0xFF827661);

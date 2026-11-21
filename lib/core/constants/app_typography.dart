@@ -434,6 +434,16 @@ abstract final class AppTypography {
     color: AppColors.textPrimary,
   );
 
+  /// 서류 상세 카드의 큰 "D-46".
+  static const dDayLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 24,
+    height: 28.8 / 24,
+    fontWeight: FontWeight.w800,
+    color: AppColors.logo,
+  );
+
   /// 기한 목록의 D-n 표. 색은 남은 날에 따라 정합니다.
   static const dueTag = TextStyle(
     fontFamily: fontFamily,

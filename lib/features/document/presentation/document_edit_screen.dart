@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -15,6 +16,7 @@ import 'package:chagok_mobile/features/document/presentation/widgets/picker_fiel
 import 'package:chagok_mobile/features/document/presentation/widgets/thousands_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// D01 · 서류에서 읽어 낸 조건을 바로잡는 화면.
 class DocumentEditScreen extends ConsumerWidget {
@@ -71,10 +73,13 @@ class _DocumentEditBody extends ConsumerWidget {
     }
 
     void viewOriginal() {
-      // TODO: 원본 파일 보기 화면이 생기면 연결합니다.
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text(DocumentStrings.comingSoon)));
+      // 서류 상세에서 열었으면 닫으면서 원본 탭을 보여 달라고 true를 돌려줍니다.
+      // 주소로 바로 열었으면 돌아갈 화면이 없으므로 서류 상세를 새로 엽니다.
+      if (context.canPop()) {
+        context.pop(true);
+      } else {
+        context.go(AppRoute.document(documentId));
+      }
     }
 
     return AppDocumentLayout(

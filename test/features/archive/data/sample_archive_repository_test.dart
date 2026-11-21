@@ -92,15 +92,36 @@ void main() {
       expect(await repository.searchDocuments('비행기표', today), isEmpty);
     });
 
-    test('서류를 쉬운 말로 바꾸면 미리 적어 둔 설명을 돌려준다', () async {
-      final text = await repository.translateToPlainLanguage('lease');
+    test('서류 상세를 가져오면 비용·기한 이름·기간과 AI 정리본을 함께 돌려준다', () async {
+      final overview = await repository.fetchDocumentOverview('lease', today);
 
-      expect(text, contains('보증금'));
+      expect(overview.box.name, '집 · 임대');
+      expect(overview.document.title, '전세 임대차 계약서');
+      expect(overview.cost?.amount, 230000000);
+      expect(overview.dueLabel, '갱신 통보');
+      expect(overview.document.dueDate, DateTime(2027, 1, 5));
+      expect(overview.periodEnd, DateTime(2027, 3, 8));
+      expect(overview.summary.sections.map((section) => section.title), [
+        '계약 개요',
+        '주요 특약',
+        '체크',
+      ]);
     });
 
-    test('없는 서류를 쉬운 말로 바꾸면 BoxDocumentNotFoundException을 던진다', () {
+    test('비용·기한이 없는 서류의 상세를 가져오면 둘 다 null이다', () async {
+      final overview = await repository.fetchDocumentOverview(
+        'move-in-report',
+        today,
+      );
+
+      expect(overview.cost, isNull);
+      expect(overview.document.dueDate, isNull);
+      expect(overview.periodEnd, isNull);
+    });
+
+    test('없는 서류의 상세를 가져오면 BoxDocumentNotFoundException을 던진다', () {
       expect(
-        repository.translateToPlainLanguage('missing'),
+        repository.fetchDocumentOverview('missing', today),
         throwsA(isA<BoxDocumentNotFoundException>()),
       );
     });

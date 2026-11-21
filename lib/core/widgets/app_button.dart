@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
+import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -15,12 +16,14 @@ class AppButton extends StatelessWidget {
   const AppButton.primary({
     required this.label,
     required this.onPressed,
+    this.icon,
     super.key,
   }) : _variant = _AppButtonVariant.primary;
 
   const AppButton.secondary({
     required this.label,
     required this.onPressed,
+    this.icon,
     super.key,
   }) : _variant = _AppButtonVariant.secondary;
 
@@ -28,7 +31,12 @@ class AppButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onPressed;
+
+  /// 글자 앞에 둘 아이콘. 예: "기한 자동 등록됨"의 달력
+  final IconData? icon;
   final _AppButtonVariant _variant;
+
+  static const _iconSize = 18.0;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +44,18 @@ class AppButton extends StatelessWidget {
       borderRadius: BorderRadius.all(Radius.circular(AppRadius.button)),
     );
     const minimumSize = Size.fromHeight(height);
-    final child = Text(label, style: AppTypography.button);
+    final icon = this.icon;
+    final text = Text(label, style: AppTypography.button);
+    final child = icon == null
+        ? text
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: _iconSize),
+              const SizedBox(width: AppSpacing.socialLogoGap),
+              Flexible(child: text),
+            ],
+          );
 
     return switch (_variant) {
       _AppButtonVariant.primary => FilledButton(
