@@ -218,6 +218,27 @@ void main() {
       expect(server.requestsTo('POST', '/reminders'), hasLength(1));
     });
 
+    test('매월 반복을 끄고 저장하면 다시 불러와도 반복을 끈 알림이다', () async {
+      // 받은 알림 설정을 기억했다가 서류 상세에 담아 주는 서버.
+      Map<String, Object?>? saved;
+      server
+        ..on('POST', '/reminders', (request) {
+          saved = {'reminderId': 33, ...server.lastBody('POST', '/reminders')};
+          return jsonResponse({'reminderId': 33}, status: 201);
+        })
+        ..on(
+          'GET',
+          '/documents/501',
+          (_) => jsonResponse(lease(reminder: saved)),
+        );
+
+      await repository.saveReminder(reminder.copyWith(isMonthly: false));
+      final fetched = await repository.fetchReminder('501');
+
+      expect(server.lastBody('POST', '/reminders')['repeatMonthly'], isFalse);
+      expect(fetched?.isMonthly, isFalse);
+    });
+
     test('납부 기한이 없는 서류면 StateError를 던진다', () async {
       server.onJson('GET', '/documents/501', {
         ...lease(),
