@@ -88,13 +88,20 @@ class _SourceFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(ChatStrings.source(source), style: AppTypography.caption),
-        GestureDetector(
-          onTap: onViewOriginal,
-          child: const Padding(
-            padding: EdgeInsets.only(top: AppSpacing.xs),
-            child: Text(ChatStrings.viewOriginal, style: AppTypography.caption),
+        if (onViewOriginal case final onViewOriginal?)
+          Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: onViewOriginal,
+              child: const Padding(
+                padding: EdgeInsets.only(top: AppSpacing.xs),
+                child: Text(
+                  ChatStrings.viewOriginal,
+                  style: AppTypography.caption,
+                ),
+              ),
+            ),
           ),
-        ),
       ],
     );
   }

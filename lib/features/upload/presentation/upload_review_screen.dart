@@ -38,12 +38,8 @@ class UploadReviewScreen extends ConsumerWidget {
       context.go(AppRoute.home);
     }
 
-    void edit() {
-      // TODO: 서류 내용 수정 화면(D01)이 생기면 연결합니다.
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text(UploadStrings.comingSoon)));
-    }
+    // 서버가 서류를 만든 뒤라 id가 있으면 그 서류의 내용 수정(D01)으로 갑니다.
+    final documentId = result.documentId;
 
     return AppDocumentLayout(
       body: [
@@ -77,7 +73,10 @@ class UploadReviewScreen extends ConsumerWidget {
         ),
         AppButton.secondary(
           label: UploadStrings.editDocument,
-          onPressed: state.isBusy ? null : edit,
+          onPressed: state.isBusy || documentId == null
+              ? null
+              : () =>
+                    unawaited(context.push(AppRoute.documentEdit(documentId))),
         ),
       ],
     );

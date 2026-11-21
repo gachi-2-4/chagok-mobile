@@ -20,7 +20,6 @@ abstract final class NotificationStrings {
   static const markDone = '납부 완료로 표시';
   static const markedDone = '완료로 표시했어요.';
   static const viewDocument = '연결된 서류 보기';
-  static const comingSoon = '곧 지원할 예정이에요.';
 
   /// 탭 이름.
   static String filter(NotificationFilter filter) => switch (filter) {

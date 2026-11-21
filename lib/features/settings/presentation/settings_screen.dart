@@ -151,7 +151,7 @@ class _AccountSection extends ConsumerWidget {
       final isDone = await ref.read(settingsProvider.notifier).logOut();
       if (!context.mounted) return;
       if (isDone) {
-        context.go(AppRoute.home);
+        context.go(AppRoute.login);
       } else {
         showMessage(SettingsStrings.logOutFailed);
       }
@@ -169,7 +169,7 @@ class _AccountSection extends ConsumerWidget {
       final isDone = await ref.read(settingsProvider.notifier).deleteAccount();
       if (!context.mounted) return;
       if (isDone) {
-        context.go(AppRoute.home);
+        context.go(AppRoute.login);
       } else {
         showMessage(SettingsStrings.deleteAccountFailed);
       }

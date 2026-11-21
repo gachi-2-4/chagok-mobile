@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/router.dart';
+import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/camera_permission_denied_exception.dart';
 import 'package:chagok_mobile/features/upload/data/extracted_field.dart';
@@ -108,6 +109,26 @@ void main() {
 
       expect(find.text(UploadStrings.failed), findsOneWidget);
       expect(find.text(UploadStrings.sourceTitle), findsOneWidget);
+    });
+
+    testWidgets('분석 결과에서 내용 수정하기를 누르면 그 서류의 내용 수정 화면으로 간다', (tester) async {
+      await pumpUpload(tester);
+      repository.result = AnalysisSucceeded(
+        documentId: 'lease',
+        documentType: '임대차계약서',
+        pageCount: 1,
+        fields: const [ExtractedField(label: '납부일', value: '매월 25일')],
+      );
+      await tester.tap(find.text('PDF 파일 고르기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('분석 시작'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text(UploadStrings.editDocument));
+      await tester.tap(find.text(UploadStrings.editDocument));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DocumentEditScreen), findsOneWidget);
     });
 
     testWidgets('카메라 권한이 꺼져 있으면 설정에서 허용해 달라고 안내한다', (tester) async {

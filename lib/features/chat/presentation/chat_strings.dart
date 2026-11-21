@@ -2,7 +2,6 @@
 ///
 /// 다국어를 도입할 때 옮기기 쉽도록 한곳에 모읍니다.
 abstract final class ChatStrings {
-  static const comingSoon = '곧 지원할 예정이에요.';
   static const loadFailed = '대화를 불러오지 못했어요.';
   static const listLoadFailed = '대화 목록을 불러오지 못했어요.';
   static const documentsLoadFailed = '보관함 서류를 불러오지 못했어요.';

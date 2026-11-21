@@ -24,12 +24,20 @@ class SampleChatRepository implements ChatRepository {
   static const _documents = [
     ChatDocument(id: 'lease', name: '임대차계약서', fileName: '임대차계약서.pdf'),
     ChatDocument(
-      id: 'maintenance',
+      id: 'maintenance-fee',
       name: '11월 관리비 고지서',
       fileName: '11월 관리비 고지서.pdf',
     ),
-    ChatDocument(id: 'telecom', name: '통신 서비스 계약서', fileName: '통신 서비스 계약서.pdf'),
-    ChatDocument(id: 'car', name: '자동차 보험 계약서', fileName: '자동차 보험 계약서.pdf'),
+    ChatDocument(
+      id: 'telecom-bill',
+      name: '통신 요금 명세서',
+      fileName: '통신 요금 명세서.pdf',
+    ),
+    ChatDocument(
+      id: 'car-insurance',
+      name: '자동차 보험 증권',
+      fileName: '자동차 보험 증권.pdf',
+    ),
   ];
 
   void _seed() {
@@ -58,12 +66,20 @@ class SampleChatRepository implements ChatRepository {
       today.add(const Duration(hours: 9, minutes: 41)),
     );
     add(
-      'maintenance',
+      'maintenance-fee',
       '관리비가 왜 달라졌나요?',
       today.add(const Duration(hours: 9, minutes: 20)),
     );
-    add('telecom', '약정 기간이 얼마나 남았나요?', today.subtract(const Duration(days: 4)));
-    add('car', '보험료 납부일이 궁금해요', today.subtract(const Duration(days: 6)));
+    add(
+      'telecom-bill',
+      '약정 기간이 얼마나 남았나요?',
+      today.subtract(const Duration(days: 4)),
+    );
+    add(
+      'car-insurance',
+      '보험료 납부일이 궁금해요',
+      today.subtract(const Duration(days: 6)),
+    );
   }
 
   @override
@@ -131,7 +147,7 @@ class SampleChatRepository implements ChatRepository {
   @override
   List<String> suggestedQuestions(ChatDocument? document) {
     return switch (document?.id) {
-      'maintenance' => const ['관리비가 왜 달라졌나요?', '언제까지 내야 하나요?'],
+      'maintenance-fee' => const ['관리비가 왜 달라졌나요?', '언제까지 내야 하나요?'],
       _ => const ['언제까지 내야 하나요?', '위약금이 있나요?'],
     };
   }

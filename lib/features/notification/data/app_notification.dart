@@ -14,6 +14,7 @@ class AppNotification {
     this.dueDate,
     this.amount,
     this.documentName,
+    this.documentId,
   });
 
   /// 알림 id.
@@ -49,6 +50,9 @@ class AppNotification {
   /// 연결된 서류 이름. 예: "임대차계약서"
   final String? documentName;
 
+  /// 연결된 서류 id. 있으면 알림 상세에서 서류를 열 수 있습니다.
+  final String? documentId;
+
   /// 읽음·완료 여부만 바꾼 새 알림을 돌려줍니다.
   AppNotification copyWith({bool? isRead, bool? isDone}) {
     return AppNotification(
@@ -63,6 +67,7 @@ class AppNotification {
       dueDate: dueDate,
       amount: amount,
       documentName: documentName,
+      documentId: documentId,
     );
   }
 }

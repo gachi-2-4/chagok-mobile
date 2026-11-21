@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
 import 'package:chagok_mobile/features/chat/data/chat_role.dart';
+import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:chagok_mobile/features/chat/presentation/widgets/chat_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,6 +56,41 @@ void main() {
 
       expect(find.text('매월 25일까지 내면 돼요.'), findsOneWidget);
       expect(boldParts(tester), ['25일']);
+    });
+
+    testWidgets('원본을 열 서류가 없으면 근거만 보여 주고 원본 보기는 두지 않는다', (tester) async {
+      await tester.pumpApp(
+        ChatBubble(
+          message: ChatMessage(
+            role: ChatRole.assistant,
+            text: '매월 25일까지 내면 돼요.',
+            sentAt: at,
+            source: '계약서 1페이지',
+          ),
+        ),
+      );
+
+      expect(find.text(ChatStrings.source('계약서 1페이지')), findsOneWidget);
+      expect(find.text(ChatStrings.viewOriginal), findsNothing);
+    });
+
+    testWidgets('원본을 열 수 있으면 원본 보기를 누를 때 알린다', (tester) async {
+      var openCount = 0;
+      await tester.pumpApp(
+        ChatBubble(
+          message: ChatMessage(
+            role: ChatRole.assistant,
+            text: '매월 25일까지 내면 돼요.',
+            sentAt: at,
+            source: '계약서 1페이지',
+          ),
+          onViewOriginal: () => openCount++,
+        ),
+      );
+
+      await tester.tap(find.text(ChatStrings.viewOriginal));
+
+      expect(openCount, 1);
     });
   });
 }
