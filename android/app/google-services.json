@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851290005424",
+    "project_id": "chagok-90ba0",
+    "storage_bucket": "chagok-90ba0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851290005424:android:39da127af7db14fa320075",
+        "android_client_info": {
+          "package_name": "com.chagok.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSVchrTZcfHFUdmyI38OQmG_bnxlfUfGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
