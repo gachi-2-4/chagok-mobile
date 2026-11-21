@@ -22,9 +22,7 @@ class UploadSourceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final (isBusy, hasFailed) = ref.watch(
-      uploadProvider.select((state) => (state.isBusy, state.hasFailed)),
-    );
+    final isBusy = ref.watch(uploadProvider.select((state) => state.isBusy));
 
     Future<void> pick(UploadSource source) async {
       final isPicked = await ref.read(uploadProvider.notifier).pick(source);
@@ -64,16 +62,39 @@ class UploadSourceScreen extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         const Text(UploadStrings.sourceNote, style: AppTypography.caption),
-        if (hasFailed) ...[
-          const SizedBox(height: AppSpacing.lg),
-          const UploadFailureNotice(),
-        ],
+        const _PickNotices(),
       ],
       actions: [
         AppButton.primary(
           label: UploadStrings.pickPdf,
           onPressed: onPick(UploadSource.pdf),
         ),
+      ],
+    );
+  }
+}
+
+/// 마지막으로 서류를 가져오다 실패했거나 카메라 권한이 꺼져 있을 때의 안내.
+class _PickNotices extends ConsumerWidget {
+  const _PickNotices();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final (hasFailed, isCameraDenied) = ref.watch(
+      uploadProvider.select((state) => (state.hasFailed, state.isCameraDenied)),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hasFailed) ...[
+          const SizedBox(height: AppSpacing.lg),
+          const UploadFailureNotice(),
+        ],
+        if (isCameraDenied) ...[
+          const SizedBox(height: AppSpacing.lg),
+          const UploadFailureNotice(message: UploadStrings.cameraDenied),
+        ],
       ],
     );
   }

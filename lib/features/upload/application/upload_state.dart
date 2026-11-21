@@ -11,6 +11,7 @@ class UploadState {
     this.result,
     this.isBusy = false,
     this.hasFailed = false,
+    this.isCameraDenied = false,
   });
 
   /// 고른 파일. 아직 고르지 않았으면 null.
@@ -30,6 +31,11 @@ class UploadState {
 
   /// 마지막 파일 고르기·분석·저장이 실패했으면 true.
   final bool hasFailed;
+
+  /// 마지막으로 서류를 찍으려다 카메라 권한이 꺼져 있어 못 찍었으면 true.
+  ///
+  /// 다시 시도해도 같으므로 [hasFailed]와 나눠, 설정에서 권한을 켜 달라고 안내합니다.
+  final bool isCameraDenied;
 
   /// [selectedBoxId]에 맞는 보관함. 고르지 않았거나 목록에 없으면 null.
   DocumentBox? get selectedBox {
@@ -57,6 +63,7 @@ class UploadState {
     AnalysisResult? Function()? result,
     bool? isBusy,
     bool? hasFailed,
+    bool? isCameraDenied,
   }) {
     return UploadState(
       document: document ?? this.document,
@@ -65,6 +72,7 @@ class UploadState {
       result: result == null ? this.result : result(),
       isBusy: isBusy ?? this.isBusy,
       hasFailed: hasFailed ?? this.hasFailed,
+      isCameraDenied: isCameraDenied ?? this.isCameraDenied,
     );
   }
 }

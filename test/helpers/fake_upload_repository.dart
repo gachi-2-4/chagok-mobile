@@ -26,6 +26,9 @@ class FakeUploadRepository implements UploadRepository {
 
   /// [pick]이 불린 횟수.
   int pickCount = 0;
+
+  /// 값을 넣으면 [pick]이 기본 예시 서류 대신 이 서류를 돌려줍니다.
+  PickedDocument? pickedDocument;
   final saved = <String>[];
 
   /// [analyze]에 넘어온 보관함 id.
@@ -37,6 +40,7 @@ class FakeUploadRepository implements UploadRepository {
     await pickGate?.future;
     if (error case final error?) throw error;
     if (isCancelled) return null;
+    if (pickedDocument case final document?) return document;
     return PickedDocument(
       fileName: '${source.name}.pdf',
       source: source,

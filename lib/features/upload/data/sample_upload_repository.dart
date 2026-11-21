@@ -53,7 +53,7 @@ class SampleUploadRepository implements UploadRepository {
     }
     return AnalysisSucceeded(
       documentType: '임대차계약서',
-      pageCount: document.pageCount,
+      pageCount: document.pageCount ?? 1,
       fields: const [
         ExtractedField(label: '월 임대료', value: '500,000원', originalLabel: '월세'),
         ExtractedField(label: '납부일', value: '매월 25일'),

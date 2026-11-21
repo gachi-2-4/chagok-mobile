@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
@@ -13,6 +14,7 @@ import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/application/upload_state.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/document_box.dart';
+import 'package:chagok_mobile/features/upload/data/document_preview.dart';
 import 'package:chagok_mobile/features/upload/data/picked_document.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:chagok_mobile/features/upload/presentation/upload_strings.dart';
@@ -137,10 +139,11 @@ class _FileCard extends StatelessWidget {
                     : UploadStrings.imageLabel,
                 style: AppTypography.body,
               ),
-              Text(
-                UploadStrings.pageCount(document.pageCount),
-                style: AppTypography.body,
-              ),
+              if (document.pageCount case final pageCount?)
+                Text(
+                  UploadStrings.pageCount(pageCount),
+                  style: AppTypography.body,
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.cardTitleGap),
@@ -159,41 +162,135 @@ class _FileCard extends StatelessWidget {
 }
 
 /// 서류 첫 페이지 미리 보기.
+///
+/// 예시 서류는 첫 페이지를 옮긴 글을, 찍거나 고른 사진은 첫 쪽 사진을 보여 줍니다.
+/// 기기에서 고른 PDF는 내용을 분석하면서 읽으므로 안내만 둡니다.
 class _PreviewCard extends StatelessWidget {
   const _PreviewCard({required this.document});
 
   final PickedDocument document;
 
+  @override
+  Widget build(BuildContext context) {
+    final firstFile = document.files.firstOrNull;
+
+    return DocumentPreviewCard(
+      child: switch ((document.preview, firstFile)) {
+        (final preview?, _) => _TextPreview(
+          preview: preview,
+          pageCount: document.pageCount,
+        ),
+        (null, final file?) when !document.isPdf => _ImagePreview(
+          bytes: file.bytes,
+          pageCount: document.pageCount,
+        ),
+        _ => const _PdfPreview(),
+      },
+    );
+  }
+}
+
+/// 예시 서류의 첫 페이지를 옮긴 글.
+class _TextPreview extends StatelessWidget {
+  const _TextPreview({required this.preview, required this.pageCount});
+
+  final DocumentPreview preview;
+  final int? pageCount;
+
   static const _dividerHeight = 1.0;
 
   @override
   Widget build(BuildContext context) {
-    final preview = document.preview;
+    final pageCount = this.pageCount;
     const divider = Padding(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Divider(height: _dividerHeight, color: AppColors.divider),
     );
 
-    return DocumentPreviewCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            preview.title,
-            textAlign: TextAlign.center,
-            style: AppTypography.previewTitle,
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          preview.title,
+          textAlign: TextAlign.center,
+          style: AppTypography.previewTitle,
+        ),
+        divider,
+        Text(preview.section, style: AppTypography.caption),
+        for (final line in preview.lines) Text(line, style: AppTypography.body),
+        if (pageCount != null) ...[
           divider,
-          Text(preview.section, style: AppTypography.caption),
-          for (final line in preview.lines)
-            Text(line, style: AppTypography.body),
-          divider,
           Text(
-            UploadStrings.previewPage(1, document.pageCount),
+            UploadStrings.previewPage(1, pageCount),
             style: AppTypography.caption,
           ),
         ],
-      ),
+      ],
+    );
+  }
+}
+
+/// 찍거나 고른 첫 쪽 사진.
+class _ImagePreview extends StatelessWidget {
+  const _ImagePreview({required this.bytes, required this.pageCount});
+
+  final Uint8List bytes;
+  final int? pageCount;
+
+  /// 사진이 너무 길어 화면을 다 차지하지 않도록 둔 최대 높이.
+  static const _maxHeight = 360.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final pageCount = this.pageCount;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: _maxHeight),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            child: Image.memory(
+              bytes,
+              fit: BoxFit.contain,
+              semanticLabel: UploadStrings.scannedPageLabel,
+              // 사진을 읽지 못하면 빈 자리 대신 PDF와 같은 안내 자리를 둡니다.
+              errorBuilder: (context, error, stackTrace) => const _PdfPreview(),
+            ),
+          ),
+        ),
+        if (pageCount != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            UploadStrings.previewPage(1, pageCount),
+            textAlign: TextAlign.center,
+            style: AppTypography.caption,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// 기기에서 고른 PDF의 미리 보기 자리.
+class _PdfPreview extends StatelessWidget {
+  const _PdfPreview();
+
+  static const _iconSize = 40.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        Icon(
+          Icons.picture_as_pdf_outlined,
+          size: _iconSize,
+          color: AppColors.textSecondary,
+        ),
+        SizedBox(height: AppSpacing.sm),
+        Text(UploadStrings.pdfPreviewNote, style: AppTypography.caption),
+      ],
     );
   }
 }

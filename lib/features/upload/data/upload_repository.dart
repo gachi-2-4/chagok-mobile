@@ -2,6 +2,7 @@ import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/api_upload_repository.dart';
+import 'package:chagok_mobile/features/upload/data/device_document_picker.dart';
 import 'package:chagok_mobile/features/upload/data/document_box.dart';
 import 'package:chagok_mobile/features/upload/data/picked_document.dart';
 import 'package:chagok_mobile/features/upload/data/sample_upload_repository.dart';
@@ -35,14 +36,15 @@ abstract interface class UploadRepository {
 
 /// 앱 전역 [UploadRepository].
 ///
-/// API 서버 주소가 있으면 서버에 올려 분석하고, 없으면 예시 결과를 돌려줍니다.
+/// API 서버 주소가 있으면 기기의 문서 스캐너·파일 선택기로 고른 서류를 서버에
+/// 올려 분석하고, 없으면 예시 서류와 예시 결과를 돌려줍니다.
+///
+/// 서버 없이 돌릴 때도 예시 서류를 쓰는 것은, 카메라가 없는 시뮬레이터와 테스트에서도
+/// 화면 흐름을 끝까지 볼 수 있게 하려는 것입니다.
 final uploadRepositoryProvider = Provider<UploadRepository>((ref) {
-  final sample = SampleUploadRepository();
-  if (!ref.watch(isApiEnabledProvider)) return sample;
+  if (!ref.watch(isApiEnabledProvider)) return SampleUploadRepository();
   return ApiUploadRepository(
     client: ref.watch(apiClientProvider),
-    // TODO: 카메라·앨범·파일 선택 플러그인을 붙이면 실제 파일을 고르도록 바꿉니다.
-    // 예시 파일은 내용이 없어 서버에 올릴 수 없습니다.
-    pick: sample.pick,
+    pick: DeviceDocumentPicker().pick,
   );
 });

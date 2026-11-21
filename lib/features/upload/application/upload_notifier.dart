@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/upload/application/upload_state.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
+import 'package:chagok_mobile/features/upload/data/camera_permission_denied_exception.dart';
 import 'package:chagok_mobile/features/upload/data/upload_repository.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:flutter/foundation.dart';
@@ -21,11 +22,17 @@ class UploadNotifier extends Notifier<UploadState> {
 
   /// [source]에서 파일을 고릅니다. 골랐으면 true, 취소하거나 실패하면 false.
   ///
+  /// 카메라 권한이 꺼져 있으면 [UploadState.isCameraDenied]를 켭니다.
+  ///
   /// 처음 고를 때 보관함 목록을 불러와 첫 보관함을 골라 둡니다.
   /// 다른 일을 하는 중이면 겹치지 않도록 무시하고 false를 돌려줍니다.
   Future<bool> pick(UploadSource source) async {
     if (state.isBusy) return false;
-    state = state.copyWith(isBusy: true, hasFailed: false);
+    state = state.copyWith(
+      isBusy: true,
+      hasFailed: false,
+      isCameraDenied: false,
+    );
     try {
       final document = await _repository.pick(source);
       if (document == null) {
@@ -43,6 +50,9 @@ class UploadNotifier extends Notifier<UploadState> {
         isBusy: false,
       );
       return true;
+    } on CameraPermissionDeniedException {
+      state = state.copyWith(isBusy: false, isCameraDenied: true);
+      return false;
     } catch (error, stackTrace) {
       _fail('파일을 가져오지 못했습니다', error, stackTrace);
       return false;

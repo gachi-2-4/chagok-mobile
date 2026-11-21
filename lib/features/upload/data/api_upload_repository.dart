@@ -100,7 +100,7 @@ class ApiUploadRepository implements UploadRepository {
     return AnalysisSucceeded(
       documentId: documentId,
       documentType: documentTypeNameOf(json.stringOrNull('docType')),
-      pageCount: json.integerOrNull('pageCount') ?? document.pageCount,
+      pageCount: json.integerOrNull('pageCount') ?? document.pageCount ?? 1,
       fields: [for (final field in json.maps('fields')) _fieldOf(field)],
     );
   }
