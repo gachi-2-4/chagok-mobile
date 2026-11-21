@@ -159,20 +159,21 @@ class ApiClient {
       null,
     );
     // 재발급을 기다리는 사이 로그아웃하거나 다른 계정으로 로그인했으면, 그 세션의
-    // 토큰을 덮어쓰거나 지우지 않고 이 재발급을 세션 만료로 끝냅니다.
-    final current = await _tokenStorage.read();
-    if (current?.refreshToken != stored.refreshToken) {
-      throw _sessionExpired(CoreStrings.unknownError);
-    }
+    // 토큰을 덮어쓰거나 지우지 않고 이 재발급을 세션 만료로 끝냅니다. 비교와 저장·삭제를
+    // 따로 하면 그 틈에 로그인이 끼어들 수 있어 저장소의 replaceIf로 한 번에 합니다.
     if (_isSuccess(response)) {
       final tokens = AuthTokens.fromJson(_decode(response));
-      await _tokenStorage.save(tokens);
+      final isReplaced = await _tokenStorage.replaceIf(
+        expected: stored,
+        next: tokens,
+      );
+      if (!isReplaced) throw _sessionExpired(CoreStrings.unknownError);
       return tokens;
     }
     final error = _errorOf(response);
     // 서버 오류(5xx)는 토큰이 아직 유효할 수 있으므로 지우지 않고 그대로 알립니다.
     if (response.statusCode != 401) throw error;
-    await _tokenStorage.clear();
+    await _tokenStorage.replaceIf(expected: stored);
     throw _sessionExpired(error.message);
   }
 

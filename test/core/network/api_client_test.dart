@@ -332,6 +332,34 @@ void main() {
       expect((await server.tokenStorage.read())?.refreshToken, 'other-r');
     });
 
+    test('재발급 결과를 저장하기 직전에 다른 계정으로 로그인하면 새 토큰을 덮어쓰지 않는다', () async {
+      const other = AuthTokens(accessToken: 'other', refreshToken: 'other-r');
+      final storage = _LoginOnNextAccessStorage();
+      await storage.save(FakeApiServer.loggedInTokens);
+      final client = ApiClient(
+        httpClient: MockClient((request) async {
+          if (request.url.path == '/auth/token/refresh') {
+            // 재발급 응답을 받은 뒤 저장소에 처음 닿는 순간 다른 계정이 로그인합니다.
+            storage.pendingLogin = other;
+            return jsonResponse({
+              'accessToken': 'access-2',
+              'refreshToken': 'refresh-2',
+            });
+          }
+          return request.headers['Authorization'] == 'Bearer access-1'
+              ? errorResponse(401, 'TOKEN_EXPIRED')
+              : jsonResponse({});
+        }),
+        baseUrl: FakeApiServer.baseUrl,
+        tokenStorage: storage,
+      );
+
+      await client.get('/boxes');
+      await pumpEventQueue();
+
+      expect((await storage.read())?.refreshToken, 'other-r');
+    });
+
     test('만료가 아닌 401이면 재발급하지 않는다', () async {
       server.on('GET', '/boxes', (_) => errorResponse(401, 'UNAUTHORIZED'));
 
@@ -385,4 +413,32 @@ void main() {
       );
     });
   });
+}
+
+/// 다음에 저장소에 닿으면, 그 결과를 받은 쪽이 이어서 일하기 전에 [pendingLogin]으로
+/// 로그인한 것처럼 바꾸는 저장소.
+///
+/// 저장소를 읽고 나서 저장하기 전 틈에 다른 로그인이 끼어드는 경우를 재현합니다.
+class _LoginOnNextAccessStorage extends InMemoryTokenStorage {
+  /// 값을 넣으면 다음 읽기·바꾸기 직후 이 토큰으로 로그인합니다. 한 번만 씁니다.
+  AuthTokens? pendingLogin;
+
+  void _logInSoon() {
+    final login = pendingLogin;
+    if (login == null) return;
+    pendingLogin = null;
+    scheduleMicrotask(() => save(login));
+  }
+
+  @override
+  Future<AuthTokens?> read() {
+    _logInSoon();
+    return super.read();
+  }
+
+  @override
+  Future<bool> replaceIf({required AuthTokens expected, AuthTokens? next}) {
+    _logInSoon();
+    return super.replaceIf(expected: expected, next: next);
+  }
 }

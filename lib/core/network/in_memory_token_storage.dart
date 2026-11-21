@@ -13,4 +13,15 @@ class InMemoryTokenStorage implements TokenStorage {
 
   @override
   Future<void> clear() async => _tokens = null;
+
+  /// 비교와 바꾸기 사이에 기다림이 없어, 한 번에 끝나므로 다른 저장이 끼어들 수 없습니다.
+  @override
+  Future<bool> replaceIf({
+    required AuthTokens expected,
+    AuthTokens? next,
+  }) async {
+    if (_tokens?.refreshToken != expected.refreshToken) return false;
+    _tokens = next;
+    return true;
+  }
 }
