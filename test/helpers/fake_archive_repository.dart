@@ -7,6 +7,7 @@ import 'package:chagok_mobile/features/archive/data/box_document.dart';
 import 'package:chagok_mobile/features/archive/data/box_document_not_found_exception.dart';
 import 'package:chagok_mobile/features/archive/data/box_icon.dart';
 import 'package:chagok_mobile/features/archive/data/box_not_found_exception.dart';
+import 'package:chagok_mobile/features/archive/data/document_overview.dart';
 import 'package:chagok_mobile/features/archive/data/document_search_result.dart';
 
 /// 정해 둔 보관함·서류를 돌려주고, 만들기 요청을 기록하는 가짜 [ArchiveRepository].
@@ -14,10 +15,10 @@ class FakeArchiveRepository implements ArchiveRepository {
   FakeArchiveRepository({
     List<ArchiveBox>? boxes,
     Map<String, List<BoxDocument>>? documents,
-    Map<String, String>? plainLanguages,
+    Map<String, DocumentOverview>? overviews,
   }) : boxes = boxes ?? [],
        documents = documents ?? {},
-       plainLanguages = plainLanguages ?? {};
+       overviews = overviews ?? {};
 
   /// [fetchBoxes]·[fetchBox]가 돌려줄 보관함.
   List<ArchiveBox> boxes;
@@ -25,8 +26,8 @@ class FakeArchiveRepository implements ArchiveRepository {
   /// 보관함 id별로 [fetchDocuments]가 돌려줄 서류.
   Map<String, List<BoxDocument>> documents;
 
-  /// 서류 id별로 [translateToPlainLanguage]가 돌려줄 쉬운 말 설명.
-  Map<String, String> plainLanguages;
+  /// 서류 id별로 [fetchDocumentOverview]가 돌려줄 서류 상세.
+  Map<String, DocumentOverview> overviews;
 
   /// 값을 넣으면 가져오는 메서드가 이 예외를 던집니다.
   Exception? fetchError;
@@ -34,8 +35,8 @@ class FakeArchiveRepository implements ArchiveRepository {
   /// 값을 넣으면 [searchDocuments]가 이 예외를 던집니다.
   Exception? searchError;
 
-  /// 값을 넣으면 [translateToPlainLanguage]가 이 예외를 던집니다.
-  Exception? translateError;
+  /// 값을 넣으면 [fetchDocumentOverview]가 이 예외를 던집니다.
+  Exception? overviewError;
 
   /// [searchDocuments]로 받은 검색어.
   final searchQueries = <String>[];
@@ -97,9 +98,12 @@ class FakeArchiveRepository implements ArchiveRepository {
       text.replaceAll(RegExp(r'\s+'), '').toLowerCase();
 
   @override
-  Future<String> translateToPlainLanguage(String documentId) async {
-    if (translateError case final error?) throw error;
-    if (plainLanguages[documentId] case final text?) return text;
+  Future<DocumentOverview> fetchDocumentOverview(
+    String documentId,
+    DateTime today,
+  ) async {
+    if (overviewError case final error?) throw error;
+    if (overviews[documentId] case final overview?) return overview;
     throw BoxDocumentNotFoundException(documentId);
   }
 

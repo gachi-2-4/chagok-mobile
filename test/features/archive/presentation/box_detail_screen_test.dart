@@ -77,12 +77,8 @@ void main() {
           ),
         ],
       },
-      plainLanguages: {'lease': '집주인에게 보증금을 맡기고 2년 동안 사는 계약이에요.'},
     );
   });
-
-  Finder translateButton() =>
-      find.bySemanticsLabel(ArchiveStrings.translate).first;
 
   group('BoxDetailScreen', () {
     testWidgets('불러오면 보관함 이름과 서류의 중요도·D-n·쪽수를 보여 준다', (tester) async {
@@ -114,42 +110,6 @@ void main() {
 
       expect(find.text(ArchiveStrings.boxNotFound), findsOneWidget);
       expect(find.text(ArchiveStrings.retry), findsNothing);
-    });
-
-    testWidgets('쉬운 말로 번역을 누르면 쉬운 말 설명과 AI 안내를 띄운다', (tester) async {
-      await pumpDetail(tester);
-
-      await tester.tap(translateButton());
-      await tester.pumpAndSettle();
-
-      expect(find.text(ArchiveStrings.plainLanguageTitle), findsOneWidget);
-      expect(find.text('집주인에게 보증금을 맡기고 2년 동안 사는 계약이에요.'), findsOneWidget);
-      expect(find.text(ArchiveStrings.aiNotice), findsOneWidget);
-    });
-
-    testWidgets('쉬운 말로 바꾸지 못하면 다시 시도로 다시 불러온다', (tester) async {
-      repository.translateError = Exception('네트워크 오류');
-      await pumpDetail(tester);
-      await tester.tap(translateButton());
-      await tester.pumpAndSettle();
-      expect(find.text(ArchiveStrings.translateFailed), findsOneWidget);
-      repository.translateError = null;
-
-      await tester.tap(find.text(ArchiveStrings.retry));
-      await tester.pumpAndSettle();
-
-      expect(find.text('집주인에게 보증금을 맡기고 2년 동안 사는 계약이에요.'), findsOneWidget);
-    });
-
-    testWidgets('설명 시트에서 닫기를 누르면 시트를 닫는다', (tester) async {
-      await pumpDetail(tester);
-      await tester.tap(translateButton());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text(ArchiveStrings.close));
-      await tester.pumpAndSettle();
-
-      expect(find.text(ArchiveStrings.plainLanguageTitle), findsNothing);
     });
 
     testWidgets('불러오지 못하면 안내와 다시 시도 버튼을 보여 준다', (tester) async {
