@@ -2,6 +2,7 @@ import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/main_shell.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
+import 'package:chagok_mobile/features/archive/presentation/archive_screen.dart';
 import 'package:chagok_mobile/features/home/presentation/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,12 +22,10 @@ void main() {
       await tester.pumpWidget(const ProviderScope(child: ChagokApp()));
       await tester.pump();
 
-      // 아직 준비 중인 보관함 탭으로 확인합니다. 다른 탭은 실제 화면이 붙어 있습니다.
-      final archiveTab = MainShell.tabs[0].label;
-      await tester.tap(find.text(archiveTab));
+      await tester.tap(find.text(MainShell.tabs[0].label));
       await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(AppTopBar, archiveTab), findsOneWidget);
+      expect(find.byType(ArchiveScreen), findsOneWidget);
     });
   });
 }

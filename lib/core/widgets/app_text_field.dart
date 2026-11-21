@@ -21,6 +21,7 @@ class AppTextField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.suffix,
+    this.autofocus = false,
     super.key,
   });
 
@@ -42,6 +43,9 @@ class AppTextField extends StatelessWidget {
 
   /// 입력창 오른쪽에 붙는 위젯. 예: 단위("원"), 펼침 아이콘
   final Widget? suffix;
+
+  /// 화면이 열리면 바로 입력할 수 있게 키보드를 올릴지 여부. 예: 검색 화면
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,7 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           readOnly: readOnly,
           onTap: onTap,
+          autofocus: autofocus,
           style: AppTypography.fieldInput,
           cursorColor: AppColors.primary,
           decoration: InputDecoration(

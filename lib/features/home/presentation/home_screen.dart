@@ -5,6 +5,7 @@ import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
+import 'package:chagok_mobile/core/widgets/app_resume_listener.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
 import 'package:chagok_mobile/features/home/application/home_notifier.dart';
@@ -36,7 +37,9 @@ class HomeScreen extends ConsumerWidget {
 
     void openNotifications() => unawaited(context.push(AppRoute.notifications));
 
-    return _RefreshTodayOnResume(
+    // 앱이 멈춰 있는 동안 자정이 지났을 수 있어 돌아오면 날짜를 다시 확인합니다.
+    return AppResumeListener(
+      onResume: () => ref.read(homeTodayProvider.notifier).refresh(),
       child: Scaffold(
         appBar: AppTopBar.logo(
           action: AppTopBarAction(
@@ -154,39 +157,4 @@ class _HomeContent extends StatelessWidget {
       ],
     );
   }
-}
-
-/// 앱으로 돌아오면 홈의 기준 날짜를 다시 확인합니다.
-///
-/// 앱이 백그라운드에 있는 동안 자정이 지났을 수 있어서입니다.
-/// [AppLifecycleListener]를 위젯 생명주기에 묶어 두려고 StatefulWidget으로 둡니다.
-class _RefreshTodayOnResume extends ConsumerStatefulWidget {
-  const _RefreshTodayOnResume({required this.child});
-
-  final Widget child;
-
-  @override
-  ConsumerState<_RefreshTodayOnResume> createState() =>
-      _RefreshTodayOnResumeState();
-}
-
-class _RefreshTodayOnResumeState extends ConsumerState<_RefreshTodayOnResume> {
-  late final AppLifecycleListener _listener;
-
-  @override
-  void initState() {
-    super.initState();
-    _listener = AppLifecycleListener(
-      onResume: () => ref.read(homeTodayProvider.notifier).refresh(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _listener.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.child;
 }

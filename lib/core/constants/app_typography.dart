@@ -414,6 +414,26 @@ abstract final class AppTypography {
     color: AppColors.textPrimary,
   );
 
+  /// 아래에서 올라오는 시트의 제목. 예: "새 박스 만들기"
+  static const sheetTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 21,
+    height: 29.4 / 21,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+  );
+
+  /// 보관함 상세에 늘어놓은 서류 이름. 예: "전세 임대차 계약서"
+  static const documentCardTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontFamilyFallback: fontFamilyFallback,
+    fontSize: 14,
+    height: 16.8 / 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+  );
+
   /// 기한 목록의 D-n 표. 색은 남은 날에 따라 정합니다.
   static const dueTag = TextStyle(
     fontFamily: fontFamily,

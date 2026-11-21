@@ -64,6 +64,18 @@ abstract final class AppColors {
   static const boxIcon = Color(0xFF643312);
   static const boxTag = Color(0xFFF9F4ED);
 
+  // 보관함 색. 피치색 상자는 [boxLid]·[boxBody]를 씁니다.
+  static const boxLidGreen = Color(0xFF929F78);
+  static const boxBodyGreen = Color(0xFFCFDBB6);
+  static const boxLidGray = Color(0xFF9F9788);
+  static const boxBodyGray = Color(0xFFDAD3C6);
+
+  /// 보관함 화면의 동그란 뒤로 가기 버튼, 아이콘 칸, 서류 원본 자리의 바탕.
+  static const softFill = Color(0xFFF8F4EE);
+
+  /// 서류 원본 자리에 긋는 빗금.
+  static const documentStripe = Color(0xFFEDE7DC);
+
   // 기타
   static const chevron = Color(0xFF998D79);
   static const bullet = Color(0xFF827661);
