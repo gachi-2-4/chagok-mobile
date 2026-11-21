@@ -18,6 +18,9 @@ abstract final class UploadStrings {
   static const pdfTitle = 'PDF 파일 선택';
   static const pdfDescription = '기기에 저장된 파일을 불러와요';
   static const sourceNote = '글자가 선명하게 보이는 서류를 올려 주세요.';
+
+  /// 카메라 권한이 꺼져 있을 때 U01에 보이는 안내.
+  static const cameraDenied = '카메라 권한이 꺼져 있어요. 설정 > 차곡에서 카메라를 허용해 주세요.';
   static const pickPdf = 'PDF 파일 고르기';
 
   // U02 파일 확인
@@ -35,6 +38,12 @@ abstract final class UploadStrings {
   /// 예: (1, 3) → "서류 미리보기 · 1 / 3"
   static String previewPage(int current, int total) =>
       '서류 미리보기 · $current / $total';
+
+  /// 찍은 사진 미리 보기를 화면 읽기 프로그램이 읽는 이름.
+  static const scannedPageLabel = '찍은 서류 첫 쪽';
+
+  /// 기기에서 고른 PDF의 미리 보기 자리 안내. 내용은 분석하면서 읽습니다.
+  static const pdfPreviewNote = 'PDF 내용은 분석하면서 읽어요.';
   static const boxLabel = '보관할 곳';
   static const pdfPasswordNote = '암호가 걸린 PDF는 암호를 해제한 후 다시 올려 주세요.';
   static const startAnalysis = '분석 시작';

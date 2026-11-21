@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
+import 'package:chagok_mobile/features/upload/data/camera_permission_denied_exception.dart';
 import 'package:chagok_mobile/features/upload/data/upload_repository.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,6 +131,28 @@ void main() {
       expect(isPicked, isFalse);
       expect(state.hasFailed, isTrue);
       expect(state.isBusy, isFalse);
+    });
+
+    test('카메라 권한이 꺼져 있으면 실패 대신 권한 안내를 표시한다', () async {
+      repository.error = const CameraPermissionDeniedException();
+
+      final isPicked = await notifier().pick(UploadSource.camera);
+
+      final state = container.read(uploadProvider);
+      expect(isPicked, isFalse);
+      expect(state.isCameraDenied, isTrue);
+      expect(state.hasFailed, isFalse);
+      expect(state.isBusy, isFalse);
+    });
+
+    test('권한을 켜고 다시 찍으면 권한 안내가 사라진다', () async {
+      repository.error = const CameraPermissionDeniedException();
+      await notifier().pick(UploadSource.camera);
+      repository.error = null;
+
+      await notifier().pick(UploadSource.camera);
+
+      expect(container.read(uploadProvider).isCameraDenied, isFalse);
     });
 
     test('분석하지 못하면 null을 돌려주고 실패를 표시한다', () async {

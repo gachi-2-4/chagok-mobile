@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 
 /// 파일 고르기·분석·저장이 실패했을 때 보여 주는 안내.
 class UploadFailureNotice extends StatelessWidget {
-  const UploadFailureNotice({super.key});
+  const UploadFailureNotice({this.message = UploadStrings.failed, super.key});
+
+  /// 보여 줄 안내. 비우면 "처리하지 못했어요" 안내입니다.
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      UploadStrings.failed,
+      message,
       textAlign: TextAlign.center,
       style: AppTypography.caption.copyWith(color: AppColors.danger),
     );
