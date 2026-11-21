@@ -137,6 +137,11 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
 - 서버 주소는 빌드할 때 `--dart-define=API_BASE_URL=<주소>`로 넘깁니다.
   - 주소가 있으면 각 `*RepositoryProvider`가 `Api*Repository`를, 없으면 예시·메모리 저장소(`Sample*`·`InMemory*`)를 씁니다.
   - 서버 없이 화면을 만들고 테스트하기 위해서입니다. 테스트는 주소를 넘기지 않으므로 예시 저장소로 돕니다.
+  - 요청은 HTTPS로만 보냅니다. 기기 안 개발 서버(`localhost`, `10.0.2.2` 등)만 HTTP를 씁니다.
+  - HTTPS가 아직 없는 테스트 서버(예: EC2 기본 주소)는 `--dart-define=ALLOW_INSECURE_HTTP=true`를 함께 넘겨야 HTTP로 붙습니다(`isInsecureHttpAllowedProvider`).
+    - release 빌드에서는 이 값을 넘겨도 HTTP를 쓰지 않습니다. 플랫폼 설정도 같습니다. Android는 debug·profile 매니페스트에서만 HTTP를 허용하고, iOS는 `Info.plist` ATS 예외로 `amazonaws.com`만 허용합니다.
+    - 서버에 HTTPS가 생기면 이 예외(ATS 예외, debug·profile 매니페스트의 `usesCleartextTraffic`)를 지웁니다.
+  - 서버 주소는 코드·커밋에 적지 않습니다.
 - 로그인 토큰은 `TokenStorage`(`tokenStorageProvider`)에 둡니다.
   - 서버를 쓰면 기기 보안 저장소(`SecureTokenStorage`, [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage))에 두어 앱을 다시 열어도 로그인이 유지됩니다. 로그인할 때 "자동 로그인"을 끄면 메모리에만 둡니다.
   - 토큰을 저장·삭제하면 로그인 상태(`sessionProvider`)가 바뀌고, 라우터의 최상위 `redirect`가 시작 화면(확인 중) · 로그인 화면(로그아웃) · 가려던 화면(로그인)으로 보냅니다. 로그아웃·탈퇴·재발급 실패도 같은 길로 로그인 화면에 갑니다.

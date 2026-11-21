@@ -130,6 +130,23 @@ void main() {
       expect(await client.get('/home'), {'ok': true});
     });
 
+    test('HTTP를 허용하면 HTTP 서버 주소로도 보낸다', () async {
+      final requests = <http.Request>[];
+      final client = ApiClient(
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          return jsonResponse({'ok': true});
+        }),
+        baseUrl: Uri.parse('http://api.test:8080'),
+        tokenStorage: InMemoryTokenStorage(),
+        isInsecureHttpAllowed: true,
+      );
+
+      await client.get('/home');
+
+      expect(requests.single.url.toString(), 'http://api.test:8080/home');
+    });
+
     test('요청을 보내면 리디렉션을 따라가지 않게 한다', () async {
       server.onJson('GET', '/home', {});
 

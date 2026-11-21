@@ -123,5 +123,6 @@ tool/check_rules.sh        # 바꾼 파일의 규칙 위반 점검 (기준 브�
 
 - 백엔드/데이터 소스: 차곡 API 서버. 연동 방식은 [`ARCHITECTURE.md`](ARCHITECTURE.md)의 "서버 API 연동"을 따릅니다.
   - 서버와 붙여 실행: `flutter run --dart-define=API_BASE_URL=<서버 주소>` (주소 없이 실행하면 예시 데이터로 돕니다)
+  - 서버 주소가 `http://`면 `--dart-define=ALLOW_INSECURE_HTTP=true`도 넘깁니다. release 빌드에서는 HTTP를 쓰지 않습니다.
 - 디자인 시스템·테마: 토큰은 `lib/core/constants/`(`AppColors`, `AppTypography`, `AppSpacing`, `AppRadius`, `AppShadows`, `AppIcons`), 공통 위젯은 `lib/core/widgets/`(`App*`)에 있습니다. 새 화면은 이 위젯과 토큰을 먼저 씁니다.
   - 폰트: Figtree(영문·숫자)와 Noto Sans KR(한글)을 `assets/fonts/`에 넣었고, 로고에는 Jua를 씁니다. 용량을 줄이려고 Noto Sans KR은 한자를 뺐고 Jua는 '차곡' 두 글자만 남겼습니다. 폰트 파일은 직접 고치지 말고 `tool/subset_fonts.sh`로 다시 만듭니다.
