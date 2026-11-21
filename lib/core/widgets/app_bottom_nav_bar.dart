@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 /// 화면 맨 아래의 탭 이동 바.
 ///
-/// Figma `div.nav`에 해당합니다. 예: 보관함 · 채팅 · 홈 · 캘린더 · 설정
+/// Figma `div.nav`에 해당합니다. 예: 보관함 · 채팅 · 홈 · 캘린더 · 마이페이지
 class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({
     required this.items,

@@ -97,7 +97,7 @@ abstract final class AppRoute {
       '/login/forgot-password/verification';
   static const resetPassword = '/login/reset-password';
 
-  // 설정 하위 화면 (S02~S05). 설정 탭 안에 쌓여 바텀바가 계속 보입니다.
+  // 설정 하위 화면 (S02~S05). 마이페이지 탭 안에 쌓여 바텀바가 계속 보입니다.
   static const textSizeSettings = '/settings/text-size';
   static const notificationSettings = '/settings/notifications';
 }

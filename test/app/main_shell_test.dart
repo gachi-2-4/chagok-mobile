@@ -147,10 +147,10 @@ void main() {
       expect(currentTab(tester), 3);
     });
 
-    testWidgets('설정 탭을 누르면 설정 화면과 바텀바가 보인다', (tester) async {
+    testWidgets('마이페이지 탭을 누르면 설정 화면과 바텀바가 보인다', (tester) async {
       await pumpChagokApp(tester);
 
-      await tapTab(tester, AppStrings.settingsTab);
+      await tapTab(tester, AppStrings.myPageTab);
 
       expect(find.byType(SettingsScreen), findsOneWidget);
       expect(currentTab(tester), 4);
@@ -158,7 +158,7 @@ void main() {
 
     testWidgets('설정에서 글자 크기 화면으로 가면 바텀바가 그대로 남아 있다', (tester) async {
       await pumpChagokApp(tester);
-      await tapTab(tester, AppStrings.settingsTab);
+      await tapTab(tester, AppStrings.myPageTab);
 
       await tester.tap(find.text(SettingsStrings.textSize));
       await tester.pumpAndSettle();
