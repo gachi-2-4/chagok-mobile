@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/app/theme.dart';
+import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/features/archive/application/archive_clock.dart';
 import 'package:chagok_mobile/features/archive/data/archive_box.dart';
 import 'package:chagok_mobile/features/archive/data/archive_repository.dart';
@@ -54,9 +55,12 @@ void main() {
   Future<void> pumpRouter(
     WidgetTester tester, {
     String initialLocation = '/documents/lease',
+    Size screenSize = const Size(402, 2000),
+    double bottomInset = 0,
   }) async {
-    tester.view.physicalSize = const Size(402, 2000);
+    tester.view.physicalSize = screenSize;
     tester.view.devicePixelRatio = 1;
+    tester.view.padding = FakeViewPadding(bottom: bottomInset);
     addTearDown(tester.view.reset);
     final router = GoRouter(
       initialLocation: initialLocation,
@@ -213,6 +217,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(reminderScreenText), findsOneWidget);
+    });
+
+    testWidgets('끝까지 내리면 기한 버튼이 시스템 내비게이션 바 위에 여백을 두고 보인다', (tester) async {
+      // Android 15부터 앱이 화면 끝까지 그려지고 3버튼 내비게이션 바(48)가 그 위에 겹칩니다.
+      const screenSize = Size(360, 780);
+      const navigationBar = 48.0;
+      await pumpRouter(
+        tester,
+        screenSize: screenSize,
+        bottomInset: navigationBar,
+      );
+
+      final scrollable = find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final position = tester.state<ScrollableState>(scrollable).position;
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pump();
+
+      final button = find.ancestor(
+        of: find.text(ArchiveStrings.deadlineRegistered),
+        matching: find.byType(AppButton),
+      );
+      expect(
+        tester.getRect(button).bottom,
+        lessThanOrEqualTo(screenSize.height - navigationBar),
+      );
     });
 
     testWidgets('더보기에서 내용 수정을 고르고 원본 확인하기를 누르면 원본 탭으로 돌아온다', (tester) async {
