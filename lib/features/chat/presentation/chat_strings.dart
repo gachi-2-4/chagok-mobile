@@ -22,6 +22,7 @@ abstract final class ChatStrings {
     return '$label　$change';
   }
 
+  /// 입력줄 왼쪽 서류 추가 버튼의 이름. 아이콘 버튼이라 화면 읽기 프로그램이 읽습니다.
   static const addDocument = '서류 추가';
   static const inputHint = '서류에 대해 질문하기';
   static const send = '보내기';
