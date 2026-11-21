@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_option_sheet.dart';
 import 'package:chagok_mobile/features/calendar/application/calendar_content.dart';
@@ -30,11 +31,11 @@ class CalendarScreen extends ConsumerWidget {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.screenHorizontal,
             AppSpacing.xl,
             AppSpacing.screenHorizontal,
-            AppSpacing.xl,
+            context.scrollEndInset(),
           ),
           children: [
             const Text(CalendarStrings.title, style: AppTypography.pageTitle),

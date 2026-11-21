@@ -2,6 +2,7 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_circle_back_button.dart';
 import 'package:chagok_mobile/features/archive/application/box_detail.dart';
@@ -29,11 +30,11 @@ class BoxDetailScreen extends ConsumerWidget {
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.screenHorizontal,
             AppSpacing.pageTop,
             AppSpacing.screenHorizontal,
-            AppSpacing.floatingButtonClearance,
+            context.scrollEndInset(gap: AppSpacing.floatingButtonClearance),
           ),
           children: [
             const Align(

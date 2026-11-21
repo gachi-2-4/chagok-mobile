@@ -104,7 +104,7 @@ class _AppSettingsSection extends ConsumerWidget {
   }
 }
 
-/// "정보" 구역. 앱 버전, 약관, 개인정보 처리방침.
+/// "정보" 구역. 앱 버전.
 class _InfoSection extends ConsumerWidget {
   const _InfoSection();
 
@@ -119,13 +119,6 @@ class _InfoSection extends ConsumerWidget {
           error: (error, stackTrace) => SettingsStrings.appVersionUnknown,
         );
 
-    void showComingSoon() {
-      // TODO: 약관·방침 문서가 정해지면 화면으로 연결합니다.
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text(SettingsStrings.comingSoon)));
-    }
-
     return Column(
       children: [
         const AppListSectionHeader(title: SettingsStrings.infoSection),
@@ -134,8 +127,6 @@ class _InfoSection extends ConsumerWidget {
           value: version,
           showChevron: false,
         ),
-        AppListRow(title: SettingsStrings.terms, onTap: showComingSoon),
-        AppListRow(title: SettingsStrings.privacyPolicy, onTap: showComingSoon),
       ],
     );
   }
