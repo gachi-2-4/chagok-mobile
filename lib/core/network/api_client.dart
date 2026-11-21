@@ -19,6 +19,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     httpClient: httpClient,
     baseUrl: Uri.parse(ref.watch(apiBaseUrlProvider)),
     tokenStorage: ref.watch(tokenStorageProvider),
+    isInsecureHttpAllowed: ref.watch(isInsecureHttpAllowedProvider),
   );
 });
 
@@ -35,6 +36,7 @@ class ApiClient {
     required http.Client httpClient,
     required this._baseUrl,
     required this._tokenStorage,
+    this._isInsecureHttpAllowed = false,
     this.timeout = const Duration(seconds: 30),
   }) : _http = httpClient;
 
@@ -50,6 +52,9 @@ class ApiClient {
   final http.Client _http;
   final Uri _baseUrl;
   final TokenStorage _tokenStorage;
+
+  /// [_baseUrl]이 `http://`여도 보낼지 여부. → [isInsecureHttpAllowedProvider]
+  final bool _isInsecureHttpAllowed;
 
   /// 요청 하나를 기다리는 최대 시간.
   final Duration timeout;
@@ -181,7 +186,8 @@ class ApiClient {
     http.BaseRequest request,
     AuthTokens? tokens,
   ) async {
-    // 토큰·비밀번호가 평문으로 오가지 않도록 HTTPS로만 보냅니다. 기기 안 개발 서버만 예외입니다.
+    // 토큰·비밀번호가 평문으로 오가지 않도록 HTTPS로만 보냅니다.
+    // 기기 안 개발 서버와, 테스트용으로 HTTP를 허용한 서버 주소만 예외입니다.
     if (!_isSecure(request.url)) {
       throw StateError('HTTPS가 아닌 주소로는 보내지 않습니다: ${request.url.origin}');
     }
@@ -203,10 +209,17 @@ class ApiClient {
     }
   }
 
-  /// [url]이 HTTPS이거나, 이 기기·에뮬레이터 안의 개발 서버(localhost 등)이면 true.
-  static bool _isSecure(Uri url) =>
-      url.scheme == 'https' ||
-      (url.scheme == 'http' && _developmentHosts.contains(url.host));
+  /// [url]이 HTTPS이거나 HTTP로 보내도 되는 주소이면 true.
+  ///
+  /// HTTP는 이 기기·에뮬레이터 안의 개발 서버(localhost 등)와, 테스트용으로 허용했을 때의
+  /// [_baseUrl] 서버에만 보냅니다. 허용해도 다른 서버로는 보내지 않습니다.
+  bool _isSecure(Uri url) => switch (url.scheme) {
+    'https' => true,
+    'http' =>
+      _developmentHosts.contains(url.host) ||
+          (_isInsecureHttpAllowed && url.host == _baseUrl.host),
+    _ => false,
+  };
 
   /// HTTP를 허용하는 개발용 주소. `10.0.2.2`는 안드로이드 에뮬레이터에서 본 컴퓨터입니다.
   static const _developmentHosts = {
