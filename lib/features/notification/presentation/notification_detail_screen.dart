@@ -95,12 +95,10 @@ class _DetailContent extends ConsumerWidget {
         .watch(notificationDoneProvider)
         .contains(notification.id);
 
-    void showComingSoon() {
-      // TODO: 서류 보기 화면이 생기면 연결합니다.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(NotificationStrings.comingSoon)),
-      );
-    }
+    final documentId = notification.documentId;
+    final openDocument = documentId == null
+        ? null
+        : () => unawaited(context.push(AppRoute.document(documentId)));
 
     Future<void> markDone() async {
       final isSaved = await ref
@@ -126,15 +124,13 @@ class _DetailContent extends ConsumerWidget {
           child: _DetailScroll(
             notification: notification,
             showsPaymentGuide: canMarkDone,
-            onDocumentTap: showComingSoon,
+            onDocumentTap: openDocument,
           ),
         ),
         _DetailActions(
           canMarkDone: canMarkDone,
           onMarkDone: isSavingDone ? null : () => unawaited(markDone()),
-          onViewDocument: notification.documentName == null
-              ? null
-              : showComingSoon,
+          onViewDocument: openDocument,
         ),
       ],
     );
@@ -151,7 +147,9 @@ class _DetailScroll extends StatelessWidget {
 
   final AppNotification notification;
   final bool showsPaymentGuide;
-  final VoidCallback onDocumentTap;
+
+  /// 연결된 서류를 여는 동작. 서류 id가 없으면 null이고 눌리지 않습니다.
+  final VoidCallback? onDocumentTap;
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +222,9 @@ class _DetailBody extends StatelessWidget {
 
   final AppNotification notification;
   final bool showsPaymentGuide;
-  final VoidCallback onDocumentTap;
+
+  /// 연결된 서류를 여는 동작. 서류 id가 없으면 null이고 눌리지 않습니다.
+  final VoidCallback? onDocumentTap;
 
   @override
   Widget build(BuildContext context) {

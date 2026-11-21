@@ -11,6 +11,7 @@ List<AppNotification> sampleNotifications() => [
     isRead: true,
     boxName: '집 · 임대',
     documentName: '임대차계약서',
+    documentId: 'lease',
   ),
   AppNotification(
     id: 'rent',
@@ -21,6 +22,7 @@ List<AppNotification> sampleNotifications() => [
     dueDate: DateTime(2026, 11, 19),
     amount: 500000,
     documentName: '임대차계약서',
+    documentId: 'lease',
     message: '안녕하세요, 김차곡님.\n11월 19일까지 월세 500,000원을 내면 돼요.',
   ),
   AppNotification(

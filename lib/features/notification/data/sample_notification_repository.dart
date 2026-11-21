@@ -31,6 +31,8 @@ class SampleNotificationRepository implements NotificationRepository {
         dueDate: rentDue,
         amount: 500000,
         documentName: '임대차계약서',
+        // 보관함 예시 서류와 같은 id라 서류 상세에서 열립니다.
+        documentId: 'lease',
         message:
             '안녕하세요, 김차곡님.\n'
             '${rentDue.month}월 ${rentDue.day}일까지 월세 500,000원을 내면 돼요.\n'
@@ -54,6 +56,8 @@ class SampleNotificationRepository implements NotificationRepository {
         boxName: '집 · 임대',
         dueDate: day(28),
         documentName: '임대차계약서',
+        // 보관함 예시 서류와 같은 id라 서류 상세에서 열립니다.
+        documentId: 'lease',
         message: '계약을 이어 갈지 집주인과 미리 이야기해 두세요.',
       ),
     ].map(mark).toList();

@@ -52,6 +52,8 @@ class SampleUploadRepository implements UploadRepository {
       return const AnalysisUnclear();
     }
     return AnalysisSucceeded(
+      // 서류 내용 수정(D01) 예시 서류와 같은 id라 "내용 수정"으로 열 수 있습니다.
+      documentId: 'lease',
       documentType: '임대차계약서',
       pageCount: document.pageCount ?? 1,
       fields: const [

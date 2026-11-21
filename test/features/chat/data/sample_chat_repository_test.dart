@@ -116,12 +116,12 @@ void main() {
 
       final updated = await repository.linkDocument(
         threadId: thread.id,
-        documentId: 'maintenance',
+        documentId: 'maintenance-fee',
       );
 
-      expect(updated.document?.id, 'maintenance');
+      expect(updated.document?.id, 'maintenance-fee');
       final fetched = await repository.fetchThread(thread.id);
-      expect(fetched.document?.id, 'maintenance');
+      expect(fetched.document?.id, 'maintenance-fee');
     });
   });
 
@@ -129,7 +129,7 @@ void main() {
     test('관리비 고지서면 관리비 질문을 먼저 준다', () async {
       final documents = await repository.fetchDocuments();
       final maintenance = documents.firstWhere(
-        (document) => document.id == 'maintenance',
+        (document) => document.id == 'maintenance-fee',
       );
 
       final questions = repository.suggestedQuestions(maintenance);

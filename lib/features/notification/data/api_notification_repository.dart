@@ -64,6 +64,7 @@ class ApiNotificationRepository implements NotificationRepository {
       },
       amount: deadline?.integerOrNull('amount'),
       documentName: document?.stringOrNull('title'),
+      documentId: document?.idOrNull('documentId'),
     );
   }
 }

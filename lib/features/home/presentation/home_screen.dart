@@ -132,7 +132,7 @@ class _HomeContent extends StatelessWidget {
                         child: RecentBoxCard(
                           box: box,
                           now: now,
-                          onTap: () => context.go(AppRoute.archive),
+                          onTap: () => context.go(AppRoute.archiveBox(box.id)),
                         ),
                       ),
                     ],

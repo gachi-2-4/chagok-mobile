@@ -33,7 +33,8 @@ class TermsAgreementScreen extends ConsumerWidget {
       final isCompleted = await ref.read(signUpProvider.notifier).complete();
       if (!isCompleted || !context.mounted) return;
       ref.invalidate(signUpProvider);
-      context.go(AppRoute.home);
+      // 가입을 마치면 첫 설문(O01~O04)을 거쳐 홈으로 갑니다.
+      context.go(AppRoute.onboarding);
     }
 
     void showTerm(Term term) {

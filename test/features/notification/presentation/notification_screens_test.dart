@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/core/widgets/app_bottom_nav_bar.dart';
+import 'package:chagok_mobile/features/archive/presentation/document_overview_screen.dart';
 import 'package:chagok_mobile/features/home/application/home_clock.dart';
 import 'package:chagok_mobile/features/home/application/home_today_notifier.dart';
 import 'package:chagok_mobile/features/home/data/home_repository.dart';
@@ -206,13 +207,32 @@ void main() {
       expect(find.text(NotificationStrings.paymentGuide), findsNothing);
     });
 
-    testWidgets('연결된 서류 보기를 누르면 곧 지원한다고 알린다', (tester) async {
+    testWidgets('연결된 서류 보기를 누르면 그 서류 상세를 연다', (tester) async {
       await openNotifications(tester);
       await tapText(tester, '내일은 월세 납부일이에요');
 
       await tapText(tester, NotificationStrings.viewDocument);
 
-      expect(find.text(NotificationStrings.comingSoon), findsOneWidget);
+      expect(find.byType(DocumentOverviewScreen), findsOneWidget);
+    });
+
+    testWidgets('서류 id가 없는 알림이면 서류 보기 버튼을 두지 않는다', (tester) async {
+      repository.notifications = [
+        for (final notification in sampleNotifications())
+          AppNotification(
+            id: notification.id,
+            kind: notification.kind,
+            title: notification.title,
+            sentAt: notification.sentAt,
+            isRead: notification.isRead,
+            boxName: notification.boxName,
+            documentName: notification.documentName,
+          ),
+      ];
+      await openNotifications(tester);
+      await tapText(tester, '내일은 월세 납부일이에요');
+
+      expect(find.text(NotificationStrings.viewDocument), findsNothing);
     });
 
     testWidgets('완료를 저장하는 사이 버튼을 다시 누르면 한 번만 저장하고 목록으로 한 번만 돌아간다', (

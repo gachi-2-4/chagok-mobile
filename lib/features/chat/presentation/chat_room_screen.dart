@@ -119,17 +119,17 @@ class _MessageList extends StatelessWidget {
   Widget build(BuildContext context) {
     final messages = state.thread.messages;
 
-    void showComingSoon() {
-      // TODO: 원본 보기 화면이 생기면 근거 페이지로 연결합니다.
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text(ChatStrings.comingSoon)));
-    }
+    // 근거 쪽까지는 아직 알 수 없어, 대화에 연결한 서류의 원본을 엽니다.
+    final document = state.thread.document;
+    final viewOriginal = document == null
+        ? null
+        : () => unawaited(context.push(AppRoute.document(document.id)));
 
     final items = [
       const Text(ChatStrings.roomTitle, style: AppTypography.pageTitle),
       _DocumentBanner(document: state.thread.document, onTap: onAddDocument),
       for (final (index, message) in messages.indexed) ...[
-        ChatBubble(message: message, onViewOriginal: showComingSoon),
+        ChatBubble(message: message, onViewOriginal: viewOriginal),
         // 첫 인사 바로 아래에 바로 물어볼 질문을 둡니다.
         if (index == 0 && message.role == ChatRole.assistant)
           _SuggestionChips(
