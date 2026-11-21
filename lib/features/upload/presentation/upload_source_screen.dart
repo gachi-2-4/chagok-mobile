@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/utils/device_settings.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_document_layout.dart';
 import 'package:chagok_mobile/core/widgets/app_page_header.dart';
@@ -94,6 +95,13 @@ class _PickNotices extends ConsumerWidget {
         if (isCameraDenied) ...[
           const SizedBox(height: AppSpacing.lg),
           const UploadFailureNotice(message: UploadStrings.cameraDenied),
+          Center(
+            child: TextButton(
+              onPressed: () =>
+                  unawaited(ref.read(deviceSettingsProvider).openAppSettings()),
+              child: const Text(UploadStrings.openSettings),
+            ),
+          ),
         ],
       ],
     );

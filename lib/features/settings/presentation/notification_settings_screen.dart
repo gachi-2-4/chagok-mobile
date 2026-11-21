@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/utils/device_settings.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_list_row.dart';
 import 'package:chagok_mobile/core/widgets/app_list_section_header.dart';
@@ -18,17 +19,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// S03 · 납부일·마케팅 알림과 알림 시각을 정하는 화면.
-class NotificationSettingsScreen extends StatelessWidget {
+class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    void openDeviceSettings() {
-      // TODO: 기기 설정 화면을 여는 플러그인을 정하면 연결합니다.
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text(SettingsStrings.comingSoon)));
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    void openDeviceSettings() =>
+        unawaited(ref.read(deviceSettingsProvider).openNotificationSettings());
 
     return SettingsScaffold(
       appBar: const AppTopBar(title: SettingsStrings.brand),

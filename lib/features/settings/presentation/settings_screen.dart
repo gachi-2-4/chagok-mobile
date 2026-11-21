@@ -8,6 +8,7 @@ import 'package:chagok_mobile/core/widgets/app_list_row.dart';
 import 'package:chagok_mobile/core/widgets/app_list_section_header.dart';
 import 'package:chagok_mobile/core/widgets/app_section_band.dart';
 import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
+import 'package:chagok_mobile/features/settings/application/app_version_notifier.dart';
 import 'package:chagok_mobile/features/settings/application/settings_notifier.dart';
 import 'package:chagok_mobile/features/settings/presentation/settings_strings.dart';
 import 'package:chagok_mobile/features/settings/presentation/widgets/profile_header.dart';
@@ -104,11 +105,20 @@ class _AppSettingsSection extends ConsumerWidget {
 }
 
 /// "정보" 구역. 앱 버전, 약관, 개인정보 처리방침.
-class _InfoSection extends StatelessWidget {
+class _InfoSection extends ConsumerWidget {
   const _InfoSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final version = ref
+        .watch(appVersionProvider)
+        .when(
+          data: SettingsStrings.appVersionValue,
+          // 읽는 동안은 값 자리를 비워 둡니다.
+          loading: () => '',
+          error: (error, stackTrace) => SettingsStrings.appVersionUnknown,
+        );
+
     void showComingSoon() {
       // TODO: 약관·방침 문서가 정해지면 화면으로 연결합니다.
       ScaffoldMessenger.of(
@@ -119,9 +129,9 @@ class _InfoSection extends StatelessWidget {
     return Column(
       children: [
         const AppListSectionHeader(title: SettingsStrings.infoSection),
-        const AppListRow(
+        AppListRow(
           title: SettingsStrings.appVersion,
-          value: SettingsStrings.appVersionValue,
+          value: version,
           showChevron: false,
         ),
         AppListRow(title: SettingsStrings.terms, onTap: showComingSoon),

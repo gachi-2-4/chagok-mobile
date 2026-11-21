@@ -21,8 +21,11 @@ abstract final class SettingsStrings {
   static const infoSection = '정보';
   static const appVersion = '앱 버전';
 
-  // TODO: 빌드 정보에서 읽어 오도록 바꿉니다.
-  static const appVersionValue = 'v1.0.0';
+  /// 앱 버전 줄의 값. 예: "1.0.0" → "v1.0.0"
+  static String appVersionValue(String version) => 'v$version';
+
+  /// 앱 버전을 읽지 못했을 때 값 자리.
+  static const appVersionUnknown = '-';
   static const terms = '이용약관';
   static const privacyPolicy = '개인정보 처리방침';
   static const accountSection = '계정';

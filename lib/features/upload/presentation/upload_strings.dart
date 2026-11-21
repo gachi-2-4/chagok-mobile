@@ -20,6 +20,7 @@ abstract final class UploadStrings {
 
   /// 카메라 권한이 꺼져 있을 때 U01에 보이는 안내.
   static const cameraDenied = '카메라 권한이 꺼져 있어요. 설정 > 차곡에서 카메라를 허용해 주세요.';
+  static const openSettings = '설정 열기';
   static const pickPdf = 'PDF 파일 고르기';
 
   // U02 파일 확인
