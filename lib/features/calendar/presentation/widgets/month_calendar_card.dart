@@ -371,7 +371,8 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: AppSpacing.xs),
-        Text(label, style: AppTypography.caption),
+        // 글자를 크게 키워 한 칸이 줄보다 길어지면 글자를 줄바꿈합니다.
+        Flexible(child: Text(label, style: AppTypography.caption)),
       ],
     );
   }

@@ -135,14 +135,16 @@ class _LoginOptions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
+    // 글자를 크게 키워 한 줄에 들어가지 않으면 비밀번호 찾기를 아랫줄로 내립니다.
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         CheckLabel(
           label: AuthStrings.keepSignedIn,
           isChecked: keepSignedIn,
           onTap: () => ref.read(loginProvider.notifier).toggleKeepSignedIn(),
         ),
-        const Spacer(),
         TextButton(
           onPressed: () => unawaited(context.push(AppRoute.forgotPassword)),
           style: TextButton.styleFrom(

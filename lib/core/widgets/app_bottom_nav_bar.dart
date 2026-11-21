@@ -34,14 +34,17 @@ class AppBottomNavBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.navBarPaddingHorizontal,
           ),
+          // 탭마다 같은 너비를 주어, "마이페이지"처럼 긴 이름도 화면 너비와
+          // 관계없이 한 줄에 들어가게 합니다. 누르는 영역도 탭 너비 전체입니다.
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (final (index, item) in items.indexed)
-                _NavTab(
-                  item: item,
-                  isActive: index == currentIndex,
-                  onTap: () => onTap(index),
+                Expanded(
+                  child: _NavTab(
+                    item: item,
+                    isActive: index == currentIndex,
+                    onTap: () => onTap(index),
+                  ),
                 ),
             ],
           ),
@@ -58,17 +61,67 @@ class _NavTab extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _width = 54.0;
-  static const _iconSize = 22.0;
-
   final AppBottomNavItem item;
   final bool isActive;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(
+            minHeight: kMinInteractiveDimension,
+          ),
+          padding: const EdgeInsets.only(
+            top: AppSpacing.navBarPaddingTop,
+            bottom: AppSpacing.navBarPaddingBottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _NavIcon(item: item, isActive: isActive),
+              const SizedBox(height: AppSpacing.xs),
+              // 글자를 크게 키워 탭보다 길어지면 줄을 바꾸지 않고 줄여서 맞춥니다.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  style: isActive
+                      ? AppTypography.label.copyWith(
+                          color: AppColors.navActive,
+                          fontWeight: FontWeight.w700,
+                        )
+                      : AppTypography.label,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 탭 아이콘. 선택된 탭은 선택용 아이콘을, 없으면 같은 아이콘을 강조 색으로 칠합니다.
+class _NavIcon extends StatelessWidget {
+  const _NavIcon({required this.item, required this.isActive});
+
+  final AppBottomNavItem item;
+  final bool isActive;
+
+  static const _iconSize = 22.0;
+
+  @override
+  Widget build(BuildContext context) {
     final activeIconAsset = item.activeIconAsset;
-    final icon = switch ((isActive, activeIconAsset)) {
+    return switch ((isActive, activeIconAsset)) {
       (true, final String asset) => SvgPicture.asset(
         asset,
         width: _iconSize,
@@ -89,40 +142,5 @@ class _NavTab extends StatelessWidget {
         height: _iconSize,
       ),
     };
-
-    return Semantics(
-      button: true,
-      selected: isActive,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          width: _width,
-          constraints: const BoxConstraints(
-            minHeight: kMinInteractiveDimension,
-          ),
-          padding: const EdgeInsets.only(
-            top: AppSpacing.navBarPaddingTop,
-            bottom: AppSpacing.navBarPaddingBottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              icon,
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                item.label,
-                style: isActive
-                    ? AppTypography.label.copyWith(
-                        color: AppColors.navActive,
-                        fontWeight: FontWeight.w700,
-                      )
-                    : AppTypography.label,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
