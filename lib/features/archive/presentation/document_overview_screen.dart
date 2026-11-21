@@ -5,6 +5,7 @@ import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_icons.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
+import 'package:chagok_mobile/core/extensions/scroll_end_inset.dart';
 import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_circle_back_button.dart';
 import 'package:chagok_mobile/core/widgets/app_option_sheet.dart';
@@ -141,11 +142,13 @@ class _OverviewContent extends StatelessWidget {
     final document = overview.document;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      // 바깥 SafeArea가 아래를 비워 두지 않으므로, 끝 여백에 홈 인디케이터·Android
+      // 내비게이션 바 높이를 더해 맨 아래 버튼이 가리지 않게 합니다.
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.screenHorizontal,
         AppSpacing.pageTop,
         AppSpacing.screenHorizontal,
-        AppSpacing.actionsBottom,
+        context.scrollEndInset(gap: AppSpacing.actionsBottom),
       ),
       children: [
         _OverviewHeader(box: overview.box, onMore: onMore),
