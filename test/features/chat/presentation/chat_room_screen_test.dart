@@ -181,7 +181,11 @@ void main() {
       // 버튼은 색을 AnimatedTheme으로 바꾸므로 애니메이션이 끝날 때까지 기다립니다.
       await tester.pump(kThemeChangeDuration);
 
-      expect(addIconColor(), isNot(enabledColor));
+      // 다른 색으로 바뀌기만 해서는 안 되고, 같은 색이 더 투명해져야 흐려진 것입니다.
+      final waitingColor = addIconColor();
+      expect(enabledColor, isNotNull);
+      expect(waitingColor, isNotNull);
+      expect(waitingColor?.a, lessThan(enabledColor?.a ?? 0));
       repository.sendGate?.complete();
       await tester.pumpAndSettle();
     });
