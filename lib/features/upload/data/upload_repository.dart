@@ -36,15 +36,15 @@ abstract interface class UploadRepository {
 
 /// 앱 전역 [UploadRepository].
 ///
-/// API 서버 주소가 있으면 기기의 문서 스캐너·파일 선택기로 고른 서류를 서버에
-/// 올려 분석하고, 없으면 예시 서류와 예시 결과를 돌려줍니다.
+/// 서류는 서버 유무와 관계없이 기기의 문서 스캐너·앨범·PDF 선택으로 고릅니다.
+/// API 서버 주소가 있으면 서버에 올려 분석하고, 없으면 예시 분석 결과를 보여 줍니다.
 ///
-/// 서버 없이 돌릴 때도 예시 서류를 쓰는 것은, 카메라가 없는 시뮬레이터와 테스트에서도
-/// 화면 흐름을 끝까지 볼 수 있게 하려는 것입니다.
+/// 서버 없이도 기기에서 고르게 해, 서버가 없는 APK로도 스캐너를 확인할 수 있습니다.
+/// 카메라가 없는 iOS 시뮬레이터에서는 사진 촬영이 실패 안내를 띄웁니다.
 final uploadRepositoryProvider = Provider<UploadRepository>((ref) {
-  if (!ref.watch(isApiEnabledProvider)) return SampleUploadRepository();
-  return ApiUploadRepository(
-    client: ref.watch(apiClientProvider),
-    pick: DeviceDocumentPicker().pick,
-  );
+  final pick = DeviceDocumentPicker().pick;
+  if (!ref.watch(isApiEnabledProvider)) {
+    return SampleUploadRepository(pick: pick);
+  }
+  return ApiUploadRepository(client: ref.watch(apiClientProvider), pick: pick);
 });

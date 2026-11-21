@@ -1,6 +1,8 @@
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/router.dart';
 import 'package:chagok_mobile/features/upload/application/upload_notifier.dart';
+import 'package:chagok_mobile/features/upload/data/sample_upload_repository.dart';
+import 'package:chagok_mobile/features/upload/data/upload_repository.dart';
 import 'package:chagok_mobile/features/upload/data/upload_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,7 +66,17 @@ void main() {
       };
       addTearDown(() => FlutterError.onError = reportError);
 
-      await tester.pumpWidget(const ProviderScope(child: ChagokApp()));
+      // 기기 스캐너·파일 선택기 대신 예시 서류를 바로 돌려줘 U02·U04까지 열어 봅니다.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            uploadRepositoryProvider.overrideWithValue(
+              SampleUploadRepository(),
+            ),
+          ],
+          child: const ChagokApp(),
+        ),
+      );
       final container = ProviderScope.containerOf(
         tester.element(find.byType(ChagokApp)),
       );
