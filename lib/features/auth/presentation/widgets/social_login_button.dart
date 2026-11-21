@@ -37,17 +37,21 @@ class SocialLoginButton extends StatelessWidget {
             side: BorderSide(color: provider.borderColor),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SvgPicture.asset(
-              provider.logoAsset,
-              width: _logoSize,
-              height: _logoSize,
-            ),
-            const SizedBox(width: AppSpacing.socialLogoGap),
-            Text(provider.label),
-          ],
+        // 버튼 높이가 정해져 있어, 글자를 크게 키우면 로고와 글자를 함께 줄여 버튼 안에 맞춥니다.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                provider.logoAsset,
+                width: _logoSize,
+                height: _logoSize,
+              ),
+              const SizedBox(width: AppSpacing.socialLogoGap),
+              Text(provider.label),
+            ],
+          ),
         ),
       ),
     );
