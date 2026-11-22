@@ -30,12 +30,14 @@ abstract final class ChatStrings {
   static const typing = '답을 찾고 있어요…';
   static const sendFailed = '답을 받지 못했어요. 잠시 후 다시 보내 주세요.';
   static const resend = '다시 보내기';
+  static const sendNeedsDocument = '물어볼 서류가 없어요. 대화에 서류를 먼저 추가해 주세요.';
 
   // H02 서류 추가
   static const attachTitle = '대화에 서류 추가';
   static const attachDescription = '궁금한 서류를 함께 올리면\n내용을 바탕으로 답해 드릴게요.';
   static const pickFromBox = '내 보관함에서 선택　›';
   static const pickFromBoxDescription = '이미 차곡에 보관한 서류';
+  static const noDocumentsInBox = '아직 보관한 서류가 없어요.\n보관함에 서류를 먼저 올려 주세요.';
   static String selected(String fileName) => '선택됨 · $fileName\n분석 후 대화에 연결돼요.';
   static const externalFileHelp =
       '외부 파일을 올리고 싶다면?\n보관함 → 박스에 파일을 업로드해 사용할 수 있어요.';

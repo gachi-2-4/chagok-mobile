@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/router.dart';
+import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/utils/device_settings.dart';
 import 'package:chagok_mobile/features/document/presentation/document_edit_screen.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
@@ -212,6 +213,21 @@ void main() {
 
       expect(find.text(UploadStrings.failed), findsOneWidget);
       expect(find.byType(UploadReviewScreen), findsNothing);
+    });
+
+    testWidgets('분석에 실패하고 첫 화면으로 돌아가면 실패 안내가 남지 않는다', (tester) async {
+      await pumpUpload(tester);
+      await tester.tap(find.text('PDF 파일 고르기'));
+      await tester.pumpAndSettle();
+      repository.error = Exception('network');
+      await tester.tap(find.text('분석 시작'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel(CoreStrings.back));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(UploadSourceScreen), findsOneWidget);
+      expect(find.text(UploadStrings.failed), findsNothing);
     });
   });
 }

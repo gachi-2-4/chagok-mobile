@@ -56,29 +56,42 @@ class UploadConfirmScreen extends ConsumerWidget {
       await ref.read(uploadProvider.notifier).pick(source);
     }
 
-    return AppDocumentLayout(
-      body: [
-        const Text(UploadStrings.confirmTitle, style: AppTypography.pageTitle),
-        const SizedBox(height: AppSpacing.block),
-        _ConfirmDetails(state: state, document: document),
-      ],
-      actions: [
-        AppButton.primary(
-          label: state.isBusy
-              ? UploadStrings.analyzing
-              : UploadStrings.startAnalysis,
-          onPressed: state.canAnalyze ? () => unawaited(analyze()) : null,
-        ),
-        AppButton.secondary(
-          label: UploadStrings.pickOtherFile,
-          onPressed: state.isBusy ? null : () => unawaited(pickOther()),
-        ),
-      ],
+    return PopScope(
+      // 분석 실패 안내는 이 화면의 일이라, 첫 화면으로 돌아갈 때 지웁니다.
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) ref.read(uploadProvider.notifier).clearFailure();
+      },
+      child: AppDocumentLayout(
+        body: [
+          const Text(
+            UploadStrings.confirmTitle,
+            style: AppTypography.pageTitle,
+          ),
+          const SizedBox(height: AppSpacing.block),
+          _ConfirmDetails(state: state, document: document),
+        ],
+        actions: [
+          // 미리 보기가 길어도 보이도록 실패 안내는 버튼 바로 위에 둡니다.
+          if (state.hasFailed) const UploadFailureNotice(),
+          AppButton.primary(
+            label: state.isBusy
+                ? UploadStrings.analyzing
+                : UploadStrings.startAnalysis,
+            onPressed: state.canAnalyze ? () => unawaited(analyze()) : null,
+          ),
+          AppButton.secondary(
+            label: UploadStrings.pickOtherFile,
+            onPressed: state.isBusy ? null : () => unawaited(pickOther()),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// 파일 카드, 첫 페이지 미리 보기, 보관할 곳, PDF 안내, 실패 안내.
+/// 파일 카드, 보관할 곳, PDF 안내, 첫 페이지 미리 보기.
+///
+/// 미리 보기는 길어질 수 있어, 골라야 하는 보관할 곳을 그 위에 둡니다.
 class _ConfirmDetails extends ConsumerWidget {
   const _ConfirmDetails({required this.state, required this.document});
 
@@ -92,8 +105,6 @@ class _ConfirmDetails extends ConsumerWidget {
       children: [
         _FileCard(document: document, boxName: state.selectedBox?.name),
         const SizedBox(height: AppSpacing.block),
-        _PreviewCard(document: document),
-        const SizedBox(height: AppSpacing.block),
         _BoxField(
           state: state,
           onSelected: (boxId) =>
@@ -106,10 +117,8 @@ class _ConfirmDetails extends ConsumerWidget {
             style: AppTypography.caption,
           ),
         ],
-        if (state.hasFailed) ...[
-          const SizedBox(height: AppSpacing.lg),
-          const UploadFailureNotice(),
-        ],
+        const SizedBox(height: AppSpacing.block),
+        _PreviewCard(document: document),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/core/widgets/app_chip.dart';
+import 'package:chagok_mobile/features/chat/data/chat_no_document_exception.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_room_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:flutter/material.dart';
@@ -188,6 +189,38 @@ void main() {
       expect(waitingColor?.a, lessThan(enabledColor?.a ?? 0));
       repository.sendGate?.complete();
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('답을 받지 못하면 보낸 질문 말풍선을 남긴다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatRoomScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      repository.sendError = Exception('network');
+
+      await sendQuestion(tester, question);
+
+      expect(find.text(question), findsOneWidget);
+      expect(find.text(ChatStrings.sendFailed), findsOneWidget);
+    });
+
+    testWidgets('대화에 서류가 없어 답을 받지 못하면 서류를 추가하라고 안내한다', (tester) async {
+      await tester.pumpChatScreen(
+        const ChatRoomScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+      repository.sendError = const ChatNoDocumentException(threadId);
+
+      await sendQuestion(tester, question);
+
+      expect(find.text(ChatStrings.sendNeedsDocument), findsOneWidget);
+      expect(
+        find.widgetWithText(AppChip, ChatStrings.addDocument),
+        findsOneWidget,
+      );
+      expect(find.text(ChatStrings.resend), findsNothing);
     });
   });
 }
