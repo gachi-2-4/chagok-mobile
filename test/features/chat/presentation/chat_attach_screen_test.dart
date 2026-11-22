@@ -173,5 +173,35 @@ void main() {
 
       expect(find.text(ChatStrings.noDocumentsInBox), findsOneWidget);
     });
+
+    testWidgets('보관한 서류가 없으면 안내 시트를 화면 너비만큼 띄운다', (tester) async {
+      // 시트 최대 너비(640)보다 좁은 휴대폰 화면에서 확인합니다.
+      tester.view
+        ..physicalSize = const Size(1179, 2556)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      repository = FakeChatRepository(
+        threads: [buildThread(id: threadId)],
+        documents: const [],
+      );
+      await tester.pumpChatScreen(
+        const ChatAttachScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ChatStrings.pickFromBox));
+      await tester.pumpAndSettle();
+
+      final sheet = tester.getSize(
+        find
+            .descendant(
+              of: find.byType(BottomSheet),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      expect(sheet.width, 393);
+    });
   });
 }
