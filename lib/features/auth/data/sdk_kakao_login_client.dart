@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/auth/data/kakao_login_client.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 /// 카카오 SDK를 [nativeAppKey]로 준비합니다. 앱을 띄우기 전에 한 번 부릅니다.
@@ -37,20 +38,25 @@ class SdkKakaoLoginClient implements KakaoLoginClient {
           return (await UserApi.instance.loginWithKakaoTalk()).accessToken;
         } on Exception catch (error) {
           // 카카오톡에서 사용자가 취소했으면 계정 로그인을 다시 띄우지 않습니다.
-          if (_isCancelled(error)) return null;
+          if (isKakaoLoginCancelled(error)) return null;
           debugPrint('카카오톡으로 로그인하지 못해 카카오계정으로 다시 시도합니다: $error');
         }
       }
       return (await UserApi.instance.loginWithKakaoAccount()).accessToken;
     } on Exception catch (error) {
-      if (_isCancelled(error)) return null;
+      if (isKakaoLoginCancelled(error)) return null;
       rethrow;
     }
   }
-
-  bool _isCancelled(Exception error) => switch (error) {
-    KakaoClientException(reason: ClientErrorCause.cancelled) => true,
-    KakaoAuthException(error: AuthErrorCause.accessDenied) => true,
-    _ => false,
-  };
 }
+
+/// 카카오 로그인에서 사용자가 취소해서 난 [error]면 true.
+///
+/// SDK는 취소를 여러 모양으로 알려 줍니다. Android에서 카카오톡이나 카카오계정
+/// 로그인 창을 닫으면 SDK 예외로 바꾸지 않은 `PlatformException(CANCELED)`가 옵니다.
+bool isKakaoLoginCancelled(Exception error) => switch (error) {
+  KakaoClientException(reason: ClientErrorCause.cancelled) => true,
+  KakaoAuthException(error: AuthErrorCause.accessDenied) => true,
+  PlatformException(code: 'CANCELED') => true,
+  _ => false,
+};
