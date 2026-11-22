@@ -40,6 +40,7 @@ analysis_options.yaml  # 린트 설정 (flutter_lints + CODE_STYLE.md 규칙)
 | [`CODE_STYLE.md`](CODE_STYLE.md) | 이름 규칙, import, 위젯 작성, 주석 |
 | [`TESTING.md`](TESTING.md) | 테스트 대상, 위치, 작성 방법 |
 | [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) | 커밋 메시지 규칙 |
+| [`SCENARIOS.md`](SCENARIOS.md) | 흐름별 사용자 시나리오와 Figma 화면·경로 대응 |
 
 ## 자주 쓰는 명령어
 
