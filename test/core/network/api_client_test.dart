@@ -163,6 +163,69 @@ void main() {
       expect(json, isEmpty);
     });
 
+    test('성공 응답이면 감싼 data만 돌려준다', () async {
+      server.on(
+        'GET',
+        '/home',
+        (_) => rawJsonResponse({
+          'success': true,
+          'data': {'userName': '차곡'},
+          'error': null,
+        }),
+      );
+
+      final json = await server.client.get('/home');
+
+      expect(json, {'userName': '차곡'});
+    });
+
+    test('성공 응답의 data가 null이면 빈 객체를 돌려준다', () async {
+      server.on(
+        'POST',
+        '/auth/phone/verifications',
+        (_) => rawJsonResponse({'success': true, 'data': null, 'error': null}),
+      );
+
+      final json = await server.client.post('/auth/phone/verifications');
+
+      expect(json, isEmpty);
+    });
+
+    test('성공 응답에 data가 없으면 FormatException을 던진다', () async {
+      server.on('GET', '/home', (_) => rawJsonResponse({'userName': '차곡'}));
+
+      final request = server.client.get('/home');
+
+      await expectLater(request, throwsFormatException);
+    });
+
+    test('실패 응답이면 error 안의 code와 message를 담아 던진다', () async {
+      server.on(
+        'POST',
+        '/auth/phone/verifications',
+        (_) => rawJsonResponse({
+          'success': false,
+          'data': null,
+          'error': {
+            'code': 'INVALID_INPUT',
+            'message': '잘못된 요청입니다.',
+            'errors': {'phoneNumber': 'must match'},
+          },
+        }, status: 400),
+      );
+
+      final request = server.client.post('/auth/phone/verifications');
+
+      await expectLater(
+        request,
+        throwsA(
+          isA<ApiException>()
+              .having((error) => error.code, 'code', 'INVALID_INPUT')
+              .having((error) => error.message, 'message', '잘못된 요청입니다.'),
+        ),
+      );
+    });
+
     test('실패 응답이면 서버의 code와 message를 담아 던진다', () async {
       server.on(
         'GET',

@@ -30,7 +30,8 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 ///   여러 요청이 동시에 만료돼도 재발급은 한 번만 부릅니다. 서버가 Refresh Token을
 ///   매번 바꾸므로(Rotation) 동시에 부르면 하나가 실패하기 때문입니다.
 /// - 재발급도 401이면 토큰을 지우고 [ApiException.sessionExpiredCode]로 던집니다.
-/// - 실패 응답은 서버의 `{ code, message }`를 담은 [ApiException]으로 던집니다.
+/// - 서버는 모든 응답을 `{ success, data, error }`로 감싸 줍니다. 성공하면 `data`만
+///   돌려주고, 실패하면 `error`의 `{ code, message }`를 담은 [ApiException]으로 던집니다.
 class ApiClient {
   ApiClient({
     required http.Client httpClient,
@@ -48,6 +49,8 @@ class ApiClient {
 
   static const _tokenExpiredCode = 'TOKEN_EXPIRED';
   static const _refreshPath = '/auth/token/refresh';
+  static const _dataKey = 'data';
+  static const _errorKey = 'error';
 
   final http.Client _http;
   final Uri _baseUrl;
@@ -253,23 +256,31 @@ class ApiClient {
     );
   }
 
+  /// 성공 응답의 `data`. 본문이 없거나 `data`가 null이면 빈 값입니다.
+  ///
+  /// 감싸는 형식이 아니면 [FormatException]을 던져, 응답을 엉뚱하게 읽지 않게 합니다.
   JsonMap _decode(http.Response response) {
     if (!_isSuccess(response)) throw _errorOf(response);
     if (response.bodyBytes.isEmpty) return const {};
-    return asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
+    final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
+    if (!json.containsKey(_dataKey)) {
+      throw const FormatException('응답에 data가 없습니다');
+    }
+    return json.mapOrNull(_dataKey) ?? const {};
   }
 
   bool _isSuccess(http.Response response) =>
       response.statusCode >= 200 && response.statusCode < 300;
 
-  /// 실패 응답의 `{ code, message }`. 본문이 명세 형식이 아니면 상태 코드로 만듭니다.
+  /// 실패 응답 `error`의 `{ code, message }`. 본문이 명세 형식이 아니면 상태 코드로 만듭니다.
   ApiException _errorOf(http.Response response) {
     String? code;
     String? message;
     try {
       final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
-      code = json.stringOrNull('code');
-      message = json.stringOrNull('message');
+      final error = json.mapOrNull(_errorKey);
+      code = error?.stringOrNull('code');
+      message = error?.stringOrNull('message');
     } on FormatException {
       // 본문이 JSON이 아니면(게이트웨이 오류 페이지 등) 아래 기본값을 씁니다.
     }

@@ -131,10 +131,12 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
   application·presentation은 서버가 있는지 모릅니다.
 - 모든 요청은 `core/network/ApiClient`(`apiClientProvider`)로 보냅니다.
   - Access Token을 붙이고, 401 `TOKEN_EXPIRED`면 재발급(동시에 여러 요청이 만료돼도 한 번만) 뒤 다시 보냅니다.
-  - 실패 응답 `{ code, message }`는 `ApiException`으로 던집니다. Repository는 화면이 아는 예외(예: `BoxNotFoundException`, `AuthException`)로 바꿉니다.
+  - 서버는 모든 응답을 `{ success, data, error }`로 감싸 줍니다. `ApiClient`가 성공하면 `data`만 돌려주므로 Repository는 `data` 안의 값만 다룹니다.
+  - 실패 응답의 `error: { code, message }`는 `ApiException`으로 던집니다. Repository는 화면이 아는 예외(예: `BoxNotFoundException`, `AuthException`)로 바꿉니다.
   - JSON은 `JsonMap`의 `string`·`integerOrNull`·`maps` 등으로 타입을 확인하며 꺼냅니다. 서버 숫자 ID는 앱 모델에서 문자열입니다(`id`, `apiId`).
   - 날짜·시각 형식은 `core/network/api_formats.dart`로 바꿉니다.
 - 서버 주소는 저장소 루트의 `.env` 파일(`API_BASE_URL`)에 적습니다. [flutter_dotenv](https://pub.dev/packages/flutter_dotenv)로 읽습니다.
+  - 주소에는 포트와 API 경로(`/api/v1`)까지 적습니다. 예: `http://<호스트>:8080/api/v1`. 경로가 틀리면 서버는 모든 요청에 401 `UNAUTHORIZED`를 줍니다.
   - `.env`는 `.env.example`을 복사해 만들고, `.gitignore`에 있어 커밋되지 않습니다.
   - 앱 에셋으로 들어가므로 파일이 없으면 빌드·테스트가 실패합니다. 값이 없어도 파일은 만들어 둡니다.
   - 앱 안에 그대로 들어가 누구나 꺼내 볼 수 있으므로 비밀키는 적지 않습니다.

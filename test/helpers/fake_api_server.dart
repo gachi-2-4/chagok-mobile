@@ -10,8 +10,9 @@ import 'package:http/testing.dart';
 
 /// 정해 둔 응답을 돌려주고 받은 요청을 기록하는 가짜 API 서버.
 ///
-/// `server.on('GET', '/boxes', (request) => FakeResponse.json({...}))`처럼 경로마다
-/// 응답을 정합니다. 정하지 않은 경로는 404를 돌려줍니다.
+/// `server.onJson('GET', '/boxes', {...})`처럼 경로마다 응답의 `data`를 정합니다.
+/// 실제 서버처럼 `{ success, data, error }`로 감싸 돌려줍니다.
+/// 정하지 않은 경로는 404를 돌려줍니다.
 class FakeApiServer {
   FakeApiServer() {
     _httpClient = MockClient(_handle);
@@ -51,9 +52,9 @@ class FakeApiServer {
     _routes['$method $path'] = respond;
   }
 
-  /// [method] [path] 요청에 늘 [body]를 JSON으로 돌려줍니다.
-  void onJson(String method, String path, JsonMap body, {int status = 200}) {
-    on(method, path, (_) => jsonResponse(body, status: status));
+  /// [method] [path] 요청에 늘 [data]를 담은 성공 응답을 돌려줍니다.
+  void onJson(String method, String path, JsonMap data, {int status = 200}) {
+    on(method, path, (_) => jsonResponse(data, status: status));
   }
 
   /// [method] [path]로 받은 요청.
@@ -70,17 +71,23 @@ class FakeApiServer {
     requests.add(request);
     final respond = _routes['${request.method} ${request.url.path}'];
     if (respond == null) {
-      return jsonResponse({
-        'code': 'NOT_FOUND',
-        'message': '정하지 않은 경로',
-      }, status: 404);
+      return errorResponse(404, 'NOT_FOUND', '정하지 않은 경로');
     }
     return respond(request);
   }
 }
 
-/// [body]를 UTF-8 JSON으로 담은 응답.
-http.Response jsonResponse(Object body, {int status = 200}) {
+/// [data]를 서버 형식 `{ success: true, data, error: null }`으로 감싼 성공 응답.
+http.Response jsonResponse(Object? data, {int status = 200}) {
+  return rawJsonResponse({
+    'success': true,
+    'data': data,
+    'error': null,
+  }, status: status);
+}
+
+/// [body]를 감싸지 않고 그대로 UTF-8 JSON으로 담은 응답.
+http.Response rawJsonResponse(Object body, {int status = 200}) {
   return http.Response.bytes(
     utf8.encode(jsonEncode(body)),
     status,
@@ -91,7 +98,11 @@ http.Response jsonResponse(Object body, {int status = 200}) {
 /// 본문이 없는 응답. 예: 204 No Content
 http.Response emptyResponse({int status = 204}) => http.Response('', status);
 
-/// 명세 형식의 에러 응답.
+/// 서버 형식 `{ success: false, data: null, error: { code, message } }`의 에러 응답.
 http.Response errorResponse(int status, String code, [String message = '']) {
-  return jsonResponse({'code': code, 'message': message}, status: status);
+  return rawJsonResponse({
+    'success': false,
+    'data': null,
+    'error': {'code': code, 'message': message},
+  }, status: status);
 }
