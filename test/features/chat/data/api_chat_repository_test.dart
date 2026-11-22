@@ -1,4 +1,6 @@
+import 'package:chagok_mobile/core/network/api_exception.dart';
 import 'package:chagok_mobile/features/chat/data/api_chat_repository.dart';
+import 'package:chagok_mobile/features/chat/data/chat_no_document_exception.dart';
 import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -179,6 +181,32 @@ void main() {
         'content': '월세는 언제 내야 하나요?',
       });
       expect(thread.messages, hasLength(3));
+    });
+
+    test('대화에 서류가 없다는 응답을 받으면 ChatNoDocumentException을 던진다', () async {
+      server.on(
+        'POST',
+        '/chats/12/messages',
+        (_) => errorResponse(409, 'NO_LINKED_DOCUMENT', '물어볼 서류가 없어요.'),
+      );
+
+      await expectLater(
+        repository.sendMessage(threadId: '12', text: '위약금이 있나요?'),
+        throwsA(isA<ChatNoDocumentException>()),
+      );
+    });
+
+    test('다른 실패 응답을 받으면 ApiException을 그대로 던진다', () async {
+      server.on(
+        'POST',
+        '/chats/12/messages',
+        (_) => errorResponse(500, 'INTERNAL_SERVER_ERROR'),
+      );
+
+      await expectLater(
+        repository.sendMessage(threadId: '12', text: '위약금이 있나요?'),
+        throwsA(isA<ApiException>()),
+      );
     });
   });
 

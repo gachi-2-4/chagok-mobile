@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_state.dart';
+import 'package:chagok_mobile/features/chat/data/chat_no_document_exception.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,7 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
   ///
   /// 답을 받지 못하면 대화는 그대로 두고 [ChatRoomState.failedQuestion]에
   /// 질문을 남깁니다. 화면 전체를 에러로 바꾸지 않아 이전 대화를 계속 볼 수 있습니다.
+  /// 대화에 서류가 없어 실패했으면 [ChatRoomState.isMissingDocument]도 켭니다.
   Future<void> send(String text) async {
     final current = state.value;
     final question = text.trim();
@@ -36,7 +38,12 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
     // 갱신할 수 있도록, 끝날 때까지 provider를 살려 둡니다.
     final keepAlive = ref.keepAlive();
     state = AsyncData(
-      current.copyWith(isSending: true, failedQuestion: () => null),
+      current.copyWith(
+        isSending: true,
+        pendingQuestion: () => question,
+        failedQuestion: () => null,
+        isMissingDocument: false,
+      ),
     );
     try {
       final thread = await ref
@@ -47,7 +54,9 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
         current.copyWith(
           thread: thread,
           isSending: false,
+          pendingQuestion: () => null,
           failedQuestion: () => null,
+          isMissingDocument: false,
         ),
       );
       ref.invalidate(chatListProvider);
@@ -55,7 +64,12 @@ class ChatRoomNotifier extends AsyncNotifier<ChatRoomState> {
       debugPrint('질문을 보내지 못했습니다: $error\n$stackTrace');
       if (!ref.mounted) return;
       state = AsyncData(
-        current.copyWith(isSending: false, failedQuestion: () => question),
+        current.copyWith(
+          isSending: false,
+          pendingQuestion: () => null,
+          failedQuestion: () => question,
+          isMissingDocument: error is ChatNoDocumentException,
+        ),
       );
     } finally {
       keepAlive.close();

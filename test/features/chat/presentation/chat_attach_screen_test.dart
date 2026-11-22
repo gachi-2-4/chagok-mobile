@@ -156,5 +156,22 @@ void main() {
       repository.linkGate?.complete();
       await tester.pumpAndSettle();
     });
+
+    testWidgets('보관한 서류가 없으면 보관함에서 선택을 눌렀을 때 서류를 먼저 올리라고 안내한다', (tester) async {
+      repository = FakeChatRepository(
+        threads: [buildThread(id: threadId)],
+        documents: const [],
+      );
+      await tester.pumpChatScreen(
+        const ChatAttachScreen(threadId: threadId),
+        repository,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ChatStrings.pickFromBox));
+      await tester.pumpAndSettle();
+
+      expect(find.text(ChatStrings.noDocumentsInBox), findsOneWidget);
+    });
   });
 }

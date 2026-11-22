@@ -12,7 +12,9 @@ void main() {
         thread: thread,
         suggestions: const ['위약금이 있나요?'],
         isSending: true,
+        pendingQuestion: '위약금이 있나요?',
         failedQuestion: '언제 내나요?',
+        isMissingDocument: true,
       );
 
       final copied = state.copyWith();
@@ -20,7 +22,21 @@ void main() {
       expect(copied.thread, same(thread));
       expect(copied.suggestions, ['위약금이 있나요?']);
       expect(copied.isSending, isTrue);
+      expect(copied.pendingQuestion, '위약금이 있나요?');
       expect(copied.failedQuestion, '언제 내나요?');
+      expect(copied.isMissingDocument, isTrue);
+    });
+
+    test('pendingQuestion에 null을 돌려주는 함수를 넘기면 기다리는 질문을 지운다', () {
+      final state = ChatRoomState(
+        thread: thread,
+        suggestions: const [],
+        pendingQuestion: '언제 내나요?',
+      );
+
+      final copied = state.copyWith(pendingQuestion: () => null);
+
+      expect(copied.pendingQuestion, isNull);
     });
 
     test('failedQuestion에 null을 돌려주는 함수를 넘기면 실패한 질문을 지운다', () {
@@ -41,6 +57,28 @@ void main() {
       final copied = state.copyWith(failedQuestion: () => '위약금이 있나요?');
 
       expect(copied.failedQuestion, '위약금이 있나요?');
+    });
+  });
+
+  group('ChatRoomState.unansweredQuestion', () {
+    test('기다리는 질문이 있으면 그 질문을 돌려준다', () {
+      final state = ChatRoomState(
+        thread: thread,
+        suggestions: const [],
+        pendingQuestion: '위약금이 있나요?',
+      );
+
+      expect(state.unansweredQuestion, '위약금이 있나요?');
+    });
+
+    test('기다리는 질문이 없으면 실패한 질문을 돌려준다', () {
+      final state = ChatRoomState(
+        thread: thread,
+        suggestions: const [],
+        failedQuestion: '언제 내나요?',
+      );
+
+      expect(state.unansweredQuestion, '언제 내나요?');
     });
   });
 }

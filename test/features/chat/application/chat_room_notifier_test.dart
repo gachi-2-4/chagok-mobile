@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chagok_mobile/features/chat/application/chat_list_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_notifier.dart';
+import 'package:chagok_mobile/features/chat/data/chat_no_document_exception.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread_not_found_exception.dart';
@@ -150,6 +151,84 @@ void main() {
       expect(state.isSending, isFalse);
       expect(state.failedQuestion, '위약금이 있나요?');
       expect(state.thread.messages, before.thread.messages);
+    });
+
+    test('질문을 보내면 답을 기다리는 동안 그 질문을 기다리는 질문으로 둔다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      repository.sendGate = Completer<void>();
+
+      final sending = container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      expect(
+        container.read(chatRoomProvider(threadId)).requireValue.pendingQuestion,
+        '위약금이 있나요?',
+      );
+      repository.sendGate?.complete();
+      await sending;
+    });
+
+    test('답을 받으면 기다리는 질문을 지운다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+
+      await container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      final state = container.read(chatRoomProvider(threadId)).requireValue;
+      expect(state.pendingQuestion, isNull);
+      expect(state.unansweredQuestion, isNull);
+    });
+
+    test('답을 받지 못하면 실패한 질문을 답하지 못한 질문으로 남긴다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      repository.sendError = Exception('network');
+
+      await container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      final state = container.read(chatRoomProvider(threadId)).requireValue;
+      expect(state.pendingQuestion, isNull);
+      expect(state.unansweredQuestion, '위약금이 있나요?');
+      expect(state.isMissingDocument, isFalse);
+    });
+
+    test('대화에 서류가 없어 답을 받지 못하면 서류가 없다고 표시한다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      repository.sendError = const ChatNoDocumentException(threadId);
+
+      await container
+          .read(chatRoomProvider(threadId).notifier)
+          .send('위약금이 있나요?');
+
+      final state = container.read(chatRoomProvider(threadId)).requireValue;
+      expect(state.isMissingDocument, isTrue);
+      expect(state.failedQuestion, '위약금이 있나요?');
+    });
+
+    test('서류가 없어 실패한 뒤 다시 보내면 서류가 없다는 표시를 지운다', () async {
+      final container = createContainer();
+      await container.read(chatRoomProvider(threadId).future);
+      final notifier = container.read(chatRoomProvider(threadId).notifier);
+      repository.sendError = const ChatNoDocumentException(threadId);
+      await notifier.send('위약금이 있나요?');
+
+      repository.sendError = null;
+      await notifier.send('위약금이 있나요?');
+
+      expect(
+        container
+            .read(chatRoomProvider(threadId))
+            .requireValue
+            .isMissingDocument,
+        isFalse,
+      );
     });
 
     test('실패한 뒤 다시 보내 답을 받으면 실패 표시가 사라진다', () async {

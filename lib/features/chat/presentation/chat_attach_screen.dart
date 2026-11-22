@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chagok_mobile/core/constants/app_colors.dart';
+import 'package:chagok_mobile/core/constants/app_radius.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
 import 'package:chagok_mobile/core/widgets/app_banner.dart';
@@ -69,6 +70,15 @@ class _ChatAttachBody extends StatelessWidget {
   Future<void> _pickDocument(BuildContext context) async {
     final documentId = await showModalBottomSheet<String>(
       context: context,
+      // 이 화면은 채팅 탭 안에 있어, 탭 Navigator에 띄우면 하단 탭 바에 가려집니다.
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: AppColors.dialogSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.medium),
+        ),
+      ),
       builder: (context) => _DocumentPickerSheet(
         documents: state.documents,
         selectedId: state.selectedId,
@@ -174,6 +184,8 @@ class _PickFromBoxCard extends StatelessWidget {
 }
 
 /// 보관함 서류를 고르는 아래 시트. 고른 서류 id를 돌려주며 닫힙니다.
+///
+/// 보관한 서류가 없으면 빈 시트 대신 서류를 먼저 올리라는 안내를 보여 줍니다.
 class _DocumentPickerSheet extends StatelessWidget {
   const _DocumentPickerSheet({
     required this.documents,
@@ -183,21 +195,40 @@ class _DocumentPickerSheet extends StatelessWidget {
   final List<ChatDocument> documents;
   final String? selectedId;
 
+  /// 서류가 많아도 화면을 다 덮지 않도록 둔 화면 높이 대비 최대 비율.
+  static const _maxHeightFactor = 0.6;
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: AppSpacing.md),
-          for (final document in documents)
-            AppSelectRow(
-              label: document.fileName,
-              isSelected: document.id == selectedId,
-              onTap: () => Navigator.pop(context, document.id),
-            ),
-          const SizedBox(height: AppSpacing.md),
-        ],
+    if (documents.isEmpty) {
+      return const SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+          child: Text(
+            ChatStrings.noDocumentsInBox,
+            textAlign: TextAlign.center,
+            style: AppTypography.pageDescription,
+          ),
+        ),
+      );
+    }
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * _maxHeightFactor,
+      ),
+      child: SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          children: [
+            for (final document in documents)
+              AppSelectRow(
+                label: document.fileName,
+                isSelected: document.id == selectedId,
+                onTap: () => Navigator.pop(context, document.id),
+              ),
+          ],
+        ),
       ),
     );
   }

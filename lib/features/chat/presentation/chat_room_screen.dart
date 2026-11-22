@@ -10,6 +10,7 @@ import 'package:chagok_mobile/core/widgets/app_top_bar.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_notifier.dart';
 import 'package:chagok_mobile/features/chat/application/chat_room_state.dart';
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
+import 'package:chagok_mobile/features/chat/data/chat_message.dart';
 import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_strings.dart';
 import 'package:chagok_mobile/features/chat/presentation/widgets/chat_bubble.dart';
@@ -137,10 +138,17 @@ class _MessageList extends StatelessWidget {
             onSelect: state.isSending ? null : onSend,
           ),
       ],
+      // 보낸 질문은 답을 받기 전이나 받지 못했을 때도 내 말풍선으로 남깁니다.
+      if (state.unansweredQuestion case final question?)
+        _UnansweredBubble(question: question),
       if (state.isSending)
         const Text(ChatStrings.typing, style: AppTypography.caption),
       if (state.failedQuestion case final question?)
-        _SendFailedNotice(onResend: () => onSend(question)),
+        _SendFailedNotice(
+          isMissingDocument: state.isMissingDocument,
+          onResend: () => onSend(question),
+          onAddDocument: onAddDocument,
+        ),
     ];
 
     return ListView(
@@ -204,11 +212,41 @@ class _SuggestionChips extends StatelessWidget {
   }
 }
 
-/// 답을 받지 못했을 때 보이는 안내와 다시 보내기 버튼.
-class _SendFailedNotice extends StatelessWidget {
-  const _SendFailedNotice({required this.onResend});
+/// 서버가 아직 대화에 넣어 돌려주지 않은 내 질문 말풍선.
+class _UnansweredBubble extends StatelessWidget {
+  const _UnansweredBubble({required this.question});
 
+  final String question;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChatBubble(
+      // 시각은 말풍선에 보이지 않아 지금 시각을 넣습니다.
+      message: ChatMessage(
+        role: ChatRole.user,
+        text: question,
+        sentAt: DateTime.now(),
+      ),
+    );
+  }
+}
+
+/// 답을 받지 못했을 때 보이는 안내와 다음 동작 버튼.
+///
+/// 대화에 서류가 없어 실패했으면 다시 보내도 같으므로 "서류 추가"를,
+/// 아니면 "다시 보내기"를 보여 줍니다.
+class _SendFailedNotice extends StatelessWidget {
+  const _SendFailedNotice({
+    required this.isMissingDocument,
+    required this.onResend,
+    required this.onAddDocument,
+  });
+
+  final bool isMissingDocument;
   final VoidCallback onResend;
+
+  /// null이면 "서류 추가"를 누를 수 없습니다.
+  final VoidCallback? onAddDocument;
 
   @override
   Widget build(BuildContext context) {
@@ -216,11 +254,15 @@ class _SendFailedNotice extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          ChatStrings.sendFailed,
+          isMissingDocument
+              ? ChatStrings.sendNeedsDocument
+              : ChatStrings.sendFailed,
           style: AppTypography.caption.copyWith(color: AppColors.danger),
         ),
         const SizedBox(height: AppSpacing.sm),
-        AppChip(label: ChatStrings.resend, onTap: onResend),
+        isMissingDocument
+            ? AppChip(label: ChatStrings.addDocument, onTap: onAddDocument)
+            : AppChip(label: ChatStrings.resend, onTap: onResend),
       ],
     );
   }

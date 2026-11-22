@@ -4,6 +4,7 @@ import 'package:chagok_mobile/core/network/api_formats.dart';
 import 'package:chagok_mobile/core/network/json_map.dart';
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_message.dart';
+import 'package:chagok_mobile/features/chat/data/chat_no_document_exception.dart';
 import 'package:chagok_mobile/features/chat/data/chat_repository.dart';
 import 'package:chagok_mobile/features/chat/data/chat_role.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
@@ -25,6 +26,9 @@ class ApiChatRepository implements ChatRepository {
 
   /// 한 번에 받을 메시지 수. 서버 기본값(30)보다 넉넉히 받아 요청 수를 줄입니다.
   static const _messagePageSize = 50;
+
+  /// 대화에 연결한 서류가 없어 답할 수 없다는 서버 에러 코드(409).
+  static const _noLinkedDocumentCode = 'NO_LINKED_DOCUMENT';
 
   List<String> _suggestions = const [];
 
@@ -114,15 +118,24 @@ class ApiChatRepository implements ChatRepository {
   }
 
   /// 질문을 보내고, 저장된 질문·답이 들어간 대화를 다시 불러와 돌려줍니다.
+  ///
+  /// 대화에 연결한 서류가 없으면 [ChatNoDocumentException]을 던집니다.
   @override
   Future<ChatThread> sendMessage({
     required String threadId,
     required String text,
   }) async {
-    await _client.post(
-      '/chats/${apiId(threadId)}/messages',
-      body: {'content': text},
-    );
+    try {
+      await _client.post(
+        '/chats/${apiId(threadId)}/messages',
+        body: {'content': text},
+      );
+    } on ApiException catch (error) {
+      if (error.code == _noLinkedDocumentCode) {
+        throw ChatNoDocumentException(threadId);
+      }
+      rethrow;
+    }
     return fetchThread(threadId);
   }
 
