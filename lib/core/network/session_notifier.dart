@@ -13,6 +13,15 @@ final sessionProvider = NotifierProvider<SessionNotifier, SessionStatus>(
   SessionNotifier.new,
 );
 
+/// 지금 로그인해 있는지.
+///
+/// 내 계정 데이터를 다루는 저장소 Provider가 지켜봅니다. 로그인하거나 로그아웃하면
+/// 저장소가 새로 만들어지고 그 데이터를 쓰는 Notifier도 다시 불러옵니다. 그래야 로그인 전에
+/// 실패한 결과나 앞 계정의 데이터가 다음 로그인 뒤에 남지 않습니다.
+final isSignedInProvider = Provider<bool>(
+  (ref) => ref.watch(sessionProvider) == SessionStatus.signedIn,
+);
+
 /// 로그인해야 앱을 쓸 수 있는지. 서버를 쓸 때만 true입니다.
 ///
 /// 서버 없이 예시 데이터로 돌릴 때는 로그인 없이 홈부터 열어 화면을 바로 볼 수 있게 합니다.

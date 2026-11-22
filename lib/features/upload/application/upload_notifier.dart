@@ -16,7 +16,11 @@ final uploadProvider = NotifierProvider<UploadNotifier, UploadState>(
 /// 저장소 요청이 실패하면 예외를 던지지 않고 [UploadState.hasFailed]를 켭니다.
 class UploadNotifier extends Notifier<UploadState> {
   @override
-  UploadState build() => const UploadState();
+  UploadState build() {
+    // 계정이 바뀌어 저장소가 새로 만들어지면 앞 계정의 보관함·파일을 버립니다.
+    ref.watch(uploadRepositoryProvider);
+    return const UploadState();
+  }
 
   UploadRepository get _repository => ref.read(uploadRepositoryProvider);
 
