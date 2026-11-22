@@ -100,6 +100,9 @@ class UploadNotifier extends Notifier<UploadState> {
     }
   }
 
+  /// 실패 안내를 지웁니다. 실패한 화면을 떠나 다른 화면에 안내가 남지 않게 합니다.
+  void clearFailure() => state = state.copyWith(hasFailed: false);
+
   void _fail(String what, Object error, StackTrace stackTrace) {
     debugPrint('$what: $error\n$stackTrace');
     state = state.copyWith(isBusy: false, hasFailed: true);

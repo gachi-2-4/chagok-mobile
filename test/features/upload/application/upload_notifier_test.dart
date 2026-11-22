@@ -189,5 +189,17 @@ void main() {
 
       expect(container.read(uploadProvider).hasFailed, isFalse);
     });
+
+    test('실패 안내를 지우면 실패 표시가 사라지고 고른 파일은 남는다', () async {
+      await notifier().pick(UploadSource.pdf);
+      repository.error = Exception('network');
+      await notifier().analyze();
+
+      notifier().clearFailure();
+
+      final state = container.read(uploadProvider);
+      expect(state.hasFailed, isFalse);
+      expect(state.document, isNotNull);
+    });
   });
 }
