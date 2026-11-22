@@ -46,7 +46,7 @@ abstract final class ArchiveStrings {
   static const tabSummary = 'AI 정리본';
   static const openSummaryAction = 'AI 정리본 열기';
   static const viewOriginal = '원본 보기';
-  static const documentImage = '서류 이미지 원본';
+  static const originalSampleNotice = '원본 이미지 준비 중 · 예시 화면';
   static const oneLineSummary = '한 줄 요약';
   static const importanceLabel = '중요도';
   static const costLabel = '비용';

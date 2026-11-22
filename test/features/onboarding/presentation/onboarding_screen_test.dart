@@ -72,6 +72,26 @@ void main() {
       expect(find.text(OnboardingStrings.submitFailed), findsOneWidget);
     });
 
+    testWidgets('주소를 입력하고 후보를 누르면 그 주소로 채운다', (tester) async {
+      await pumpOnboardingScreen(tester);
+      await tester.tap(find.text('내국인'));
+      await tester.pump();
+      await tester.tap(find.text('다음'));
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextField), '마포');
+      await tester.pump();
+      await tester.tap(find.text('서울특별시 마포구'));
+      await tester.pump();
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller?.text, '서울특별시 마포구');
+      expect(
+        find.bySemanticsLabel(OnboardingStrings.addressSuggestions),
+        findsNothing,
+      );
+    });
+
     /// 이전 화면 없이 /onboarding으로 바로 연 앱을 띄웁니다.
     Future<void> pumpDirectOnboarding(WidgetTester tester) async {
       final router = GoRouter(

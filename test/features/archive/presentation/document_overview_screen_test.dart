@@ -151,6 +151,13 @@ void main() {
       expect(find.text(ArchiveStrings.deadlineRegistered), findsOneWidget);
     });
 
+    testWidgets('원본 탭을 열면 정리본 항목을 적은 예시 종이를 보여 준다', (tester) async {
+      await pumpRouter(tester);
+
+      expect(find.text('임대인  김○○'), findsOneWidget);
+      expect(find.text(ArchiveStrings.originalSampleNotice), findsOneWidget);
+    });
+
     testWidgets('원본을 옆으로 넘기면 쪽 위치가 바뀐다', (tester) async {
       await pumpRouter(tester);
 

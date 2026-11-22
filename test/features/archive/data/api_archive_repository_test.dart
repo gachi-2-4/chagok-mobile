@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/archive/data/box_document_not_found_excep
 import 'package:chagok_mobile/features/archive/data/box_icon.dart';
 import 'package:chagok_mobile/features/archive/data/box_not_found_exception.dart';
 import 'package:chagok_mobile/features/archive/data/document_importance.dart';
+import 'package:chagok_mobile/features/archive/data/sample_summary_lists.dart';
 import 'package:chagok_mobile/features/archive/data/summary_section.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -146,12 +147,24 @@ void main() {
 
       final overview = await repository.fetchDocumentOverview('520', today);
 
-      final table = overview.summary.sections.single as SummaryTable;
+      final table = overview.summary.sections.whereType<SummaryTable>().single;
       expect(table.rows.map((row) => (row.label, row.value)), [
         ('보증금', '230,000,000원'),
         ('계약 종료일', '2027.02.28'),
         ('특약', '반려동물 가능'),
       ]);
+    });
+
+    test('응답에 특약·체크 목록이 없으면 서류 종류별 예시 목록을 붙인다', () async {
+      server.onJson('GET', '/documents/520', {
+        ...detail(),
+        'docType': 'LEASE_CONTRACT',
+      });
+
+      final overview = await repository.fetchDocumentOverview('520', today);
+
+      final lists = overview.summary.sections.whereType<SummaryList>();
+      expect(lists.map((list) => list.title), [specialTermsTitle, checksTitle]);
     });
 
     test('쉬운말 요약 카드가 있으면 한 줄 요약으로 쓴다', () async {

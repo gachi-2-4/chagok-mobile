@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chagok_mobile/core/constants/app_colors.dart';
 import 'package:chagok_mobile/core/constants/app_spacing.dart';
 import 'package:chagok_mobile/core/constants/app_typography.dart';
@@ -11,6 +13,7 @@ import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/check_label.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/form_message.dart';
+import 'package:chagok_mobile/features/auth/presentation/widgets/term_sheet.dart';
 import 'package:flutter/material.dart';
 
 /// A03 약관 동의 화면의 내용. 전화번호 가입과 간편 로그인이 함께 씁니다.
@@ -55,11 +58,7 @@ class TermsAgreementForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final failure = this.failure;
 
-    void showTerm(Term term) {
-      // TODO: 약관 본문이 정해지면 상세 화면으로 연결합니다.
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text(AuthStrings.comingSoon)));
-    }
+    void showTerm(Term term) => unawaited(showTermSheet(context, term));
 
     return AuthFormLayout(
       appBar: const AppTopBar(title: AuthStrings.termsBarTitle),

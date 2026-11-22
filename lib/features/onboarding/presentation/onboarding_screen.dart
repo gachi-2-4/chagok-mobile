@@ -122,6 +122,7 @@ class _StepBody extends ConsumerWidget {
         switch (step) {
           OnboardingStep.address => _AddressStep(
             initialValue: state.answers.address,
+            suggestions: state.addressSuggestions,
             onChanged: (value) =>
                 ref.read(onboardingProvider.notifier).updateAddress(value),
           ),
@@ -221,11 +222,17 @@ class _ChoiceList extends ConsumerWidget {
   }
 }
 
-/// 도로명주소 입력 단계. 이전 단계에서 돌아와도 입력한 값을 유지합니다.
+/// 주소 검색 단계. 입력하면 맞는 시·도·시·군·구 후보를 아래에 보여 주고,
+/// 후보를 누르면 그 주소로 채웁니다. 이전 단계에서 돌아와도 입력한 값을 유지합니다.
 class _AddressStep extends StatefulWidget {
-  const _AddressStep({required this.initialValue, required this.onChanged});
+  const _AddressStep({
+    required this.initialValue,
+    required this.suggestions,
+    required this.onChanged,
+  });
 
   final String initialValue;
+  final List<String> suggestions;
   final ValueChanged<String> onChanged;
 
   @override
@@ -241,16 +248,47 @@ class _AddressStepState extends State<_AddressStep> {
     super.dispose();
   }
 
+  void _select(String address) {
+    _controller.text = address;
+    widget.onChanged(address);
+    FocusScope.of(context).unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: 주소 검색 API가 정해지면 검색 결과에서 고르게 바꿉니다.
-    return AppTextField(
-      label: OnboardingStrings.addressLabel,
-      hintText: OnboardingStrings.addressHint,
-      controller: _controller,
-      onChanged: widget.onChanged,
-      keyboardType: TextInputType.streetAddress,
-      textInputAction: TextInputAction.done,
+    // TODO: 주소 검색 API가 정해지면 앱에 넣은 예시 목록 대신 검색 결과에서 고르게 바꿉니다.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppTextField(
+          label: OnboardingStrings.addressLabel,
+          hintText: OnboardingStrings.addressHint,
+          controller: _controller,
+          onChanged: widget.onChanged,
+          keyboardType: TextInputType.streetAddress,
+          textInputAction: TextInputAction.done,
+        ),
+        if (widget.suggestions.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Semantics(
+            label: OnboardingStrings.addressSuggestions,
+            container: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (index, address) in widget.suggestions.indexed) ...[
+                  if (index > 0) const SizedBox(height: AppSpacing.stack),
+                  ChoiceTile(
+                    label: address,
+                    isSelected: false,
+                    onTap: () => _select(address),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
