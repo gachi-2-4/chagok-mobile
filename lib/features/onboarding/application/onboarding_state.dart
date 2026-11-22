@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/onboarding/application/onboarding_step.dart';
 import 'package:chagok_mobile/features/onboarding/data/onboarding_answers.dart';
+import 'package:chagok_mobile/features/onboarding/data/sample_address_regions.dart';
 
 /// 첫 설문 화면의 상태.
 class OnboardingState {
@@ -27,6 +28,15 @@ class OnboardingState {
 
   /// 마지막 단계(복지)면 true. 다음을 누르면 답을 저장합니다.
   bool get isLastStep => step == OnboardingStep.values.last;
+
+  /// O02 주소 입력값에 맞는 시·도·시·군·구 후보.
+  ///
+  /// 이미 후보 하나를 그대로 골랐으면 더 보여 주지 않습니다.
+  List<String> get addressSuggestions {
+    final address = answers.address.trim();
+    final suggestions = searchAddressRegions(address);
+    return suggestions.contains(address) ? const [] : suggestions;
+  }
 
   /// 지금 단계의 답을 골라 다음으로 넘어갈 수 있으면 true.
   bool get canProceed {

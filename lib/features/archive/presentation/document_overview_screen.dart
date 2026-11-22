@@ -13,6 +13,7 @@ import 'package:chagok_mobile/features/archive/application/document_overview_ite
 import 'package:chagok_mobile/features/archive/application/document_overview_notifier.dart';
 import 'package:chagok_mobile/features/archive/data/archive_box.dart';
 import 'package:chagok_mobile/features/archive/data/box_document_not_found_exception.dart';
+import 'package:chagok_mobile/features/archive/data/summary_section.dart';
 import 'package:chagok_mobile/features/archive/presentation/archive_strings.dart';
 import 'package:chagok_mobile/features/archive/presentation/document_tab.dart';
 import 'package:chagok_mobile/features/archive/presentation/widgets/box_style.dart';
@@ -159,6 +160,10 @@ class _OverviewContent extends StatelessWidget {
           DocumentTab.original => OriginalViewer(
             title: document.title,
             pageCount: document.pageCount,
+            facts: [
+              for (final section in overview.summary.sections)
+                if (section is SummaryTable) ...section.rows,
+            ],
             onOpenSummary: () => onSelectTab(DocumentTab.summary),
           ),
           DocumentTab.summary => DocumentSummaryCard(

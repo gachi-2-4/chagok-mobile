@@ -24,7 +24,10 @@ abstract final class OnboardingStrings {
   static const addressTitle = '어느 지역에 사시나요?';
   static const addressDescription = '사는 지역을 알려주세요.';
   static const addressLabel = '도로명주소 검색';
-  static const addressHint = '예: 서울시 마포구 월드컵북로 21';
+  static const addressHint = '예: 서울 마포구';
+
+  /// 주소 후보 목록을 화면 읽기 프로그램에 알리는 이름.
+  static const addressSuggestions = '주소 검색 결과';
 
   // O03 주거 형태
   static const housingTypeTitle = '어떤 집에서 사시나요?';

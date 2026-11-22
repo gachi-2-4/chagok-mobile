@@ -57,5 +57,23 @@ void main() {
       expect(updated.hasSubmitFailed, isTrue);
       expect(updated.isSubmitting, isFalse);
     });
+
+    test('주소를 입력하면 맞는 주소 후보를 돌려준다', () {
+      const state = OnboardingState(
+        step: OnboardingStep.address,
+        answers: OnboardingAnswers(address: '마포'),
+      );
+
+      expect(state.addressSuggestions, ['서울특별시 마포구']);
+    });
+
+    test('후보 하나를 그대로 골랐으면 주소 후보를 더 보여 주지 않는다', () {
+      const state = OnboardingState(
+        step: OnboardingStep.address,
+        answers: OnboardingAnswers(address: '서울특별시 마포구'),
+      );
+
+      expect(state.addressSuggestions, isEmpty);
+    });
   });
 }

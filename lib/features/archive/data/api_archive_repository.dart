@@ -15,6 +15,7 @@ import 'package:chagok_mobile/features/archive/data/document_importance.dart';
 import 'package:chagok_mobile/features/archive/data/document_overview.dart';
 import 'package:chagok_mobile/features/archive/data/document_search_result.dart';
 import 'package:chagok_mobile/features/archive/data/document_summary.dart';
+import 'package:chagok_mobile/features/archive/data/sample_summary_lists.dart';
 import 'package:chagok_mobile/features/archive/data/summary_row.dart';
 import 'package:chagok_mobile/features/archive/data/summary_section.dart';
 
@@ -79,7 +80,7 @@ class ApiArchiveRepository implements ArchiveRepository {
   ///
   /// - 한 줄 요약은 AI 쉬운말 요약 카드를 쓰고, 카드가 아직 없으면 분석 요약을 씁니다.
   /// - 정리본 표는 서류에서 읽어 낸 항목(`fields`)으로 만듭니다. 특약·체크 같은
-  ///   목록은 응답에 없어 아직 보여 주지 않습니다.
+  ///   목록은 응답에 없어 서류 종류별 예시를 붙입니다(`sampleSummaryListsOf`).
   /// - 비용은 첫 금액 항목, D-day는 가장 가까운 기한, 기간 끝은 만기(`EXPIRY`)입니다.
   /// - 응답의 박스에는 이름만 있어 아이콘·색은 `GET /boxes/{id}`로 가져옵니다.
   @override
@@ -141,6 +142,8 @@ class ApiArchiveRepository implements ArchiveRepository {
                     SummaryRow(label: _fieldLabelOf(field), value: value),
               ],
             ),
+          // TODO: 서버가 특약·체크 목록을 주면 예시 대신 응답 값을 씁니다.
+          ...sampleSummaryListsOf(json.stringOrNull('docType')),
         ],
       ),
       cost: switch ((amountField, amount)) {
