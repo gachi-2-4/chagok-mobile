@@ -201,13 +201,17 @@ class _DocumentPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (documents.isEmpty) {
-      return const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.screenHorizontal),
-          child: Text(
-            ChatStrings.noDocumentsInBox,
-            textAlign: TextAlign.center,
-            style: AppTypography.pageDescription,
+      // 시트는 내용 너비만큼만 펼쳐지므로, 짧은 안내도 화면 너비를 채우게 합니다.
+      return const SizedBox(
+        width: double.infinity,
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.screenHorizontal),
+            child: Text(
+              ChatStrings.noDocumentsInBox,
+              textAlign: TextAlign.center,
+              style: AppTypography.pageDescription,
+            ),
           ),
         ),
       );
