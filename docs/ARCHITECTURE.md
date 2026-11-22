@@ -145,8 +145,9 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
   - 서버 없이 화면을 만들고 테스트하기 위해서입니다. 테스트는 주소를 넘기지 않으므로 예시 저장소로 돕니다.
   - 요청은 HTTPS로만 보냅니다. 기기 안 개발 서버(`localhost`, `10.0.2.2` 등)만 HTTP를 씁니다.
   - HTTPS가 아직 없는 테스트 서버(예: EC2 기본 주소)는 `.env`의 `ALLOW_INSECURE_HTTP`를 `true`로 둬야 HTTP로 붙습니다(`isInsecureHttpAllowedProvider`).
-    - release 빌드에서는 이 값을 넘겨도 HTTP를 쓰지 않습니다. 플랫폼 설정도 같습니다. Android는 debug·profile 매니페스트에서만 HTTP를 허용하고, iOS는 `Info.plist` ATS 예외로 `amazonaws.com`만 허용합니다.
-    - 서버에 HTTPS가 생기면 이 예외(ATS 예외, debug·profile 매니페스트의 `usesCleartextTraffic`)를 지웁니다.
+    - 대회 심사용 release APK도 HTTP 서버에 붙어야 해서 release 빌드에서도 이 값을 따릅니다. 켜도 `API_BASE_URL`의 호스트로만 HTTP를 보냅니다.
+    - Android는 main 매니페스트에서 HTTP를 허용하고(`usesCleartextTraffic`), iOS는 `Info.plist` ATS 예외로 `amazonaws.com`만 허용합니다.
+    - 서버에 HTTPS가 생기면 이 예외(ATS 예외, main 매니페스트의 `usesCleartextTraffic`)를 지우고 `ALLOW_INSECURE_HTTP`를 끕니다.
   - 서버 주소는 코드·커밋에 적지 않습니다.
 - 카카오 로그인은 [kakao_flutter_sdk_user](https://pub.dev/packages/kakao_flutter_sdk_user)로 카카오 액세스 토큰을 받아 `POST /auth/kakao`로 보냅니다.
   - SDK는 data 계층의 `KakaoLoginClient`(`SdkKakaoLoginClient`) 안에 숨기고, `ApiAuthRepository.logInWithKakao`만 씁니다. 테스트는 `FakeKakaoLoginClient`로 바꿉니다.
