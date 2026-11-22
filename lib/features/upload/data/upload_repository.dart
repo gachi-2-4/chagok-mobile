@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/upload/data/analysis_result.dart';
 import 'package:chagok_mobile/features/upload/data/api_upload_repository.dart';
 import 'package:chagok_mobile/features/upload/data/device_document_picker.dart';
@@ -46,5 +47,7 @@ final uploadRepositoryProvider = Provider<UploadRepository>((ref) {
   if (!ref.watch(isApiEnabledProvider)) {
     return SampleUploadRepository(pick: pick);
   }
+  // 계정이 바뀌면 앞 계정의 데이터를 버리고 다시 불러오게 합니다.
+  ref.watch(isSignedInProvider);
   return ApiUploadRepository(client: ref.watch(apiClientProvider), pick: pick);
 });

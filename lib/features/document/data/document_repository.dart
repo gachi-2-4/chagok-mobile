@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/document/data/api_document_repository.dart';
 import 'package:chagok_mobile/features/document/data/document_detail.dart';
 import 'package:chagok_mobile/features/document/data/document_not_found_exception.dart';
@@ -30,5 +31,7 @@ abstract interface class DocumentRepository {
 /// API 서버 주소가 있으면 서버에, 없으면 메모리에 서류 내용을 둡니다.
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
   if (!ref.watch(isApiEnabledProvider)) return InMemoryDocumentRepository();
+  // 계정이 바뀌면 앞 계정의 데이터를 버리고 다시 불러오게 합니다.
+  ref.watch(isSignedInProvider);
   return ApiDocumentRepository(client: ref.watch(apiClientProvider));
 });

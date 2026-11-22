@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/notification/data/api_notification_repository.dart';
 import 'package:chagok_mobile/features/notification/data/app_notification.dart';
 import 'package:chagok_mobile/features/notification/data/sample_notification_repository.dart';
@@ -22,5 +23,7 @@ abstract interface class NotificationRepository {
 /// API 서버 주소가 있으면 서버의 알림을, 없으면 예시 알림을 씁니다.
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   if (!ref.watch(isApiEnabledProvider)) return SampleNotificationRepository();
+  // 계정이 바뀌면 앞 계정의 데이터를 버리고 다시 불러오게 합니다.
+  ref.watch(isSignedInProvider);
   return ApiNotificationRepository(client: ref.watch(apiClientProvider));
 });

@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/calendar/data/api_calendar_repository.dart';
 import 'package:chagok_mobile/features/calendar/data/deadline.dart';
 import 'package:chagok_mobile/features/calendar/data/sample_calendar_repository.dart';
@@ -23,5 +24,7 @@ abstract interface class CalendarRepository {
 /// API 서버 주소가 있으면 서버의 기한·기한 알림을, 없으면 예시 기한을 씁니다.
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {
   if (!ref.watch(isApiEnabledProvider)) return SampleCalendarRepository();
+  // 계정이 바뀌면 앞 계정의 데이터를 버리고 다시 불러오게 합니다.
+  ref.watch(isSignedInProvider);
   return ApiCalendarRepository(client: ref.watch(apiClientProvider));
 });

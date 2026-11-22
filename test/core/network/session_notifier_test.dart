@@ -93,4 +93,24 @@ void main() {
       expect(container.read(sessionProvider), SessionStatus.signedOut);
     });
   });
+
+  group('isSignedInProvider', () {
+    test('확인 중이면 로그인하지 않은 것으로 본다', () {
+      final container = createContainer(_SlowTokenStorage());
+
+      expect(container.read(isSignedInProvider), isFalse);
+    });
+
+    test('토큰을 저장하면 로그인한 것으로 보고 지우면 다시 아니라고 본다', () async {
+      final container = createContainer(InMemoryTokenStorage());
+      await settle();
+      final storage = container.read(tokenStorageProvider);
+
+      await storage.save(tokens);
+      expect(container.read(isSignedInProvider), isTrue);
+
+      await storage.clear();
+      expect(container.read(isSignedInProvider), isFalse);
+    });
+  });
 }

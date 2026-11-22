@@ -201,5 +201,23 @@ void main() {
       expect(state.hasFailed, isFalse);
       expect(state.document, isNotNull);
     });
+
+    test('저장소가 새로 만들어지면 앞서 고른 파일과 보관함을 버린다', () async {
+      final container = ProviderContainer(
+        overrides: [
+          uploadRepositoryProvider.overrideWith(
+            (ref) => FakeUploadRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      await container.read(uploadProvider.notifier).pick(UploadSource.pdf);
+
+      container.invalidate(uploadRepositoryProvider);
+
+      final state = container.read(uploadProvider);
+      expect(state.document, isNull);
+      expect(state.boxes, isEmpty);
+    });
   });
 }

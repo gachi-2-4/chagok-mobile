@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/core/network/api_client.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/features/chat/data/api_chat_repository.dart';
 import 'package:chagok_mobile/features/chat/data/chat_document.dart';
 import 'package:chagok_mobile/features/chat/data/chat_thread.dart';
@@ -44,6 +45,8 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   if (!ref.watch(isApiEnabledProvider)) {
     return SampleChatRepository(DateTime.now);
   }
+  // 계정이 바뀌면 앞 계정의 데이터를 버리고 다시 불러오게 합니다.
+  ref.watch(isSignedInProvider);
   return ApiChatRepository(
     client: ref.watch(apiClientProvider),
     now: DateTime.now,
