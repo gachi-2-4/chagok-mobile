@@ -160,6 +160,7 @@ class ApiAuthRepository implements AuthRepository {
     'CODE_EXPIRED' ||
     'VERIFICATION_NOT_FOUND' ||
     'TOO_MANY_ATTEMPTS' => AuthFailure.notVerified,
+    'INVALID_INPUT' => AuthFailure.invalidInput,
     _ => AuthFailure.unknown,
   };
 }

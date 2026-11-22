@@ -75,6 +75,21 @@ void main() {
 
       await expectLater(request, throwsFailure(AuthFailure.alreadyRegistered));
     });
+
+    test('보낸 값이 입력 규칙에 맞지 않으면 invalidInput으로 던진다', () async {
+      server.on(
+        'POST',
+        '/auth/phone/verifications',
+        (_) => errorResponse(400, 'INVALID_INPUT', '잘못된 요청입니다.'),
+      );
+
+      final request = repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
+
+      await expectLater(request, throwsFailure(AuthFailure.invalidInput));
+    });
   });
 
   group('ApiAuthRepository.verifyCode', () {

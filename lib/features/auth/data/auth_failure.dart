@@ -15,6 +15,9 @@ enum AuthFailure {
   /// 인증을 마치지 않았거나, 인증 증명이 만료·사용돼 다시 인증해야 함.
   notVerified,
 
+  /// 보낸 값(전화번호 형식 등)이 서버 입력 규칙에 맞지 않음.
+  invalidInput,
+
   /// 네트워크 오류 등 그 밖의 이유.
   unknown,
 }
