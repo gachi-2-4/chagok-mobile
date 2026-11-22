@@ -4,6 +4,7 @@ import 'package:chagok_mobile/core/constants/core_strings.dart';
 import 'package:chagok_mobile/core/utils/app_text_scaler.dart';
 import 'package:chagok_mobile/features/settings/application/settings_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 차곡 앱의 루트 위젯.
@@ -11,6 +12,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// 라우터와 테마를 연결하는 역할만 담당합니다.
 class ChagokApp extends ConsumerWidget {
   const ChagokApp({super.key});
+
+  /// 앱이 지원하는 언어. iOS `Info.plist`의 `CFBundleLocalizations`와 맞춥니다.
+  static const supportedLocales = [Locale('ko', 'KR')];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,6 +27,10 @@ class ChagokApp extends ConsumerWidget {
       title: CoreStrings.appName,
       theme: AppTheme.light,
       routerConfig: router,
+      // 앱 문구가 한국어뿐이라, 시각 선택 창 같은 Flutter 기본 화면도 한국어로 맞춥니다.
+      // 지원 언어가 하나라 기기 언어가 달라도 한국어로 보입니다.
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: supportedLocales,
       // 설정의 글자 크기를 기기 글자 크기 위에 곱해 앱 전체에 적용합니다.
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);

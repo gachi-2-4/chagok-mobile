@@ -48,6 +48,8 @@ dependencies:
   firebase_messaging: ^16.7.0
   flutter_dotenv: ^6.0.2
   kakao_flutter_sdk_user: ^2.1.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
