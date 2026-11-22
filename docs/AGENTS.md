@@ -44,6 +44,7 @@ analysis_options.yaml  # 린트 설정 (flutter_lints + CODE_STYLE.md 규칙)
 ## 자주 쓰는 명령어
 
 ```bash
+cp .env.example .env       # 실행 설정 파일 만들기 (처음 한 번)
 flutter pub get            # 의존성 설치
 flutter run                # 앱 실행 (기기 선택: -d <device>)
 flutter analyze            # 정적 분석
@@ -122,7 +123,9 @@ tool/check_rules.sh        # 바꾼 파일의 규칙 위반 점검 (기준 브�
 ## 미정 사항 (정해지면 갱신)
 
 - 백엔드/데이터 소스: 차곡 API 서버. 연동 방식은 [`ARCHITECTURE.md`](ARCHITECTURE.md)의 "서버 API 연동"을 따릅니다.
-  - 서버와 붙여 실행: `flutter run --dart-define=API_BASE_URL=<서버 주소>` (주소 없이 실행하면 예시 데이터로 돕니다)
-  - 서버 주소가 `http://`면 `--dart-define=ALLOW_INSECURE_HTTP=true`도 넘깁니다. release 빌드에서는 HTTP를 쓰지 않습니다.
+  - 처음 받으면 `cp .env.example .env`로 `.env`를 만듭니다. 이 파일이 없으면 `flutter run`·`build`·`test`가 실패합니다.
+  - 서버와 붙여 실행: `.env`의 `API_BASE_URL`에 서버 주소를 적고 `flutter run` (비워 두면 예시 데이터로 돕니다)
+  - 서버 주소가 `http://`면 `.env`의 `ALLOW_INSECURE_HTTP`를 `true`로 바꿉니다. release 빌드에서는 HTTP를 쓰지 않습니다.
+  - `.env`는 git에 올리지 않습니다.
 - 디자인 시스템·테마: 토큰은 `lib/core/constants/`(`AppColors`, `AppTypography`, `AppSpacing`, `AppRadius`, `AppShadows`, `AppIcons`), 공통 위젯은 `lib/core/widgets/`(`App*`)에 있습니다. 새 화면은 이 위젯과 토큰을 먼저 씁니다.
   - 폰트: Figtree(영문·숫자)와 Noto Sans KR(한글)을 `assets/fonts/`에 넣었고, 로고에는 Jua를 씁니다. 용량을 줄이려고 Noto Sans KR은 한자를 뺐고 Jua는 '차곡' 두 글자만 남겼습니다. 폰트 파일은 직접 고치지 말고 `tool/subset_fonts.sh`로 다시 만듭니다.
