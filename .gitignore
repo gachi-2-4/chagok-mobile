@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# 서버 주소 등 로컬 실행 설정 (.env.example을 복사해 만듭니다)
+.env
+.env.*
+!.env.example

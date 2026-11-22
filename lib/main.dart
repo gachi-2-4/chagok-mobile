@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/font_licenses.dart';
+import 'package:chagok_mobile/core/network/api_config.dart';
 import 'package:chagok_mobile/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -10,7 +11,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   registerFontLicenses();
   await _initializeFirebase();
-  runApp(const ProviderScope(child: ChagokApp()));
+  final appEnv = await loadAppEnv();
+  runApp(
+    ProviderScope(
+      overrides: [appEnvProvider.overrideWithValue(appEnv)],
+      child: const ChagokApp(),
+    ),
+  );
 }
 
 /// Firebase에는 Android·iOS 앱만 등록했으므로 웹·데스크톱에서는 초기화를 건너뜁니다.
