@@ -30,6 +30,9 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 ///   여러 요청이 동시에 만료돼도 재발급은 한 번만 부릅니다. 서버가 Refresh Token을
 ///   매번 바꾸므로(Rotation) 동시에 부르면 하나가 실패하기 때문입니다.
 /// - 재발급도 401이면 토큰을 지우고 [ApiException.sessionExpiredCode]로 던집니다.
+/// - 토큰을 붙였는데 401 `UNAUTHORIZED`를 받아도 같습니다. 서버가 토큰을 모르는
+///   것이라(서버 서명 키가 바뀐 경우 등) 재발급해도 소용없고, 그대로 두면 모든 화면이
+///   불러오기 실패에 머물기 때문입니다.
 /// - 서버는 모든 응답을 `{ success, data, error }`로 감싸 줍니다. 성공하면 `data`만
 ///   돌려주고, 실패하면 `error`의 `{ code, message }`를 담은 [ApiException]으로 던집니다.
 class ApiClient {
@@ -48,6 +51,7 @@ class ApiClient {
   static const maxPageCount = 100;
 
   static const _tokenExpiredCode = 'TOKEN_EXPIRED';
+  static const _unauthorizedCode = 'UNAUTHORIZED';
   static const _refreshPath = '/auth/token/refresh';
   static const _dataKey = 'data';
   static const _errorKey = 'error';
@@ -138,14 +142,31 @@ class ApiClient {
     bool isAuthenticated = true,
   }) async {
     final tokens = isAuthenticated ? await _tokenStorage.read() : null;
-    var response = await _execute(build(), tokens);
+    var sentTokens = tokens;
+    var response = await _execute(build(), sentTokens);
     if (isAuthenticated &&
         response.statusCode == 401 &&
         _errorOf(response).code == _tokenExpiredCode) {
-      final renewed = await _tokensAfterExpiry(tokens);
-      response = await _execute(build(), renewed);
+      sentTokens = await _tokensAfterExpiry(tokens);
+      response = await _execute(build(), sentTokens);
+    }
+    if (sentTokens != null &&
+        response.statusCode == 401 &&
+        _errorOf(response).code == _unauthorizedCode) {
+      await _endRejectedSession(sentTokens, _errorOf(response));
     }
     return _decode(response);
+  }
+
+  /// 서버가 받아 주지 않은 [rejected] 토큰을 지우고 세션 만료로 끝냅니다.
+  ///
+  /// 그사이 다른 요청이 재발급했거나 다시 로그인했으면 그 토큰은 지우지 않습니다.
+  Future<Never> _endRejectedSession(
+    AuthTokens rejected,
+    ApiException error,
+  ) async {
+    await _tokenStorage.replaceIf(expected: rejected);
+    throw _sessionExpired(error.message);
   }
 
   /// [used] 토큰이 만료됐을 때 다시 보낼 토큰.

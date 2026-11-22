@@ -450,6 +450,78 @@ void main() {
       expect(server.requestsTo('POST', '/auth/token/refresh'), isEmpty);
     });
 
+    test('토큰을 붙였는데 UNAUTHORIZED를 받으면 토큰을 지우고 SESSION_EXPIRED로 던진다', () async {
+      server.on(
+        'GET',
+        '/boxes',
+        (_) => errorResponse(401, 'UNAUTHORIZED', '인증이 필요합니다.'),
+      );
+
+      await expectLater(
+        server.client.get('/boxes'),
+        throwsA(
+          isA<ApiException>().having(
+            (error) => error.code,
+            'code',
+            ApiException.sessionExpiredCode,
+          ),
+        ),
+      );
+      expect(await server.tokenStorage.read(), isNull);
+    });
+
+    test('재발급한 토큰으로 다시 보냈는데 UNAUTHORIZED를 받으면 새 토큰도 지운다', () async {
+      allowRefresh();
+      server.on('GET', '/boxes', (request) {
+        return request.headers['Authorization'] == 'Bearer access-1'
+            ? errorResponse(401, 'TOKEN_EXPIRED')
+            : errorResponse(401, 'UNAUTHORIZED');
+      });
+
+      await expectLater(
+        server.client.get('/boxes'),
+        throwsA(isA<ApiException>()),
+      );
+      expect(await server.tokenStorage.read(), isNull);
+    });
+
+    test('UNAUTHORIZED를 기다리는 사이 다른 계정으로 로그인하면 새 토큰을 지우지 않는다', () async {
+      final responseGate = Completer<void>();
+      server.on('GET', '/boxes', (_) async {
+        await responseGate.future;
+        return errorResponse(401, 'UNAUTHORIZED');
+      });
+      const other = AuthTokens(accessToken: 'other', refreshToken: 'other-r');
+
+      final request = server.client.get('/boxes');
+      await pumpEventQueue();
+      await server.tokenStorage.save(other);
+      responseGate.complete();
+
+      await expectLater(request, throwsA(isA<ApiException>()));
+      expect((await server.tokenStorage.read())?.refreshToken, 'other-r');
+    });
+
+    test('토큰 없이 보낸 요청이 UNAUTHORIZED면 서버 에러를 그대로 던진다', () async {
+      server.on(
+        'POST',
+        '/auth/login',
+        (_) => errorResponse(401, 'UNAUTHORIZED'),
+      );
+
+      await expectLater(
+        server.client.post('/auth/login', isAuthenticated: false),
+        throwsA(
+          isA<ApiException>().having(
+            (error) => error.code,
+            'code',
+            'UNAUTHORIZED',
+          ),
+        ),
+      );
+      expect(await server.tokenStorage.read(), isA<AuthTokens>());
+    });
+
     test('모든 쪽을 받으면 hasNext가 false인 쪽까지 content를 이어 붙인다', () async {
       server.on('GET', '/notifications', (request) {
         final page = int.parse(request.url.queryParameters['page'] ?? '0');
