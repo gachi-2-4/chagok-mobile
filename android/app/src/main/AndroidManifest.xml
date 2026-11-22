@@ -4,7 +4,11 @@
     <application
         android:label="차곡"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
+        <!-- HTTPS가 아직 없는 테스트 서버(http://)에 release APK도 붙도록 HTTP를 허용합니다.
+             앱은 .env의 ALLOW_INSECURE_HTTP가 true일 때 서버 주소로만 HTTP를 보냅니다.
+             서버에 HTTPS가 생기면 이 속성을 지웁니다. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

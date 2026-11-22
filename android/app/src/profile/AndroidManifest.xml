@@ -4,7 +4,4 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- HTTPS가 아직 없는 테스트 서버(http://)에 붙기 위해 HTTP를 허용합니다.
-         release에는 넣지 않아, 출시 앱은 HTTPS로만 통신합니다. -->
-    <application android:usesCleartextTraffic="true"/>
 </manifest>

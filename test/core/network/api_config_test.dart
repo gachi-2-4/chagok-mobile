@@ -60,7 +60,7 @@ void main() {
       expect(isAllowed, isFalse);
     });
 
-    test('ALLOW_INSECURE_HTTP가 true면 debug 빌드에서 HTTP를 허용한다', () {
+    test('ALLOW_INSECURE_HTTP가 true면 HTTP를 허용한다', () {
       final container = _containerWith(const {'ALLOW_INSECURE_HTTP': 'true'});
 
       final isAllowed = container.read(isInsecureHttpAllowedProvider);
