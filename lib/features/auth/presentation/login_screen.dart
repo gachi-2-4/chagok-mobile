@@ -8,6 +8,7 @@ import 'package:chagok_mobile/core/widgets/app_button.dart';
 import 'package:chagok_mobile/core/widgets/app_text_field.dart';
 import 'package:chagok_mobile/features/auth/application/login_form.dart';
 import 'package:chagok_mobile/features/auth/application/login_notifier.dart';
+import 'package:chagok_mobile/features/auth/application/social_login_step.dart';
 import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_form_layout.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_switch_prompt.dart';
@@ -34,8 +35,21 @@ class LoginScreen extends ConsumerWidget {
       context.go(AppRoute.home);
     }
 
+    Future<void> logInWithKakao() async {
+      // 로그인하면 로그인 상태가 바뀌어 라우터가 이 화면을 치울 수 있으므로,
+      // 이동은 미리 잡아 둔 라우터로 합니다.
+      final router = GoRouter.of(context);
+      final step = await ref.read(loginProvider.notifier).logInWithKakao();
+      if (step == null) return;
+      router.go(switch (step) {
+        SocialLoginStep.terms => AppRoute.socialTerms,
+        SocialLoginStep.onboarding => AppRoute.onboarding,
+        SocialLoginStep.home => AppRoute.home,
+      });
+    }
+
     void showComingSoon() {
-      // TODO: 간편 로그인 SDK를 붙이면 연결합니다.
+      // TODO: 구글 로그인 SDK를 붙이면 연결합니다.
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text(AuthStrings.comingSoon)));
     }
@@ -57,7 +71,7 @@ class LoginScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.buttonGap),
         SocialLoginButton(
           provider: SocialLoginProvider.kakao,
-          onPressed: showComingSoon,
+          onPressed: () => unawaited(logInWithKakao()),
         ),
         const SizedBox(height: AppSpacing.buttonGap),
         SocialLoginButton(

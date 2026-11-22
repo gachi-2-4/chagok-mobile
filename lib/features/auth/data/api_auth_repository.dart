@@ -6,6 +6,9 @@ import 'package:chagok_mobile/core/network/token_storage.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/kakao_login_client.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
+import 'package:chagok_mobile/features/auth/data/social_login_result.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 
 /// 차곡 API 서버의 AUTH API로 계정 요청을 처리하는 [AuthRepository].
@@ -14,13 +17,18 @@ import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 /// 서버 에러는 [AuthFailure]로 바꿔 [AuthException]으로 던집니다. 이유를 알 수 없는
 /// 에러는 [AuthFailure.unknown]입니다.
 class ApiAuthRepository implements AuthRepository {
-  ApiAuthRepository({required this._client, required this._tokenStorage});
+  ApiAuthRepository({
+    required this._client,
+    required this._tokenStorage,
+    required this._kakaoLoginClient,
+  });
 
   final ApiClient _client;
   final TokenStorage _tokenStorage;
+  final KakaoLoginClient _kakaoLoginClient;
 
   @override
-  Future<void> sendVerificationCode(
+  Future<SentVerificationCode> sendVerificationCode(
     String phoneNumber, {
     required VerificationPurpose purpose,
   }) {
@@ -29,13 +37,14 @@ class ApiAuthRepository implements AuthRepository {
       VerificationPurpose.signUp => '/auth/phone/verifications',
       VerificationPurpose.passwordReset => '/auth/password/reset-requests',
     };
-    return _guard(
-      () => _client.post(
+    return _guard(() async {
+      final json = await _client.post(
         path,
         body: {'phoneNumber': phoneNumber},
         isAuthenticated: false,
-      ),
-    );
+      );
+      return SentVerificationCode.fromJson(json);
+    });
   }
 
   @override
@@ -79,15 +88,7 @@ class ApiAuthRepository implements AuthRepository {
           'birthDate': birthDate,
           'password': password,
           'verificationToken': verificationToken,
-          'consents': {
-            // 가입 화면(A03)은 필수 약관에 모두 동의해야 이 요청을 보냅니다.
-            'termsOfService': true,
-            'privacyPolicy': true,
-            // 보호자 동의·국외 이전은 A03 디자인에 아직 없어 false로 기록합니다.
-            'guardianConsent': false,
-            'overseasTransfer': false,
-            'marketing': agreedToMarketing,
-          },
+          'consents': _consents(agreedToMarketing: agreedToMarketing),
         },
         isAuthenticated: false,
       );
@@ -120,6 +121,39 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<SocialLoginResult?> logInWithKakao({
+    required bool keepSignedIn,
+  }) async {
+    final kakaoAccessToken = await _kakaoLoginClient.logIn();
+    if (kakaoAccessToken == null) return null;
+    try {
+      final json = await _client.post(
+        '/auth/kakao',
+        body: {'kakaoAccessToken': kakaoAccessToken, 'autoLogin': keepSignedIn},
+        isAuthenticated: false,
+      );
+      final result = SocialLoginResult.fromJson(json);
+      await _tokenStorage.save(
+        AuthTokens.fromJson(json),
+        remember: keepSignedIn,
+      );
+      return result;
+    } on ApiException catch (error) {
+      throw AuthException(_socialFailureOf(error));
+    }
+  }
+
+  @override
+  Future<void> agreeToTerms({required bool agreedToMarketing}) {
+    return _guard(
+      () => _client.post(
+        '/user/me/consents',
+        body: _consents(agreedToMarketing: agreedToMarketing),
+      ),
+    );
+  }
+
+  @override
   Future<void> resetPassword({
     required String phoneNumber,
     required String newPassword,
@@ -139,13 +173,32 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   /// [request]가 서버 에러로 실패하면 [AuthException]으로 바꿔 던집니다.
-  Future<void> _guard(Future<void> Function() request) async {
+  Future<T> _guard<T>(Future<T> Function() request) async {
     try {
-      await request();
+      return await request();
     } on ApiException catch (error) {
       throw AuthException(_failureOf(error));
     }
   }
+
+  /// 약관 동의 내용. 가입과 간편 로그인 뒤 동의 기록에 함께 씁니다.
+  JsonMap _consents({required bool agreedToMarketing}) => {
+    // 약관 동의 화면(A03)은 필수 약관에 모두 동의해야 이 요청을 보냅니다.
+    'termsOfService': true,
+    'privacyPolicy': true,
+    // 보호자 동의·국외 이전은 A03 디자인에 아직 없어 false로 기록합니다.
+    'guardianConsent': false,
+    'overseasTransfer': false,
+    'marketing': agreedToMarketing,
+  };
+
+  /// 간편 로그인 실패 이유. 같은 코드라도 안내가 달라 따로 바꿉니다.
+  AuthFailure _socialFailureOf(ApiException error) => switch (error.code) {
+    'INVALID_KAKAO_TOKEN' => AuthFailure.socialTokenInvalid,
+    'PHONE_ALREADY_EXISTS' => AuthFailure.phoneAccountExists,
+    'KAKAO_API_ERROR' => AuthFailure.socialServiceUnavailable,
+    _ => _failureOf(error),
+  };
 
   String _purposeCode(VerificationPurpose purpose) => switch (purpose) {
     VerificationPurpose.signUp => 'SIGNUP',

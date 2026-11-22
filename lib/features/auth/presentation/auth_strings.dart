@@ -24,6 +24,10 @@ abstract final class AuthStrings {
     AuthFailure.notVerified => '인증이 끝났거나 만료됐어요. 인증번호를 다시 받아 주세요.',
     AuthFailure.codeMismatch => '인증번호가 맞지 않아요.',
     AuthFailure.invalidInput => '입력한 정보를 다시 확인해 주세요.',
+    AuthFailure.socialTokenInvalid => '카카오 로그인이 만료됐어요. 다시 시도해 주세요.',
+    AuthFailure.phoneAccountExists => '이 전화번호로 가입한 계정이 있어요. 전화번호로 로그인해 주세요.',
+    AuthFailure.socialServiceUnavailable =>
+      '카카오 서버와 연결하지 못했어요. 잠시 후 다시 시도해 주세요.',
     AuthFailure.unknown => '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.',
   };
 
@@ -48,6 +52,7 @@ abstract final class AuthStrings {
       '$maskedPhoneNumber으로 보낸 인증번호 6자리를 입력해 주세요.';
   static const remainingTime = '남은 시간';
   static const resendCode = '인증번호 다시 받기';
+  static String resendCodeIn(int seconds) => '인증번호 다시 받기 ($seconds초)';
   static const codeResent = '인증번호를 다시 보냈어요.';
   static const codeExpired = '인증번호가 만료됐어요. 다시 받아 주세요.';
   static const noCodeReceived = '문자가 오지 않았나요? 스팸함을 확인하거나 인증번호를 다시 받아 주세요.';

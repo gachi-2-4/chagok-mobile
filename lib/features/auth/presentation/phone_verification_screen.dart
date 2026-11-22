@@ -13,6 +13,7 @@ import 'package:chagok_mobile/features/auth/application/password_reset_notifier.
 import 'package:chagok_mobile/features/auth/application/phone_verification_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_state.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:chagok_mobile/features/auth/presentation/auth_strings.dart';
 import 'package:chagok_mobile/features/auth/presentation/widgets/auth_form_layout.dart';
@@ -32,17 +33,21 @@ class PhoneVerificationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 입력창의 지금 번호가 아니라 실제로 인증번호를 보낸 번호로 인증합니다.
-    final phoneNumber =
-        switch (purpose) {
-          VerificationPurpose.signUp => ref.watch(
-            signUpProvider.select((form) => form.codeSentTo),
-          ),
-          VerificationPurpose.passwordReset => ref.watch(
-            passwordResetProvider.select((form) => form.codeSentTo),
-          ),
-        } ??
-        '';
-    final target = (phoneNumber: phoneNumber, purpose: purpose);
+    final (phoneNumber, sentCode) = switch (purpose) {
+      VerificationPurpose.signUp => ref.watch(
+        signUpProvider.select((form) => (form.codeSentTo, form.sentCode)),
+      ),
+      VerificationPurpose.passwordReset => ref.watch(
+        passwordResetProvider.select(
+          (form) => (form.codeSentTo, form.sentCode),
+        ),
+      ),
+    };
+    final target = (
+      phoneNumber: phoneNumber ?? '',
+      purpose: purpose,
+      sentCode: sentCode ?? const SentVerificationCode(),
+    );
     final provider = phoneVerificationProvider(target);
     final verification = ref.watch(provider);
 
@@ -66,20 +71,13 @@ class PhoneVerificationScreen extends ConsumerWidget {
         AppPageHeader(
           title: AuthStrings.verificationTitle,
           description: AuthStrings.verificationDescription(
-            AuthValidators.maskPhoneNumber(phoneNumber),
+            AuthValidators.maskPhoneNumber(target.phoneNumber),
           ),
         ),
         const SizedBox(height: AppSpacing.sectionGapLarge),
         _CodeInput(target: target, verification: verification),
         const SizedBox(height: AppSpacing.sectionGapLarge),
-        switch (purpose) {
-          VerificationPurpose.signUp => const FormMessage(
-            text: AuthStrings.noCodeReceived,
-          ),
-          VerificationPurpose.passwordReset => const AppBanner.neutral(
-            child: Text(AuthStrings.passwordResetCodeSent),
-          ),
-        },
+        _CodeSentNotice(purpose: purpose),
       ],
       actions: [
         AppButton.primary(
@@ -127,10 +125,8 @@ class _CodeInput extends ConsumerWidget {
         const SizedBox(height: AppSpacing.md),
         _TimerRow(
           remainingSeconds: verification.remainingSeconds,
-          // 확인하는 중에 다시 받으면 확인 결과가 새 인증번호 상태를 덮으므로 막습니다.
-          onResend: verification.isSubmitting
-              ? null
-              : () => unawaited(resend()),
+          resendRemainingSeconds: verification.resendRemainingSeconds,
+          onResend: verification.canResend ? () => unawaited(resend()) : null,
         ),
         if (message != null) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -141,11 +137,37 @@ class _CodeInput extends ConsumerWidget {
   }
 }
 
+/// 인증번호를 보낸 뒤 목적에 맞게 보여 주는 안내.
+class _CodeSentNotice extends StatelessWidget {
+  const _CodeSentNotice({required this.purpose});
+
+  final VerificationPurpose purpose;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (purpose) {
+      VerificationPurpose.signUp => const FormMessage(
+        text: AuthStrings.noCodeReceived,
+      ),
+      VerificationPurpose.passwordReset => const AppBanner.neutral(
+        child: Text(AuthStrings.passwordResetCodeSent),
+      ),
+    };
+  }
+}
+
 /// "남은 시간 02:59" 와 "인증번호 다시 받기" 한 줄.
 class _TimerRow extends StatelessWidget {
-  const _TimerRow({required this.remainingSeconds, required this.onResend});
+  const _TimerRow({
+    required this.remainingSeconds,
+    required this.resendRemainingSeconds,
+    required this.onResend,
+  });
 
   final int remainingSeconds;
+
+  /// 다시 받을 수 있기까지 남은 시간(초). 남았으면 버튼에 함께 보여 줍니다.
+  final int resendRemainingSeconds;
 
   /// "다시 받기"를 눌렀을 때. null이면 버튼을 끕니다.
   final VoidCallback? onResend;
@@ -175,7 +197,11 @@ class _TimerRow extends StatelessWidget {
             minimumSize: const Size(0, kMinInteractiveDimension),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Text(AuthStrings.resendCode),
+          child: Text(
+            resendRemainingSeconds > 0
+                ? AuthStrings.resendCodeIn(resendRemainingSeconds)
+                : AuthStrings.resendCode,
+          ),
         ),
       ],
     );

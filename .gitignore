@@ -51,3 +51,6 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+
+# .env에서 만드는 iOS 빌드 설정 (ios/scripts/write_env_xcconfig.sh)
+ios/Flutter/Env.xcconfig

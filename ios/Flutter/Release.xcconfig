@@ -1,1 +1,3 @@
 #include "Generated.xcconfig"
+// .env에서 꺼낸 값(카카오 앱 키). ios/scripts/write_env_xcconfig.sh가 빌드 전에 만듭니다.
+#include? "Env.xcconfig"

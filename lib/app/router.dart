@@ -6,6 +6,7 @@ import 'package:chagok_mobile/features/archive/presentation/box_detail_screen.da
 import 'package:chagok_mobile/features/archive/presentation/document_overview_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/document_search_screen.dart';
 import 'package:chagok_mobile/features/archive/presentation/document_tab.dart';
+import 'package:chagok_mobile/features/auth/application/login_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/password_reset_notifier.dart';
 import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
@@ -14,6 +15,7 @@ import 'package:chagok_mobile/features/auth/presentation/login_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/phone_verification_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/reset_password_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/sign_up_screen.dart';
+import 'package:chagok_mobile/features/auth/presentation/social_terms_screen.dart';
 import 'package:chagok_mobile/features/auth/presentation/terms_agreement_screen.dart';
 import 'package:chagok_mobile/features/calendar/presentation/calendar_screen.dart';
 import 'package:chagok_mobile/features/chat/presentation/chat_attach_screen.dart';
@@ -89,6 +91,9 @@ abstract final class AppRoute {
   static const signUp = '/sign-up';
   static const signUpVerification = '/sign-up/verification';
   static const signUpTerms = '/sign-up/terms';
+
+  /// 간편 로그인으로 처음 들어온 사용자의 약관 동의(A03). 로그인한 뒤에 엽니다.
+  static const socialTerms = '/terms';
 
   // 로그인 (L01~L04)
   static const login = '/login';
@@ -259,6 +264,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// - 확인 중: 시작 화면에서 기다립니다. 가려던 곳은 `from`에 담아 두었다가 이어 갑니다.
 /// - 로그아웃: 로그인·가입·비밀번호 찾기 화면만 열 수 있습니다.
 /// - 로그인: 시작·로그인 화면에 머물지 않고 가려던 곳(없으면 홈)으로 갑니다.
+///   다만 로그인 화면이 요청을 마무리하는 중이면 그대로 두고, 화면이 직접 이동합니다.
+///   간편 로그인은 결과(약관 동의·설문 필요 여부)에 따라 갈 곳이 달라서입니다.
 String? _sessionRedirect(Ref ref, Uri uri) {
   if (!ref.read(requiresLoginProvider)) {
     return uri.path == AppRoute.splash ? AppRoute.home : null;
@@ -276,7 +283,8 @@ String? _sessionRedirect(Ref ref, Uri uri) {
       _signedOutPaths.contains(path) ? null : AppRoute.login,
     SessionStatus.signedIn => switch (path) {
       AppRoute.splash => _safeFrom(uri.queryParameters[_fromKey]),
-      AppRoute.login => AppRoute.home,
+      AppRoute.login =>
+        ref.read(loginProvider).isSubmitting ? null : AppRoute.home,
       _ => null,
     },
   };
@@ -345,6 +353,10 @@ List<RouteBase> _authRoutes(Ref ref) => [
   GoRoute(
     path: AppRoute.login,
     builder: (context, state) => const LoginScreen(),
+  ),
+  GoRoute(
+    path: AppRoute.socialTerms,
+    builder: (context, state) => const SocialTermsScreen(),
   ),
   GoRoute(
     path: AppRoute.forgotPassword,

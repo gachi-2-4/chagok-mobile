@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
+import 'package:chagok_mobile/features/auth/data/social_login_result.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 
 /// 백엔드가 정해지기 전까지 화면 흐름을 확인하려고 쓰는 메모리 저장소.
@@ -25,11 +27,12 @@ class InMemoryAuthRepository implements AuthRepository {
   static final _sixDigits = RegExp(r'^\d{6}$');
 
   @override
-  Future<void> sendVerificationCode(
+  Future<SentVerificationCode> sendVerificationCode(
     String phoneNumber, {
     required VerificationPurpose purpose,
   }) async {
     _codeSentTo.add((phoneNumber, purpose));
+    return const SentVerificationCode();
   }
 
   @override
@@ -78,6 +81,15 @@ class InMemoryAuthRepository implements AuthRepository {
       throw const AuthException(AuthFailure.wrongCredentials);
     }
   }
+
+  /// 카카오 SDK 없이, 약관 동의와 설문을 마친 기존 사용자로 로그인한 것으로 봅니다.
+  @override
+  Future<SocialLoginResult?> logInWithKakao({
+    required bool keepSignedIn,
+  }) async => const SocialLoginResult();
+
+  @override
+  Future<void> agreeToTerms({required bool agreedToMarketing}) async {}
 
   @override
   Future<void> resetPassword({

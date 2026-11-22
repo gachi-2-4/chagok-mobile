@@ -28,5 +28,29 @@ void main() {
 
       expect(state.canVerify, isFalse);
     });
+
+    test('다시 받기 대기 시간이 남았으면 다시 받을 수 없다', () {
+      const state = PhoneVerificationState(
+        remainingSeconds: 10,
+        resendRemainingSeconds: 1,
+      );
+
+      expect(state.canResend, isFalse);
+    });
+
+    test('다시 받기 대기 시간이 지났으면 다시 받을 수 있다', () {
+      const state = PhoneVerificationState(remainingSeconds: 10);
+
+      expect(state.canResend, isTrue);
+    });
+
+    test('확인하는 중이면 다시 받을 수 없다', () {
+      const state = PhoneVerificationState(
+        remainingSeconds: 10,
+        isSubmitting: true,
+      );
+
+      expect(state.canResend, isFalse);
+    });
   });
 }

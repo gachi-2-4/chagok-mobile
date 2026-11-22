@@ -20,7 +20,7 @@ class LoginForm {
   /// 자동 로그인 여부.
   final bool keepSignedIn;
 
-  /// 로그인 요청을 보내는 중이면 true.
+  /// 로그인(간편 로그인 포함) 요청을 보내는 중이면 true.
   final bool isSubmitting;
 
   /// 마지막 로그인이 실패한 이유. 화면에서 이유에 맞는 안내를 보여 줍니다.

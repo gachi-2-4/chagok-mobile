@@ -7,6 +7,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// 카카오 네이티브 앱 키는 저장소 루트 .env에서 읽어 매니페스트의 URL 스킴에 넣습니다.
+// 키를 git에 올리지 않기 위해서입니다. .env 형식은 앱이 읽는 것과 같은 KEY=VALUE입니다.
+val appEnv: Map<String, String> =
+    rootProject.file("../.env").takeIf { it.exists() }?.readLines().orEmpty()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+        .associate { it.substringBefore("=").trim() to it.substringAfter("=").trim() }
+
 android {
     namespace = "com.chagok.app"
     compileSdk = flutter.compileSdkVersion
@@ -30,6 +38,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["kakaoNativeAppKey"] = appEnv["KAKAO_NATIVE_APP_KEY"].orEmpty()
     }
 
     buildTypes {

@@ -148,6 +148,12 @@ class TodoListNotifier extends AsyncNotifier<List<Todo>> {
     - release 빌드에서는 이 값을 넘겨도 HTTP를 쓰지 않습니다. 플랫폼 설정도 같습니다. Android는 debug·profile 매니페스트에서만 HTTP를 허용하고, iOS는 `Info.plist` ATS 예외로 `amazonaws.com`만 허용합니다.
     - 서버에 HTTPS가 생기면 이 예외(ATS 예외, debug·profile 매니페스트의 `usesCleartextTraffic`)를 지웁니다.
   - 서버 주소는 코드·커밋에 적지 않습니다.
+- 카카오 로그인은 [kakao_flutter_sdk_user](https://pub.dev/packages/kakao_flutter_sdk_user)로 카카오 액세스 토큰을 받아 `POST /auth/kakao`로 보냅니다.
+  - SDK는 data 계층의 `KakaoLoginClient`(`SdkKakaoLoginClient`) 안에 숨기고, `ApiAuthRepository.logInWithKakao`만 씁니다. 테스트는 `FakeKakaoLoginClient`로 바꿉니다.
+  - 네이티브 앱 키는 `.env`의 `KAKAO_NATIVE_APP_KEY`에 둡니다. 앱은 `main`에서 이 값으로 SDK를 준비합니다.
+  - 카카오 로그인 뒤 돌아올 URL 스킴(`kakao{앱 키}`)도 빌드할 때 `.env`에서 넣습니다. Android는 `android/app/build.gradle.kts`가 `.env`를 읽어 매니페스트에 넣고, iOS는 Runner 스킴의 빌드 pre-action(`ios/scripts/write_env_xcconfig.sh`)이 `ios/Flutter/Env.xcconfig`를 만들어 `Info.plist`에 넣습니다.
+  - 처음 들어온 사용자는 서버 응답(`consentRequired`·`onboardingCompleted`)에 따라 약관 동의(`AppRoute.socialTerms`) → 첫 설문 → 홈 순서로 갑니다. 약관 동의는 `POST /user/me/consents`로 기록합니다.
+  - 로그인하면 로그인 상태가 바뀌어 라우터가 로그인 화면을 홈으로 보내려 하므로, 로그인 화면이 요청 중(`LoginForm.isSubmitting`)일 때는 redirect가 기다리고 화면이 직접 이동합니다.
 - 로그인 토큰은 `TokenStorage`(`tokenStorageProvider`)에 둡니다.
   - 서버를 쓰면 기기 보안 저장소(`SecureTokenStorage`, [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage))에 두어 앱을 다시 열어도 로그인이 유지됩니다. 로그인할 때 "자동 로그인"을 끄면 메모리에만 둡니다.
   - 토큰을 저장·삭제하면 로그인 상태(`sessionProvider`)가 바뀌고, 라우터의 최상위 `redirect`가 시작 화면(확인 중) · 로그인 화면(로그아웃) · 가려던 화면(로그인)으로 보냅니다. 로그아웃·탈퇴·재발급 실패도 같은 길로 로그인 화면에 갑니다.

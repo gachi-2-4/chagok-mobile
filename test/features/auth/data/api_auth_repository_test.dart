@@ -2,11 +2,14 @@ import 'package:chagok_mobile/core/network/secure_token_storage.dart';
 import 'package:chagok_mobile/features/auth/data/api_auth_repository.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
+import 'package:chagok_mobile/features/auth/data/social_login_result.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/fake_api_server.dart';
+import '../../../helpers/fake_kakao_login_client.dart';
 
 void main() {
   const phoneNumber = '01012345678';
@@ -18,13 +21,16 @@ void main() {
   };
 
   late FakeApiServer server;
+  late FakeKakaoLoginClient kakao;
   late ApiAuthRepository repository;
 
   setUp(() {
     server = FakeApiServer();
+    kakao = FakeKakaoLoginClient();
     repository = ApiAuthRepository(
       client: server.client,
       tokenStorage: server.tokenStorage,
+      kakaoLoginClient: kakao,
     );
   });
 
@@ -34,7 +40,12 @@ void main() {
 
   group('ApiAuthRepository.sendVerificationCode', () {
     test('회원가입 목적이면 인증번호 발송 API로 보낸다', () async {
-      server.onJson('POST', '/auth/phone/verifications', {'expiresIn': 180});
+      server.onJson('POST', '/auth/phone/verifications', {
+        'phoneNumber': phoneNumber,
+        'expiresIn': 180,
+        'resendAvailableIn': 60,
+        'code': '482913',
+      });
 
       await repository.sendVerificationCode(
         phoneNumber,
@@ -44,6 +55,29 @@ void main() {
       expect(server.lastBody('POST', '/auth/phone/verifications'), {
         'phoneNumber': phoneNumber,
       });
+    });
+
+    test('보내면 유효 시간·다시 받기 대기 시간·인증번호를 돌려준다', () async {
+      server.onJson('POST', '/auth/phone/verifications', {
+        'phoneNumber': phoneNumber,
+        'expiresIn': 300,
+        'resendAvailableIn': 60,
+        'code': '482913',
+      });
+
+      final sent = await repository.sendVerificationCode(
+        phoneNumber,
+        purpose: VerificationPurpose.signUp,
+      );
+
+      expect(
+        sent,
+        const SentVerificationCode(
+          expiresIn: 300,
+          resendAvailableIn: 60,
+          code: '482913',
+        ),
+      );
     });
 
     test('비밀번호 재설정 목적이면 재설정 요청 API로 보낸다', () async {
@@ -198,6 +232,7 @@ void main() {
           final deviceRepository = ApiAuthRepository(
             client: server.client,
             tokenStorage: SecureTokenStorage(),
+            kakaoLoginClient: kakao,
           );
 
           await deviceRepository.logIn(
@@ -258,6 +293,83 @@ void main() {
       );
 
       await expectLater(request, throwsFailure(AuthFailure.unknown));
+    });
+  });
+
+  group('ApiAuthRepository.logInWithKakao', () {
+    const kakaoResponse = {
+      ...tokens,
+      'isNewUser': true,
+      'consentRequired': true,
+      'guardianConsentRequired': false,
+      'missingFields': ['birthDate'],
+    };
+
+    test('로그인하면 카카오 토큰과 자동 로그인 여부를 서버에 보낸다', () async {
+      server.onJson('POST', '/auth/kakao', kakaoResponse);
+
+      await repository.logInWithKakao(keepSignedIn: false);
+
+      expect(server.lastBody('POST', '/auth/kakao'), {
+        'kakaoAccessToken': 'kakao-token',
+        'autoLogin': false,
+      });
+    });
+
+    test('로그인하면 받은 토큰을 저장하고 결과를 돌려준다', () async {
+      server.onJson('POST', '/auth/kakao', kakaoResponse);
+
+      final result = await repository.logInWithKakao(keepSignedIn: true);
+
+      expect(
+        result,
+        const SocialLoginResult(
+          isNewUser: true,
+          isConsentRequired: true,
+          missingFields: {'birthDate'},
+          isOnboardingCompleted: false,
+        ),
+      );
+      expect((await server.tokenStorage.read())?.accessToken, 'access-new');
+    });
+
+    test('카카오 로그인을 취소하면 서버에 보내지 않고 null을 돌려준다', () async {
+      kakao.accessToken = null;
+
+      final result = await repository.logInWithKakao(keepSignedIn: true);
+
+      expect(result, isNull);
+      expect(server.requestsTo('POST', '/auth/kakao'), isEmpty);
+    });
+
+    for (final (code, status, failure) in [
+      ('INVALID_KAKAO_TOKEN', 401, AuthFailure.socialTokenInvalid),
+      ('PHONE_ALREADY_EXISTS', 409, AuthFailure.phoneAccountExists),
+      ('KAKAO_API_ERROR', 502, AuthFailure.socialServiceUnavailable),
+    ]) {
+      test('서버가 $code를 주면 ${failure.name}으로 던진다', () async {
+        server.on('POST', '/auth/kakao', (_) => errorResponse(status, code));
+
+        final request = repository.logInWithKakao(keepSignedIn: true);
+
+        await expectLater(request, throwsFailure(failure));
+      });
+    }
+  });
+
+  group('ApiAuthRepository.agreeToTerms', () {
+    test('동의하면 필수 약관과 마케팅 동의 여부를 기록한다', () async {
+      server.onJson('POST', '/user/me/consents', {});
+
+      await repository.agreeToTerms(agreedToMarketing: true);
+
+      expect(server.lastBody('POST', '/user/me/consents'), {
+        'termsOfService': true,
+        'privacyPolicy': true,
+        'guardianConsent': false,
+        'overseasTransfer': false,
+        'marketing': true,
+      });
     });
   });
 

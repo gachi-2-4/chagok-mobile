@@ -18,6 +18,15 @@ enum AuthFailure {
   /// 보낸 값(전화번호 형식 등)이 서버 입력 규칙에 맞지 않음.
   invalidInput,
 
+  /// 간편 로그인으로 받은 카카오 토큰이 만료됐거나 맞지 않음.
+  socialTokenInvalid,
+
+  /// 간편 로그인 계정의 전화번호로 이미 전화번호 계정이 있음. 자동으로 합치지 않습니다.
+  phoneAccountExists,
+
+  /// 카카오 서버와 연결하지 못함.
+  socialServiceUnavailable,
+
   /// 네트워크 오류 등 그 밖의 이유.
   unknown,
 }

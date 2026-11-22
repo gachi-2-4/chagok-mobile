@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/application/sign_up_notifier.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 import 'package:chagok_mobile/features/auth/data/term.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,6 +91,16 @@ void main() {
       await notifier().requestVerificationCode();
 
       expect(container.read(signUpProvider).codeSentTo, '01066453576');
+    });
+
+    test('인증번호를 요청하면 보낸 결과를 남긴다', () async {
+      const sent = SentVerificationCode(resendAvailableIn: 60, code: '482913');
+      repository.sentResult = sent;
+      fillValidForm();
+
+      await notifier().requestVerificationCode();
+
+      expect(container.read(signUpProvider).sentCode, sent);
     });
 
     test('인증번호를 요청하는 중에 전화번호를 바꾸면 요청한 번호를 인증할 번호로 남긴다', () async {

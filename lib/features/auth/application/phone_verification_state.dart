@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 class PhoneVerificationState {
   const PhoneVerificationState({
     required this.remainingSeconds,
+    this.resendRemainingSeconds = 0,
     this.code = '',
     this.isSubmitting = false,
     this.failure,
@@ -18,6 +19,9 @@ class PhoneVerificationState {
   /// 인증번호가 만료되기까지 남은 시간(초).
   final int remainingSeconds;
 
+  /// 인증번호를 다시 받을 수 있기까지 남은 시간(초).
+  final int resendRemainingSeconds;
+
   /// 인증번호를 확인하는 중이면 true.
   final bool isSubmitting;
 
@@ -26,6 +30,11 @@ class PhoneVerificationState {
 
   /// 남은 시간이 다 지났으면 true.
   bool get isExpired => remainingSeconds <= 0;
+
+  /// 다시 받기 대기 시간이 지났고 확인하는 중이 아니면 true.
+  ///
+  /// 확인하는 중에 다시 받으면 확인 결과가 새 인증번호 상태를 덮으므로 막습니다.
+  bool get canResend => resendRemainingSeconds <= 0 && !isSubmitting;
 
   /// 인증번호를 다 입력했고 아직 만료되지 않았으면 true.
   bool get canVerify =>
@@ -38,12 +47,15 @@ class PhoneVerificationState {
   PhoneVerificationState copyWith({
     String? code,
     int? remainingSeconds,
+    int? resendRemainingSeconds,
     bool? isSubmitting,
     AuthFailure? Function()? failure,
   }) {
     return PhoneVerificationState(
       code: code ?? this.code,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
+      resendRemainingSeconds:
+          resendRemainingSeconds ?? this.resendRemainingSeconds,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       failure: failure == null ? this.failure : failure(),
     );

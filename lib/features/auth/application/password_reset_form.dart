@@ -1,5 +1,6 @@
 import 'package:chagok_mobile/features/auth/application/auth_validators.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 
 /// 비밀번호 찾기 화면(L02~L04)에서 입력한 값과 진행 상태.
 class PasswordResetForm {
@@ -8,6 +9,7 @@ class PasswordResetForm {
     this.newPassword = '',
     this.newPasswordConfirm = '',
     this.codeSentTo,
+    this.sentCode,
     this.verificationToken,
     this.isSubmitting = false,
     this.failure,
@@ -24,6 +26,11 @@ class PasswordResetForm {
 
   /// 인증번호를 보낸 번호(숫자만). 요청하는 사이 입력을 바꿔도 이 번호로 인증합니다.
   final String? codeSentTo;
+
+  /// [codeSentTo]로 인증번호를 보낸 결과.
+  ///
+  /// 인증 화면의 남은 시간과 다시 받기 대기 시간을 정합니다.
+  final SentVerificationCode? sentCode;
 
   /// 인증번호를 확인하고 받은 증명 값. 계정 요청에 함께 넘깁니다.
   final String? verificationToken;
@@ -68,6 +75,7 @@ class PasswordResetForm {
     String? newPassword,
     String? newPasswordConfirm,
     String? Function()? codeSentTo,
+    SentVerificationCode? sentCode,
     String? Function()? verificationToken,
     bool? isSubmitting,
     AuthFailure? Function()? failure,
@@ -77,6 +85,7 @@ class PasswordResetForm {
       newPassword: newPassword ?? this.newPassword,
       newPasswordConfirm: newPasswordConfirm ?? this.newPasswordConfirm,
       codeSentTo: codeSentTo == null ? this.codeSentTo : codeSentTo(),
+      sentCode: sentCode ?? this.sentCode,
       verificationToken: verificationToken == null
           ? this.verificationToken
           : verificationToken(),

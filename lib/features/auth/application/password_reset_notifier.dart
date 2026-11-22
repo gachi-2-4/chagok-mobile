@@ -3,6 +3,7 @@ import 'package:chagok_mobile/features/auth/application/password_reset_form.dart
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,22 +45,24 @@ class PasswordResetNotifier extends Notifier<PasswordResetForm> {
 
   /// 입력한 전화번호로 인증번호를 보냅니다. 보냈으면 true.
   ///
-  /// 보낸 번호를 [PasswordResetForm.codeSentTo]에 남겨, 요청하는 사이 입력이 바뀌어도
-  /// 인증 화면은 실제로 보낸 번호로 인증합니다. 앞선 인증은 버립니다.
+  /// 보낸 번호와 결과를 [PasswordResetForm.codeSentTo]·[PasswordResetForm.sentCode]에 남겨,
+  /// 요청하는 사이 입력이 바뀌어도 인증 화면은 실제로 보낸 번호로 인증합니다.
+  /// 앞선 인증은 버립니다.
   Future<bool> requestVerificationCode() async {
     if (!state.canRequestCode) return false;
     final phoneNumber = state.normalizedPhoneNumber;
     state = state.copyWith(verificationToken: () => null);
-    final isSent = await _run(
-      () => ref
+    SentVerificationCode? sentCode;
+    final isSent = await _run(() async {
+      sentCode = await ref
           .read(authRepositoryProvider)
           .sendVerificationCode(
             phoneNumber,
             purpose: VerificationPurpose.passwordReset,
-          ),
-    );
+          );
+    });
     if (isSent && ref.mounted) {
-      state = state.copyWith(codeSentTo: () => phoneNumber);
+      state = state.copyWith(codeSentTo: () => phoneNumber, sentCode: sentCode);
     }
     return isSent;
   }

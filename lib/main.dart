@@ -1,6 +1,7 @@
 import 'package:chagok_mobile/app/app.dart';
 import 'package:chagok_mobile/app/font_licenses.dart';
 import 'package:chagok_mobile/core/network/api_config.dart';
+import 'package:chagok_mobile/features/auth/data/sdk_kakao_login_client.dart';
 import 'package:chagok_mobile/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ Future<void> main() async {
   registerFontLicenses();
   await _initializeFirebase();
   final appEnv = await loadAppEnv();
+  await initializeKakaoSdk(appEnv['KAKAO_NATIVE_APP_KEY']?.trim() ?? '');
   runApp(
     ProviderScope(
       overrides: [appEnvProvider.overrideWithValue(appEnv)],

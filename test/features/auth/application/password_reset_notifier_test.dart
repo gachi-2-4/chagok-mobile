@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/application/password_reset_notifier.
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,6 +90,16 @@ void main() {
       expect(container.read(passwordResetProvider).canReset, isFalse);
       expect(isReset, isFalse);
       expect(repository.resets, isEmpty);
+    });
+
+    test('인증번호를 요청하면 보낸 결과를 남긴다', () async {
+      const sent = SentVerificationCode(expiresIn: 300);
+      repository.sentResult = sent;
+      notifier().updatePhoneNumber('010-1111-1111');
+
+      await notifier().requestVerificationCode();
+
+      expect(container.read(passwordResetProvider).sentCode, sent);
     });
 
     test('인증번호를 요청하는 중에 전화번호를 바꾸면 요청한 번호를 인증할 번호로 남긴다', () async {

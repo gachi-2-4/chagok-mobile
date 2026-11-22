@@ -4,6 +4,7 @@ import 'package:chagok_mobile/features/auth/application/auth_clock.dart';
 import 'package:chagok_mobile/features/auth/application/phone_verification_notifier.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/sent_verification_code.dart';
 import 'package:chagok_mobile/features/auth/data/verification_purpose.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,7 @@ void main() {
   final provider = phoneVerificationProvider((
     phoneNumber: phoneNumber,
     purpose: VerificationPurpose.signUp,
+    sentCode: const SentVerificationCode(),
   ));
 
   late FakeAuthRepository repository;
@@ -51,8 +53,82 @@ void main() {
 
       expect(
         container.read(provider).remainingSeconds,
-        PhoneVerificationNotifier.codeLifetimeSeconds,
+        SentVerificationCode.defaultExpiresIn,
       );
+    });
+
+    test('보낸 결과에 유효 시간과 다시 받기 대기 시간이 있으면 그 시간으로 시작한다', () {
+      const target = (
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.signUp,
+        sentCode: SentVerificationCode(expiresIn: 120, resendAvailableIn: 60),
+      );
+      container.listen(phoneVerificationProvider(target), (_, _) {});
+
+      final state = container.read(phoneVerificationProvider(target));
+
+      expect(state.remainingSeconds, 120);
+      expect(state.resendRemainingSeconds, 60);
+      expect(state.canResend, isFalse);
+    });
+
+    test('보낸 결과에 인증번호가 있으면 입력칸에 미리 채운다', () {
+      const target = (
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.signUp,
+        sentCode: SentVerificationCode(code: '482913'),
+      );
+      container.listen(phoneVerificationProvider(target), (_, _) {});
+
+      final state = container.read(phoneVerificationProvider(target));
+
+      expect(state.code, '482913');
+      expect(state.canVerify, isTrue);
+    });
+
+    test('다시 받기 대기 시간이 남았으면 다시 보내지 않고 false를 돌려준다', () async {
+      final waitingProvider = phoneVerificationProvider((
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.signUp,
+        sentCode: const SentVerificationCode(resendAvailableIn: 60),
+      ));
+      container.listen(waitingProvider, (_, _) {});
+
+      final isSent = await container.read(waitingProvider.notifier).resend();
+
+      expect(isSent, isFalse);
+      expect(repository.sentCodes, isEmpty);
+    });
+
+    test('다시 받기 대기 시간이 지나면 다시 보낸다', () async {
+      final waitingProvider = phoneVerificationProvider((
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.signUp,
+        sentCode: const SentVerificationCode(resendAvailableIn: 60),
+      ));
+      container.listen(waitingProvider, (_, _) {});
+      now = now.add(const Duration(seconds: 60));
+
+      final isSent = await container.read(waitingProvider.notifier).resend();
+
+      expect(isSent, isTrue);
+      expect(repository.sentCodes, [phoneNumber]);
+    });
+
+    testWidgets('시간이 흐르면 다시 받기 대기 시간도 1초마다 줄어든다', (tester) async {
+      final waitingProvider = phoneVerificationProvider((
+        phoneNumber: phoneNumber,
+        purpose: VerificationPurpose.signUp,
+        sentCode: const SentVerificationCode(resendAvailableIn: 60),
+      ));
+      container.listen(waitingProvider, (_, _) {});
+
+      await elapse(tester, const Duration(seconds: 1));
+      expect(container.read(waitingProvider).resendRemainingSeconds, 59);
+
+      await elapse(tester, const Duration(seconds: 59));
+      expect(container.read(waitingProvider).canResend, isTrue);
+      disposeNow();
     });
 
     // testWidgets 안에서는 Timer가 가짜 시간으로 흐르므로 pump로 시간을 보냅니다.
@@ -163,6 +239,7 @@ void main() {
       final resetProvider = phoneVerificationProvider((
         phoneNumber: phoneNumber,
         purpose: VerificationPurpose.passwordReset,
+        sentCode: const SentVerificationCode(),
       ));
       container.listen(resetProvider, (_, _) {});
       final notifier = container.read(resetProvider.notifier);
@@ -207,11 +284,24 @@ void main() {
       final state = container.read(provider);
       expect(repository.sentCodes, [phoneNumber]);
       expect(state.code, isEmpty);
-      expect(
-        state.remainingSeconds,
-        PhoneVerificationNotifier.codeLifetimeSeconds,
-      );
+      expect(state.remainingSeconds, SentVerificationCode.defaultExpiresIn);
       disposeNow();
+    });
+
+    test('다시 받으면 서버가 준 유효 시간·대기 시간·인증번호로 다시 시작한다', () async {
+      keepAlive();
+      repository.sentResult = const SentVerificationCode(
+        expiresIn: 300,
+        resendAvailableIn: 60,
+        code: '482913',
+      );
+
+      await container.read(provider.notifier).resend();
+
+      final state = container.read(provider);
+      expect(state.remainingSeconds, 300);
+      expect(state.resendRemainingSeconds, 60);
+      expect(state.code, '482913');
     });
 
     test('인증번호를 확인하는 중이면 다시 받기를 하지 않는다', () async {

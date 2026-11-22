@@ -8,6 +8,8 @@ import 'package:chagok_mobile/core/network/in_memory_token_storage.dart';
 import 'package:chagok_mobile/core/network/session_notifier.dart';
 import 'package:chagok_mobile/core/network/token_storage.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/social_login_result.dart';
+import 'package:chagok_mobile/features/auth/presentation/social_terms_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,10 +84,13 @@ void main() {
       TokenStorage store, {
       bool requiresLogin = true,
       bool settles = true,
+      AuthRepository? repository,
     }) async {
       final container = ProviderContainer(
         overrides: [
-          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+          authRepositoryProvider.overrideWithValue(
+            repository ?? FakeAuthRepository(),
+          ),
           requiresLoginProvider.overrideWithValue(requiresLogin),
           tokenStoreProvider.overrideWithValue(store),
         ],
@@ -198,6 +203,28 @@ void main() {
       await closeApp(tester);
     });
 
+    testWidgets('카카오로 처음 로그인해 토큰을 저장하면 홈이 아니라 약관 동의로 간다', (tester) async {
+      final repository = _TokenSavingAuthRepository()
+        ..kakaoResult = const SocialLoginResult(
+          isNewUser: true,
+          isConsentRequired: true,
+          isOnboardingCompleted: false,
+        );
+      final (container, router) = await pumpGate(
+        tester,
+        InMemoryTokenStorage(),
+        repository: repository,
+      );
+      repository.tokenStorage = container.read(tokenStorageProvider);
+
+      await tester.tap(find.text('kakao 로그인'));
+      await tester.pumpAndSettle();
+
+      expect(pathOf(router), AppRoute.socialTerms);
+      expect(find.byType(SocialTermsScreen), findsOneWidget);
+      await closeApp(tester);
+    });
+
     testWidgets('로그아웃·재발급 실패로 토큰이 지워지면 로그인 화면으로 간다', (tester) async {
       final store = InMemoryTokenStorage();
       await store.save(tokens);
@@ -221,6 +248,24 @@ void main() {
       await closeApp(tester);
     });
   });
+}
+
+/// 실제 저장소처럼 카카오 로그인 중에 토큰을 저장하는 가짜 저장소.
+///
+/// 토큰을 저장하면 로그인 상태가 바뀌어 라우터가 다시 갈 곳을 정하므로,
+/// 그때 로그인 화면이 홈으로 밀려나지 않는지 보려고 씁니다.
+class _TokenSavingAuthRepository extends FakeAuthRepository {
+  TokenStorage? tokenStorage;
+
+  @override
+  Future<SocialLoginResult?> logInWithKakao({
+    required bool keepSignedIn,
+  }) async {
+    await tokenStorage?.save(
+      const AuthTokens(accessToken: 'access', refreshToken: 'refresh'),
+    );
+    return super.logInWithKakao(keepSignedIn: keepSignedIn);
+  }
 }
 
 /// [read]가 [gate]가 끝날 때까지 기다리는 저장소. 시작 화면을 확인하려고 씁니다.

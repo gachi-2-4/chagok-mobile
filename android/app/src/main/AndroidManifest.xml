@@ -32,6 +32,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- 카카오 계정 로그인을 마치고 앱으로 돌아오는 주소(kakao{네이티브 앱 키}://oauth). -->
+        <activity
+            android:name="com.kakao.sdk.flutter.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao${kakaoNativeAppKey}" />
+            </intent-filter>
+        </activity>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

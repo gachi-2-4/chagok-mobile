@@ -1,7 +1,9 @@
 import 'package:chagok_mobile/features/auth/application/login_notifier.dart';
+import 'package:chagok_mobile/features/auth/application/social_login_step.dart';
 import 'package:chagok_mobile/features/auth/data/auth_exception.dart';
 import 'package:chagok_mobile/features/auth/data/auth_failure.dart';
 import 'package:chagok_mobile/features/auth/data/auth_repository.dart';
+import 'package:chagok_mobile/features/auth/data/social_login_result.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -90,6 +92,40 @@ void main() {
       expect(isLoggedIn, isFalse);
       expect(form.failure, AuthFailure.unknown);
       expect(form.isSubmitting, isFalse);
+    });
+  });
+
+  group('LoginNotifier.logInWithKakao', () {
+    test('카카오로 로그인하면 자동 로그인 여부를 넘기고 다음 단계를 돌려준다', () async {
+      notifier().toggleKeepSignedIn();
+      repository.kakaoResult = const SocialLoginResult(isConsentRequired: true);
+
+      final step = await notifier().logInWithKakao();
+
+      expect(step, SocialLoginStep.terms);
+      expect(repository.kakaoLogIns, [false]);
+    });
+
+    test('카카오 로그인을 취소하면 실패 안내 없이 null을 돌려준다', () async {
+      repository.kakaoResult = null;
+
+      final step = await notifier().logInWithKakao();
+
+      expect(step, isNull);
+      expect(container.read(loginProvider).failure, isNull);
+      expect(container.read(loginProvider).isSubmitting, isFalse);
+    });
+
+    test('카카오 로그인이 실패하면 실패 이유를 상태에 담는다', () async {
+      repository.error = const AuthException(AuthFailure.phoneAccountExists);
+
+      final step = await notifier().logInWithKakao();
+
+      expect(step, isNull);
+      expect(
+        container.read(loginProvider).failure,
+        AuthFailure.phoneAccountExists,
+      );
     });
   });
 }
